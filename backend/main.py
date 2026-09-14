@@ -77,3 +77,6 @@ async def secure_endpoint(profile: dict = Depends(get_current_profile)):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+from routers.financial import router as financial_router
+app.include_router(financial_router, prefix="/api/v1")

@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/layout/Shell";
 import { ShieldAlert, FileText, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -11,12 +12,14 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <DashboardCard 
-            title="Start Claim Analysis" 
-            description="Upload policy and estimate to evaluate a new claim."
-            icon={<FileText className="w-6 h-6 text-blue-600" />}
-            color="bg-blue-50 border-blue-100"
-          />
+          <Link href="/decision">
+            <DashboardCard 
+              title="Start Claim Analysis" 
+              description="Upload policy and estimate to evaluate a new claim."
+              icon={<FileText className="w-6 h-6 text-blue-600" />}
+              color="bg-blue-50 border-blue-100"
+            />
+          </Link>
           <DashboardCard 
             title="Verify Vehicle History" 
             description="Check the trusted blockchain ledger for a vehicle."
