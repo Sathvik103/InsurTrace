@@ -12,9 +12,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span className="font-semibold text-lg tracking-tight text-zinc-900">InsureTrace</span>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2">
-          <NavItem href="/" icon={<Home className="w-5 h-5" />} label="Dashboard" />
-          <NavItem href="/vehicles" icon={<Car className="w-5 h-5" />} label="Vehicles" />
-          <NavItem href="/claims" icon={<FileText className="w-5 h-5" />} label="Claims" />
+          <NavItem href="/decision" icon={<Home className="w-5 h-5" />} label="Policyholder" />
+          <NavItem href="/dashboards/insurer" icon={<Shield className="w-5 h-5" />} label="Insurer Portal" />
+          <NavItem href="/dashboards/garage" icon={<FileText className="w-5 h-5" />} label="Garage Portal" />
+          <NavItem href="/dashboards/surveyor" icon={<BarChart3 className="w-5 h-5" />} label="Surveyor Portal" />
+          <NavItem href="/verification" icon={<Settings className="w-5 h-5" />} label="Ledger Verification" />
         </nav>
         <div className="p-4 border-t border-zinc-200">
           <NavItem href="/settings" icon={<Settings className="w-5 h-5" />} label="Settings" />

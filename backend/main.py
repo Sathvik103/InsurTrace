@@ -88,3 +88,6 @@ app.include_router(claims_router, prefix="/api/v1")
 
 from routers.admin import router as admin_router
 app.include_router(admin_router, prefix="/api/v1")
+
+from routers.documents import router as documents_router
+app.include_router(documents_router, prefix="/api/v1")
