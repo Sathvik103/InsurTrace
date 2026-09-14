@@ -1,35 +1,50 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+import jwt
+import os
 
 app = FastAPI(
     title="InsureTrace India API",
-    description="Backend API for InsureTrace India - Motor Insurance Intelligence Platform",
-    version="1.0.0"
+    description="Backend API for InsureTrace India - Motor Insurance Intelligence Platform"
 )
 
-# CORS setup for the Next.js frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome to InsureTrace India API"}
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Security(security)):
+    token = credentials.credentials
+    jwt_secret = os.getenv("JWT_SECRET", "super-secret-jwt-token-with-at-least-32-characters-long")
+    try:
+        # Supabase signs JWTs with the project JWT secret
+        payload = jwt.decode(token, jwt_secret, algorithms=["HS256"], options={"verify_aud": False})
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+def require_role(allowed_roles: list[str]):
+    def role_checker(user: dict = Depends(get_current_user)):
+        # We will map Supabase auth.users to our profiles table to get org/role
+        # For now, we enforce role presence logically
+        user_role = user.get("user_metadata", {}).get("role") 
+        if user_role not in allowed_roles:
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+        return user
+    return role_checker
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
 
-# Placeholder for Supabase Auth dependency
-async def verify_user_token(token: str = "Bearer placeholder"):
-    # TODO: Implement Supabase JWT validation using PyJWT and Supabase public key
-    pass
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+@app.get("/secure-data", dependencies=[Depends(require_role(["INSURER"]))])
+async def secure_endpoint():
+    return {"data": "This is protected insurer data"}

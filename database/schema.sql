@@ -187,3 +187,42 @@ CREATE TABLE ledger_references (
     is_verified BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 11. ROW LEVEL SECURITY (RLS) POLICIES
+-- Enable RLS on all operational tables
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vehicles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE policies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE claims ENABLE ROW LEVEL SECURITY;
+ALTER TABLE service_events ENABLE ROW LEVEL SECURITY;
+
+-- Minimum secure RLS foundation (Profiles can read their own organization data)
+-- In a real Supabase setup, auth.uid() maps to profiles.id
+CREATE POLICY \"Users can view their own profile\" ON profiles FOR SELECT USING (auth.uid() = id);
+
+-- Organization data isolation: Users can only see data belonging to their organization
+CREATE POLICY \"Users can view their organization\" ON organizations FOR SELECT USING (
+    id = (SELECT organization_id FROM profiles WHERE id = auth.uid())
+);
+
+-- Policies: Only visible to the policyholder or the insurer organization
+CREATE POLICY \"Policyholders can view own policies\" ON policies FOR SELECT USING (
+    policyholder_id = auth.uid() OR
+    insurer_org_id = (SELECT organization_id FROM profiles WHERE id = auth.uid())
+);
+
+-- Claims: Visible to policyholder, the insurer, or surveyor assigned (simplified to org level for foundation)
+CREATE POLICY \"Claim visibility isolation\" ON claims FOR SELECT USING (
+    policy_id IN (
+        SELECT id FROM policies WHERE policyholder_id = auth.uid() OR insurer_org_id = (SELECT organization_id FROM profiles WHERE id = auth.uid())
+    )
+);
+
+-- Service Events: Visible to the garage that created it, and the vehicle owner (via policies)
+CREATE POLICY \"Service event visibility\" ON service_events FOR SELECT USING (
+    garage_org_id = (SELECT organization_id FROM profiles WHERE id = auth.uid()) OR
+    vehicle_id IN (
+        SELECT vehicle_id FROM policies WHERE policyholder_id = auth.uid()
+    )
+);
