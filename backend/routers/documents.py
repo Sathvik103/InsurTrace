@@ -29,9 +29,25 @@ async def upload_document(
     if existing.data:
         return {"status": "DUPLICATE", "document_id": existing.data[0]["id"]}
         
-    # Simulated Storage Upload Path
+    # Simulate Storage Upload Path
     storage_path = f"/{profile['organization_id']}/{entity_table}/{entity_id}/{uuid.uuid4()}_{file.filename}"
     
+    # Trigger Open-Source Extraction Pipeline
+    from services.document_processing.extractor import DocumentExtractor
+    extractor = DocumentExtractor()
+    extraction_result = extractor.extract_text(contents, file.content_type)
+    
+    parsed_fields = {}
+    extraction_status = "FAILED"
+    
+    if extraction_result["status"] == "SUCCESS":
+        if document_type == "POLICY":
+            parsed = extractor.parse_policy_document(extraction_result)
+            parsed_fields = parsed.get("fields", {})
+            extraction_status = "COMPLETED"
+        else:
+            extraction_status = "EXTRACTED_UNPARSED"
+            
     doc_data = {
         "entity_id": entity_id,
         "entity_table": entity_table,
@@ -41,11 +57,17 @@ async def upload_document(
         "file_size": file_size,
         "file_hash": file_hash,
         "uploaded_by_profile_id": profile["id"],
-        "extraction_status": "PENDING_OCR"
+        "extraction_status": extraction_status
     }
     
     res = supabase.table("documents").insert(doc_data).execute()
-    return res.data[0]
+    
+    # Store extracted fields in a separate table or return them
+    # For now, return in API response
+    result_data = res.data[0]
+    result_data["parsed_metadata"] = parsed_fields
+    
+    return result_data
 
 @router.get("/{entity_table}/{entity_id}")
 async def get_documents(entity_table: str, entity_id: str, profile: dict = Depends(get_current_profile)):
