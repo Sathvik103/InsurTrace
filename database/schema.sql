@@ -190,8 +190,9 @@ CREATE TABLE ledger_references (
     entity_id UUID NOT NULL,
     entity_table VARCHAR(50) NOT NULL,
     local_data_hash VARCHAR(256) NOT NULL,
-    blockchain_tx_id VARCHAR(256) NOT NULL,
+    blockchain_tx_id VARCHAR(256),
     org_id UUID REFERENCES organizations(id) ON DELETE RESTRICT,
+    sync_status VARCHAR(50) DEFAULT 'PENDING',
     is_verified BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

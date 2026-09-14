@@ -14,9 +14,19 @@ class ClaimBase(BaseModel):
     estimated_repair_cost: Optional[float]
     status: str = "DRAFT"
 
+def get_canonical_hash(data: dict) -> str:
+    """
+    Generates a cryptographically stable hash for the data.
+    Ensures keys are sorted and spaces are removed to guarantee
+    the same JSON serialization across different languages/platforms.
+    """
+    # Remove mutable metadata that shouldn't affect the core record's hash
+    hash_data = {k: v for k, v in data.items() if k not in ["created_at", "updated_at"]}
+    canonical_str = json.dumps(hash_data, separators=(',', ':'), sort_keys=True)
+    return hashlib.sha256(canonical_str.encode('utf-8')).hexdigest()
+
 @router.get("/", response_model=List[dict])
 async def list_claims(profile: dict = Depends(get_current_profile)):
-    # Depending on role, fetch claims
     if profile["role"] == "POLICYHOLDER":
         policies = supabase.table("policies").select("id").eq("policyholder_id", profile["id"]).execute()
         p_ids = [p["id"] for p in policies.data]
@@ -29,12 +39,26 @@ async def list_claims(profile: dict = Depends(get_current_profile)):
 
 @router.post("/")
 async def create_claim(claim: ClaimBase, profile: dict = Depends(get_current_profile)):
+    # 1. Database Transaction
     res = supabase.table("claims").insert(claim.dict()).execute()
     c_data = res.data[0]
     
-    local_hash = hashlib.sha256(json.dumps(c_data, sort_keys=True).encode()).hexdigest()
+    # 2. Canonical Hashing
+    local_hash = get_canonical_hash(c_data)
     
-    # Commit to blockchain asynchronously or await
+    # 3. Create initial PENDING ledger reference
+    ledger_res = supabase.table("ledger_references").insert({
+        "event_type": "CLAIM_CREATED",
+        "entity_id": c_data["id"],
+        "entity_table": "claims",
+        "local_data_hash": local_hash,
+        "sync_status": "PENDING",
+        "org_id": profile["organization_id"]
+    }).execute()
+    
+    ledger_id = ledger_res.data[0]["id"]
+    
+    # 4. Attempt Blockchain Commit
     from services.blockchain_service import commit_event_to_ledger
     ledger_result = await commit_event_to_ledger(
         vehicle_id=c_data.get("vehicle_id", "UNKNOWN"), 
@@ -43,13 +67,15 @@ async def create_claim(claim: ClaimBase, profile: dict = Depends(get_current_pro
         local_hash=local_hash
     )
     
-    supabase.table("ledger_references").insert({
-        "event_type": "CLAIM_CREATED",
-        "entity_id": c_data["id"],
-        "entity_table": "claims",
-        "local_data_hash": local_hash,
-        "blockchain_tx_id": ledger_result.get("transaction_id", "fallback_tx"),
-        "org_id": profile["organization_id"]
-    }).execute()
+    # 5. Update DB based on blockchain success/failure
+    if ledger_result.get("success"):
+        supabase.table("ledger_references").update({
+            "sync_status": "COMMITTED",
+            "blockchain_tx_id": ledger_result.get("transaction_id")
+        }).eq("id", ledger_id).execute()
+    else:
+        supabase.table("ledger_references").update({
+            "sync_status": "FAILED",
+        }).eq("id", ledger_id).execute()
     
     return c_data
