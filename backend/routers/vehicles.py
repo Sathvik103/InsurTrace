@@ -123,6 +123,10 @@ async def get_vehicle_timeline(vehicle_id: str, profile: dict = Depends(get_curr
     if p_ids:
         claims = supabase.table("claims").select("*").in_("policy_id", p_ids).execute()
         for c in (claims.data or []):
+            ledger_info = supabase.table("ledger_references").select("blockchain_tx_id, sync_status, local_data_hash").eq("entity_id", c["id"]).execute()
+            tx_id = ledger_info.data[0].get("blockchain_tx_id") if ledger_info.data else None
+            is_committed = ledger_info.data[0].get("sync_status") == "COMMITTED" if ledger_info.data else False
+
             timeline_events.append({
                 "date": c.get("created_at", "2026-01-01").split("T")[0],
                 "event_type": "CLAIM_FILED",
@@ -130,7 +134,8 @@ async def get_vehicle_timeline(vehicle_id: str, profile: dict = Depends(get_curr
                 "description": f"Claim {c['id'][:8]} filed. Estimated repair: ₹{c.get('estimated_repair_cost', 0):,.2f}",
                 "provenance_type": "USER_PROVIDED_RECORD",
                 "actor": "Policyholder",
-                "blockchain_verified": True
+                "blockchain_verified": is_committed,
+                "blockchain_tx_id": tx_id
             })
 
     # Consents

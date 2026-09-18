@@ -29,7 +29,7 @@ def query_node_gateway(endpoint: str, method: str = "GET", payload: Optional[Dic
         logger.debug(f"Node Fabric Gateway not reachable at {url}: {e}")
     return None
 
-async def commit_event_to_ledger(vehicle_id: str, event_type: str, entity_id: str, local_hash: str) -> Dict[str, Any]:
+async def commit_event_to_ledger(vehicle_id: str, event_type: str, entity_id: str, local_hash: str, timestamp: Optional[str] = None) -> Dict[str, Any]:
     """
     Commits an event to the blockchain.
     1. Attempts Node REST Gateway.
@@ -37,12 +37,16 @@ async def commit_event_to_ledger(vehicle_id: str, event_type: str, entity_id: st
     3. If production, strictly forbids mock. If dev and ALLOW_MOCK_BLOCKCHAIN=true, returns MOCK.
     """
     # 1. Attempt Node.js Fabric REST Gateway
-    gateway_res = query_node_gateway("/api/commit", method="POST", payload={
+    gateway_payload = {
         "vehicleId": vehicle_id,
         "eventType": event_type,
         "entityId": entity_id,
         "localDataHash": local_hash
-    })
+    }
+    if timestamp:
+        gateway_payload["timestamp"] = timestamp
+
+    gateway_res = query_node_gateway("/api/commit", method="POST", payload=gateway_payload)
     if gateway_res and gateway_res.get("success"):
         return {
             "success": True,
@@ -54,7 +58,7 @@ async def commit_event_to_ledger(vehicle_id: str, event_type: str, entity_id: st
 
     # 2. Attempt Direct Fabric Peer Transaction via FabricClient
     if fabric_client.is_network_active():
-        result = fabric_client.record_event(vehicle_id, event_type, entity_id, local_hash)
+        result = fabric_client.record_event(vehicle_id, event_type, entity_id, local_hash, timestamp=timestamp)
         if result.get("success"):
             return {
                 "success": True,

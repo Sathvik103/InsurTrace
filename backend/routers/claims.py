@@ -39,48 +39,54 @@ async def list_claims(profile: dict = Depends(get_current_profile)):
 
 @router.post("/")
 async def create_claim(claim: ClaimBase, profile: dict = Depends(get_current_profile)):
-    # 1. Database Transaction
-    res = supabase.table("claims").insert(claim.dict()).execute()
-    c_data = res.data[0]
-    
-    # 2. Canonical Hashing
-    local_hash = get_canonical_hash(c_data)
-    
-    # 3. Create initial PENDING ledger reference
-    ledger_res = supabase.table("ledger_references").insert({
-        "event_type": "CLAIM_CREATED",
-        "entity_id": c_data["id"],
-        "entity_table": "claims",
-        "local_data_hash": local_hash,
-        "sync_status": "PENDING",
-        "org_id": profile["organization_id"]
-    }).execute()
-    
-    ledger_id = ledger_res.data[0]["id"]
-    
-    # 4. Determine vehicle ID for blockchain event
-    v_id = c_data.get("vehicle_id")
+    claim_dict = claim.dict()
+    # 1. Resolve vehicle_id from policy if not provided
+    v_id = claim_dict.get("vehicle_id")
     if not v_id:
         pol = supabase.table("policies").select("vehicle_id").eq("id", claim.policy_id).execute()
         if pol.data and pol.data[0].get("vehicle_id"):
             v_id = pol.data[0]["vehicle_id"]
     if not v_id:
         v_id = "V-REAL-101"
+    claim_dict["vehicle_id"] = v_id
 
-    # 5. Attempt Blockchain Commit
+    # 2. Database Transaction
+    res = supabase.table("claims").insert(claim_dict).execute()
+    c_data = res.data[0]
+    
+    # 3. Canonical Hashing & Synchronized Timestamp
+    local_hash = get_canonical_hash(c_data)
+    event_timestamp = c_data.get("created_at")
+
+    # 4. Create initial PENDING ledger reference
+    ledger_res = supabase.table("ledger_references").insert({
+        "event_type": "CLAIM_CREATED",
+        "entity_id": c_data["id"],
+        "entity_table": "claims",
+        "local_data_hash": local_hash,
+        "sync_status": "PENDING",
+        "org_id": profile["organization_id"],
+        "created_at": event_timestamp
+    }).execute()
+    
+    ledger_id = ledger_res.data[0]["id"]
+    
+    # 5. Attempt Blockchain Commit with synchronized timestamp
     from services.blockchain_service import commit_event_to_ledger
     ledger_result = await commit_event_to_ledger(
         vehicle_id=v_id, 
         event_type="CLAIM_CREATED", 
         entity_id=c_data["id"], 
-        local_hash=local_hash
+        local_hash=local_hash,
+        timestamp=event_timestamp
     )
     
     # 6. Update DB based on blockchain success/failure
     if ledger_result.get("success"):
         supabase.table("ledger_references").update({
             "sync_status": "COMMITTED",
-            "blockchain_tx_id": ledger_result.get("transaction_id")
+            "blockchain_tx_id": ledger_result.get("transaction_id"),
+            "created_at": ledger_result.get("timestamp", event_timestamp)
         }).eq("id", ledger_id).execute()
     else:
         supabase.table("ledger_references").update({

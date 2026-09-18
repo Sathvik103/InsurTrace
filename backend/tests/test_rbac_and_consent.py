@@ -83,3 +83,45 @@ def test_vision_upload_role_enforcement():
         asyncio.run(analyze_vehicle_damage(file=mock_file, profile=unauthorized_profile))
     assert exc_info.value.status_code == 403
     assert "Unauthorized" in exc_info.value.detail
+
+def test_production_auth_rejects_dev_tokens():
+    """Verifies that when ENVIRONMENT=production, development tokens are strictly forbidden."""
+    import dependencies
+    from fastapi.security import HTTPAuthorizationCredentials
+    
+    # Temporarily simulate production environment
+    original_prod = dependencies.IS_PRODUCTION
+    dependencies.IS_PRODUCTION = True
+    try:
+        creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials="dev-policyholder")
+        with pytest.raises(HTTPException) as exc_info:
+            dependencies.get_current_user_id(credentials=creds)
+        assert exc_info.value.status_code == 401
+        assert "strictly disabled in production" in exc_info.value.detail
+
+        # Also verify unauthenticated requests are rejected in production
+        with pytest.raises(HTTPException) as exc_info2:
+            dependencies.get_current_user_id(credentials=None)
+        assert exc_info2.value.status_code == 401
+        assert "Authentication required" in exc_info2.value.detail
+    finally:
+        dependencies.IS_PRODUCTION = original_prod
+
+def test_production_blocks_tamper_simulation():
+    """Verifies that tamper endpoint is strictly disabled in production."""
+    from routers.admin import tamper_claim, restore_claim
+    import asyncio
+    
+    os.environ["ENVIRONMENT"] = "production"
+    try:
+        with pytest.raises(HTTPException) as exc_info:
+            asyncio.run(tamper_claim("CLM-999", profile=ADMIN_PROFILE))
+        assert exc_info.value.status_code == 403
+        assert "strictly disabled in production" in exc_info.value.detail
+
+        with pytest.raises(HTTPException) as exc_info2:
+            asyncio.run(restore_claim("CLM-999", 45000.0, profile=ADMIN_PROFILE))
+        assert exc_info2.value.status_code == 403
+        assert "strictly disabled in production" in exc_info2.value.detail
+    finally:
+        os.environ["ENVIRONMENT"] = "development"

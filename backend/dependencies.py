@@ -22,6 +22,9 @@ else:
 
 security = HTTPBearer(auto_error=False)
 
+IS_PRODUCTION = os.environ.get("ENVIRONMENT", "development").lower() == "production"
+ENABLE_DEMO_AUTH = os.environ.get("ENABLE_DEMO_AUTH", "true").lower() == "true" and not IS_PRODUCTION
+
 DEV_TOKENS = {
     "dev-admin": "11111111-1111-1111-1111-111111111111",
     "dev-policyholder": "22222222-2222-2222-2222-222222222222",
@@ -31,27 +34,49 @@ DEV_TOKENS = {
 }
 
 def get_current_user_id(credentials: Optional[HTTPAuthorizationCredentials] = Security(security)) -> str:
-    """Validates the Supabase JWT or dev token and extracts the user ID."""
+    """
+    Validates authentication credentials and extracts the authoritative user ID.
+    In PRODUCTION:
+    - Requires valid Supabase JWT signed with SUPABASE_JWT_SECRET.
+    - Strictly rejects development tokens, raw user IDs, and missing credentials.
+    In DEMO / DEVELOPMENT:
+    - Allows explicitly labelled demo tokens when ENABLE_DEMO_AUTH=true.
+    """
     if not credentials:
-        # Default policyholder user for local browser requests without explicit auth
+        if IS_PRODUCTION:
+            raise HTTPException(status_code=401, detail="Authentication required: No bearer token provided.")
+        # Default policyholder user strictly for unauthenticated development browser browsing
         return "22222222-2222-2222-2222-222222222222"
 
     token = credentials.credentials
+
+    # Development / Demo token check
     if token in DEV_TOKENS:
+        if IS_PRODUCTION or not ENABLE_DEMO_AUTH:
+            raise HTTPException(status_code=401, detail="Development tokens are strictly disabled in production.")
         return DEV_TOKENS[token]
 
-    jwt_secret = SUPABASE_JWT_SECRET or "dev-jwt-secret-min-32-chars-long-strictly-for-testing"
+    # Production Supabase JWT validation
+    jwt_secret = SUPABASE_JWT_SECRET
+    if IS_PRODUCTION and not jwt_secret:
+        raise HTTPException(status_code=500, detail="Server configuration error: SUPABASE_JWT_SECRET is missing.")
+
+    secret_key = jwt_secret or "dev-jwt-secret-min-32-chars-long-strictly-for-testing"
     try:
-        payload = jwt.decode(token, jwt_secret, algorithms=["HS256"], options={"verify_aud": False})
-        return payload.get("sub", "22222222-2222-2222-2222-222222222222")
+        payload = jwt.decode(token, secret_key, algorithms=["HS256"], options={"verify_aud": False})
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token: missing subject claim (sub).")
+        return user_id
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
+        raise HTTPException(status_code=401, detail="Token expired: Please sign in again.")
     except jwt.InvalidTokenError:
-        # If token is not a valid JWT, see if it is a user ID directly
-        res = supabase.table("profiles").select("id").eq("id", token).execute()
-        if res.data:
-            return token
-        raise HTTPException(status_code=401, detail="Invalid token")
+        if not IS_PRODUCTION and ENABLE_DEMO_AUTH:
+            # Fallback for dev mode only if token matches a direct profile UUID
+            res = supabase.table("profiles").select("id").eq("id", token).execute()
+            if res.data:
+                return token
+        raise HTTPException(status_code=401, detail="Invalid authentication token.")
 
 def get_current_profile(user_id: str = Depends(get_current_user_id)):
     """Fetches the user's authoritative profile and role from the database, NOT the JWT metadata."""

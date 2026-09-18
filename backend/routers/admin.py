@@ -52,9 +52,18 @@ async def verify_claim(claim_id: str):
     if ref.get("sync_status") != "COMMITTED":
         return {"status": ref.get("sync_status"), "message": "Record is not fully committed to the ledger yet."}
     
-    # 4. Verify against actual blockchain via gateway
+    # 4. Resolve vehicle_id
+    v_id = c_data.get("vehicle_id")
+    if not v_id and c_data.get("policy_id"):
+        pol = supabase.table("policies").select("vehicle_id").eq("id", c_data["policy_id"]).execute()
+        if pol.data and pol.data[0].get("vehicle_id"):
+            v_id = pol.data[0]["vehicle_id"]
+    if not v_id:
+        v_id = "V-REAL-101"
+
+    # 5. Verify against actual blockchain via gateway / peer
     verification_result = await verify_event_from_ledger(
-        vehicle_id=c_data.get("vehicle_id", "UNKNOWN"),
+        vehicle_id=v_id,
         timestamp=ref.get("created_at"),
         entity_id=claim_id,
         current_hash=current_hash

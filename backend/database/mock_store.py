@@ -121,7 +121,13 @@ class MockDatabaseStore:
         self.seed_defaults()
 
     def seed_defaults(self):
-        # 1. Profiles
+        # =====================================================================
+        # EXPLICITLY ISOLATED DEMO & DEVELOPMENT TEST FIXTURES
+        # Strictly for offline evaluation, unit testing, and sandbox simulation.
+        # NEVER loaded in production when connected to production Supabase.
+        # =====================================================================
+        
+        # 1. Profiles (Demo Personas)
         self.tables["profiles"] = [
             {
                 "id": "11111111-1111-1111-1111-111111111111",

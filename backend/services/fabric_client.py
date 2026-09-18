@@ -69,44 +69,49 @@ class FabricClient:
           -c '{{"function":"RecordEvent","Args":["{vehicle_id}","{event_type}","{entity_id}","{local_hash}","{timestamp}"]}}'
         """
 
-        try:
-            res = subprocess.run(
-                ["wsl", "-d", "Ubuntu", "-e", "bash", "-c", bash_cmd],
-                capture_output=True,
-                text=True,
-                timeout=25
-            )
-            output = res.stdout + res.stderr
-            has_valid = ("COMMITTED" in output or "VALID" in output)
-            has_error = ("Error:" in output or "SERVICE_UNAVAILABLE" in output or "error sending transaction" in output)
-            if has_valid and not has_error:
-                import re
-                tx_match = re.search(r'txid \[([a-f0-9]{64})\]', output)
-                if tx_match:
-                    tx_id = tx_match.group(1)
-                else:
-                    gen_match = re.search(r'txid:?\s*\[?([a-f0-9]{16,64})\]?', output, re.IGNORECASE)
-                    tx_id = gen_match.group(1) if gen_match else f"fabric_tx_{local_hash[:16]}"
+        for attempt in range(2):
+            try:
+                res = subprocess.run(
+                    ["wsl", "-d", "Ubuntu", "-e", "bash", "-c", bash_cmd],
+                    capture_output=True,
+                    text=True,
+                    timeout=25
+                )
+                output = res.stdout + res.stderr
+                has_valid = ("COMMITTED" in output or "VALID" in output)
+                has_error = ("Error:" in output or "SERVICE_UNAVAILABLE" in output or "error sending transaction" in output)
+                if has_valid and not has_error:
+                    import re
+                    tx_match = re.search(r'txid \[([a-f0-9]{64})\]', output)
+                    if tx_match:
+                        tx_id = tx_match.group(1)
+                    else:
+                        gen_match = re.search(r'txid:?\s*\[?([a-f0-9]{16,64})\]?', output, re.IGNORECASE)
+                        tx_id = gen_match.group(1) if gen_match else f"fabric_tx_{local_hash[:16]}"
 
-                return {
-                    "success": True,
-                    "network_mode": "REAL_FABRIC",
-                    "transaction_id": tx_id,
-                    "timestamp": timestamp,
-                    "raw_response": output.strip()
-                }
-            else:
+                    return {
+                        "success": True,
+                        "network_mode": "REAL_FABRIC",
+                        "transaction_id": tx_id,
+                        "timestamp": timestamp,
+                        "raw_response": output.strip()
+                    }
+                elif "no Raft leader" in output and attempt == 0:
+                    import time
+                    time.sleep(2.5)
+                    continue
+                else:
+                    return {
+                        "success": False,
+                        "network_mode": "REAL_FABRIC",
+                        "error": f"Invoke failed: {output.strip()}"
+                    }
+            except Exception as e:
                 return {
                     "success": False,
-                    "network_mode": "REAL_FABRIC",
-                    "error": f"Invoke failed: {output.strip()}"
+                    "network_mode": "UNAVAILABLE",
+                    "error": str(e)
                 }
-        except Exception as e:
-            return {
-                "success": False,
-                "network_mode": "UNAVAILABLE",
-                "error": str(e)
-            }
 
     def get_vehicle_history(self, vehicle_id: str) -> Dict[str, Any]:
         """Queries GetVehicleHistory directly from the Fabric chaincode."""

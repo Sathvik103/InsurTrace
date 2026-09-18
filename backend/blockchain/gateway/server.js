@@ -50,8 +50,8 @@ app.post('/api/commit', async (req, res) => {
         });
     }
 
-    const timestamp = new Date().toISOString();
-    console.log(`[Fabric Gateway] Submitting transaction for ${vehicleId} (${eventType})...`);
+    const timestamp = req.body.timestamp || new Date().toISOString();
+    console.log(`[Fabric Gateway] Submitting transaction for ${vehicleId} (${eventType}) at ${timestamp}...`);
 
     const bashCmd = `
     cd ${BASE_DIR}/fabric-samples/test-network && \
