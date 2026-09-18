@@ -17,6 +17,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <NavItem href="/dashboards/garage" icon={<FileText className="w-5 h-5" />} label="Garage Portal" />
           <NavItem href="/dashboards/surveyor" icon={<BarChart3 className="w-5 h-5" />} label="Surveyor Portal" />
           <NavItem href="/verification" icon={<Settings className="w-5 h-5" />} label="Ledger Verification" />
+          <NavItem href="/decision/consent" icon={<Shield className="w-5 h-5" />} label="Consent Privacy" />
         </nav>
         <div className="p-4 border-t border-zinc-200">
           <NavItem href="/settings" icon={<Settings className="w-5 h-5" />} label="Settings" />

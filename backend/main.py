@@ -91,3 +91,9 @@ app.include_router(admin_router, prefix="/api/v1")
 
 from routers.documents import router as documents_router
 app.include_router(documents_router, prefix="/api/v1")
+
+from routers.vision import router as vision_router
+app.include_router(vision_router, prefix="/api/v1")
+
+from routers.consent import router as consent_router
+app.include_router(consent_router, prefix="/api/v1")
