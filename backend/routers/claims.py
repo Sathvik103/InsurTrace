@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import datetime
 import hashlib
 import json
-from main import get_current_profile, supabase
+from dependencies import get_current_profile, supabase
 
 router = APIRouter(prefix="/claims", tags=["Claims"])
 

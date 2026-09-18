@@ -3,7 +3,7 @@ from typing import List, Optional
 import datetime
 import hashlib
 import uuid
-from main import get_current_profile, supabase
+from dependencies import get_current_profile, supabase
 from services.document_processing.extractor import DocumentExtractor
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
@@ -31,10 +31,8 @@ async def extract_document_sync(
         parsed = extractor.parse_policy_document(extraction_result)
         parsed_fields = parsed.get("fields", {})
     elif document_type == "ESTIMATE":
-        # Stub for estimate parsing
-        parsed_fields = {
-            "total_amount": {"value": 0, "confidence": 0.0, "method": "regex"},
-        }
+        parsed = extractor.parse_estimate_document(extraction_result)
+        parsed_fields = parsed.get("normalized_estimate", {})
         
     return {
         "status": "COMPLETED",

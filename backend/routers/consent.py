@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Optional
 from pydantic import BaseModel
 import datetime
-from main import get_current_profile, supabase
+from dependencies import get_current_profile, supabase
 
 router = APIRouter(prefix="/consents", tags=["Consent Management"])
 

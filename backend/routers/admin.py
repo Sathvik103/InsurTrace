@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict
-from main import get_current_profile, supabase
+from dependencies import get_current_profile, supabase
 from routers.claims import get_canonical_hash
 from services.blockchain_service import verify_event_from_ledger
 
@@ -52,9 +52,12 @@ async def verify_claim(claim_id: str):
         current_hash=current_hash
     )
     
+    network_mode = verification_result.get("network_mode", "UNKNOWN")
+
     if verification_result.get("status") == "VERIFIED":
         return {
             "status": "VERIFIED",
+            "network_mode": network_mode,
             "message": "The local database representation matches the immutable ledger record.",
             "transaction_id": ref["blockchain_tx_id"],
             "hash": current_hash,
@@ -63,6 +66,7 @@ async def verify_claim(claim_id: str):
     else:
         return {
             "status": "INTEGRITY_VERIFICATION_FAILED",
+            "network_mode": network_mode,
             "message": "Current database representation does not match the previously committed ledger record.",
             "database_hash": current_hash,
             "ledger_hash": verification_result.get("expected_hash"),
