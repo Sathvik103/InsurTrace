@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Shield, Home, Car, FileText, Settings, Menu, BarChart3, UploadCloud } from "lucide-react";
+import { Shield, Home, Car, FileText, Settings, Menu, BarChart3, UploadCloud, LogIn } from "lucide-react";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -21,8 +21,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <NavItem href="/verification" icon={<Settings className="w-5 h-5" />} label="Ledger Verification" />
           <NavItem href="/decision/consent" icon={<Shield className="w-5 h-5" />} label="Consent Privacy" />
         </nav>
-        <div className="p-4 border-t border-zinc-200">
-          <NavItem href="/settings" icon={<Settings className="w-5 h-5" />} label="Settings" />
+        <div className="p-4 border-t border-zinc-200 space-y-1">
+          <NavItem href="/login" icon={<LogIn className="w-5 h-5 text-indigo-600" />} label="Sign In / Roles" />
         </div>
       </aside>
 

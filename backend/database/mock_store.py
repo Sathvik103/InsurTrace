@@ -233,9 +233,9 @@ class MockDatabaseStore:
                 "entity_id": "CLM-999",
                 "entity_table": "claims",
                 "event_type": "CLAIM_CREATED",
-                "local_data_hash": "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592",
+                "local_data_hash": "3a3267bb774c1dea18b84aaa30c9173444e67c817a57e3e108ab767d45e28d5f",
                 "sync_status": "COMMITTED",
-                "blockchain_tx_id": "b4fe2b23a1d471569427b3fafe3e27c1a2e7c3e9a7e0a2944b0ca238a8e100f9",
+                "blockchain_tx_id": "e14646ae3aa8e7abca324f525aac9e91e632372ba6999e9f1654259885b7488f",
                 "org_id": "00000000-0000-0000-0000-000000000001",
                 "created_at": "2026-09-18T18:20:00Z"
             }

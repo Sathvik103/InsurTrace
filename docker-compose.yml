@@ -7,8 +7,10 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      # In production, point to the deployed backend. Locally:
-      - NEXT_PUBLIC_API_URL=http://backend:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_GATEWAY_URL=http://localhost:3001
+      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
     depends_on:
       - backend
 
@@ -20,8 +22,13 @@ services:
     environment:
       - ENVIRONMENT=production
       - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_KEY=${SUPABASE_KEY}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
       - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      - GATEWAY_URL=http://blockchain_gateway:3001
+      - ALLOW_MOCK_BLOCKCHAIN=false
+      - ALLOWED_ORIGINS=http://localhost:3000
+    depends_on:
+      - blockchain_gateway
 
   blockchain_gateway:
     build:
@@ -30,3 +37,6 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=production
+      - PORT=3001
+      - FABRIC_CHANNEL=mychannel
+      - FABRIC_CHAINCODE=vehicle

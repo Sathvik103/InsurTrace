@@ -145,4 +145,4 @@ def test_fabric_client_verify_real_transaction():
 
     assert query_res["success"] is True
     assert query_res["network_mode"] == "REAL_FABRIC"
-    assert query_res["localDataHash"] == "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"
+    assert query_res["localDataHash"] == "3a3267bb774c1dea18b84aaa30c9173444e67c817a57e3e108ab767d45e28d5f"

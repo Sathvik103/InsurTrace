@@ -311,3 +311,41 @@ CREATE POLICY "audit_select" ON audit_logs FOR SELECT USING (
 CREATE POLICY "ledger_select" ON ledger_references FOR SELECT USING (
     org_id = get_user_org_id() OR get_user_role() = 'ADMIN'
 );
+
+-- ============================================================================
+-- 12. PERFORMANCE INDEXES FOR PRODUCTION
+-- ============================================================================
+CREATE INDEX IF NOT EXISTS idx_claims_policy ON claims(policy_id);
+CREATE INDEX IF NOT EXISTS idx_policies_vehicle ON policies(vehicle_id);
+CREATE INDEX IF NOT EXISTS idx_policies_holder ON policies(policyholder_id);
+CREATE INDEX IF NOT EXISTS idx_vehicles_reg ON vehicles(registration_number);
+CREATE INDEX IF NOT EXISTS idx_ledger_entity ON ledger_references(entity_id);
+CREATE INDEX IF NOT EXISTS idx_consents_vehicle ON consents(vehicle_id);
+CREATE INDEX IF NOT EXISTS idx_consents_owner ON consents(owner_profile_id);
+CREATE INDEX IF NOT EXISTS idx_documents_entity ON documents(entity_type, entity_id);
+
+-- ============================================================================
+-- 13. AUTH TRIGGER FOR AUTOMATIC PROFILE CREATION
+-- ============================================================================
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name, role)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
+    COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'POLICYHOLDER'::user_role)
+  )
+  ON CONFLICT (id) DO UPDATE
+  SET email = EXCLUDED.email,
+      full_name = EXCLUDED.full_name;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to execute on Supabase auth.users creation
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

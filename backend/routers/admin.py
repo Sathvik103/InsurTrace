@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict
 from dependencies import get_current_profile, supabase
@@ -8,6 +9,10 @@ router = APIRouter(prefix="/admin", tags=["Admin/Verification"])
 
 @router.post("/tamper-claim/{claim_id}")
 async def tamper_claim(claim_id: str, profile: dict = Depends(get_current_profile)):
+    # Block in production environment
+    if os.environ.get("ENVIRONMENT", "development").lower() == "production":
+        raise HTTPException(status_code=403, detail="Tamper simulation is strictly disabled in production.")
+
     # Explicitly development-only and protected by strict RBAC check
     if profile["role"] != "ADMIN":
         raise HTTPException(status_code=403, detail="Admin only")
@@ -18,6 +23,9 @@ async def tamper_claim(claim_id: str, profile: dict = Depends(get_current_profil
 
 @router.post("/restore-claim/{claim_id}")
 async def restore_claim(claim_id: str, original_cost: float, profile: dict = Depends(get_current_profile)):
+    if os.environ.get("ENVIRONMENT", "development").lower() == "production":
+        raise HTTPException(status_code=403, detail="Restore simulation is strictly disabled in production.")
+
     if profile["role"] != "ADMIN":
         raise HTTPException(status_code=403, detail="Admin only")
         

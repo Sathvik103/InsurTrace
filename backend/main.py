@@ -20,9 +20,15 @@ app = FastAPI(
     description="Backend API for InsureTrace India - Motor Insurance Intelligence Platform"
 )
 
+allowed_origins_env = os.environ.get("ALLOWED_ORIGINS")
+if allowed_origins_env:
+    allowed_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+else:
+    allowed_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,3 +71,6 @@ app.include_router(vision_router, prefix="/api/v1")
 
 from routers.consent import router as consent_router
 app.include_router(consent_router, prefix="/api/v1")
+
+from routers.profiles import router as profiles_router
+app.include_router(profiles_router, prefix="/api/v1")
