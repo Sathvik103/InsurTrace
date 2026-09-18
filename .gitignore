@@ -1,5 +1,6 @@
 backend/blockchain/fabric-samples
 backend/blockchain/gateway/node_modules/
+backend/blockchain/chaincode/node_modules/
 **/node_modules/
 wallet/
 crypto-config/
