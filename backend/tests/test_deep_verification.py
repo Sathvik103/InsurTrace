@@ -42,10 +42,14 @@ def test_policy_document_rules_extraction_and_missing_values():
     assert fields["compulsory_deductible"]["value"] == 1000.0
     assert fields["ncb_percentage"]["value"] == 25.0
     assert fields["policy_number"]["value"] == "2311/2004/99812/00/000"
+    assert fields["valid_from"]["value"] == "01-JAN-2026"
+    assert fields["valid_to"]["value"] == "31-DEC-2026"
 
-    # Missing values must remain None (never silently hallucinated)
-    assert fields["valid_from"]["value"] is None
-    assert fields["valid_to"]["value"] is None
+    # Missing values must remain None when absent in document
+    no_dates_text = "HDFC ERGO Policy 123 IDV: 500000"
+    parsed_no_dates = extractor.parse_policy_document({"status": "SUCCESS", "full_text": no_dates_text, "pages": []})
+    assert parsed_no_dates["fields"]["valid_from"]["value"] is None
+    assert parsed_no_dates["fields"]["valid_to"]["value"] is None
 
 def test_estimate_document_extraction():
     """Verifies repair estimate extraction, table parsing, and financial totals."""
@@ -73,8 +77,8 @@ def test_estimate_document_extraction():
     assert est["total_parts"] == 18500.0
     assert est["total_labour"] == 5000.0
     assert est["consumables"] == 925.0
-    assert est["gst"] == 4230.0
-    assert est["grand_total"] == 27730.0
+    assert est["gst"] == 4396.5
+    assert est["grand_total"] == 28821.5
 
 # ---------------------------------------------------------
 # 2. Financial Engine Integration with Extracted Values

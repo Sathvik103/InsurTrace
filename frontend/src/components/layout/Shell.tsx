@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Shield, Home, Car, FileText, Settings, Menu } from "lucide-react";
+import { Shield, Home, Car, FileText, Settings, Menu, BarChart3, UploadCloud } from "lucide-react";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +12,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span className="font-semibold text-lg tracking-tight text-zinc-900">InsureTrace</span>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2">
-          <NavItem href="/decision" icon={<Home className="w-5 h-5" />} label="Policyholder" />
+          <NavItem href="/decision" icon={<Home className="w-5 h-5" />} label="Decision Engine" />
+          <NavItem href="/decision/extract" icon={<UploadCloud className="w-5 h-5" />} label="Document Review" />
+          <NavItem href="/vehicles/V-REAL-101" icon={<Car className="w-5 h-5" />} label="Vehicle Timeline" />
           <NavItem href="/dashboards/insurer" icon={<Shield className="w-5 h-5" />} label="Insurer Portal" />
           <NavItem href="/dashboards/garage" icon={<FileText className="w-5 h-5" />} label="Garage Portal" />
           <NavItem href="/dashboards/surveyor" icon={<BarChart3 className="w-5 h-5" />} label="Surveyor Portal" />

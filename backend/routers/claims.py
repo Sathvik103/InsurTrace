@@ -58,16 +58,25 @@ async def create_claim(claim: ClaimBase, profile: dict = Depends(get_current_pro
     
     ledger_id = ledger_res.data[0]["id"]
     
-    # 4. Attempt Blockchain Commit
+    # 4. Determine vehicle ID for blockchain event
+    v_id = c_data.get("vehicle_id")
+    if not v_id:
+        pol = supabase.table("policies").select("vehicle_id").eq("id", claim.policy_id).execute()
+        if pol.data and pol.data[0].get("vehicle_id"):
+            v_id = pol.data[0]["vehicle_id"]
+    if not v_id:
+        v_id = "V-REAL-101"
+
+    # 5. Attempt Blockchain Commit
     from services.blockchain_service import commit_event_to_ledger
     ledger_result = await commit_event_to_ledger(
-        vehicle_id=c_data.get("vehicle_id", "UNKNOWN"), 
+        vehicle_id=v_id, 
         event_type="CLAIM_CREATED", 
         entity_id=c_data["id"], 
         local_hash=local_hash
     )
     
-    # 5. Update DB based on blockchain success/failure
+    # 6. Update DB based on blockchain success/failure
     if ledger_result.get("success"):
         supabase.table("ledger_references").update({
             "sync_status": "COMMITTED",
@@ -78,7 +87,14 @@ async def create_claim(claim: ClaimBase, profile: dict = Depends(get_current_pro
             "sync_status": "FAILED",
         }).eq("id", ledger_id).execute()
     
-    return c_data
+    return {
+        **c_data,
+        "vehicle_id": v_id,
+        "sync_status": "COMMITTED" if ledger_result.get("success") else "FAILED",
+        "blockchain_tx_id": ledger_result.get("transaction_id"),
+        "network_mode": ledger_result.get("network_mode", "UNKNOWN"),
+        "canonical_hash": local_hash
+    }
 
 from services.ml_engine.pipeline import run_claim_intelligence
 @router.post("/{claim_id}/analyze-intelligence")
@@ -109,3 +125,65 @@ async def analyze_claim_intelligence(claim_id: str, profile: dict = Depends(get_
     }).execute()
     
     return intelligence_result
+
+@router.get("/{claim_id}")
+async def get_claim_details(claim_id: str, profile: dict = Depends(get_current_profile)):
+    """
+    Returns the comprehensive Claim Dossier:
+    - Claim data
+    - Associated policy details
+    - Associated vehicle details
+    - Ledger reference & Fabric verification status
+    - Uploaded documents
+    - ML Intelligence data availability disclosure
+    """
+    c_res = supabase.table("claims").select("*").eq("id", claim_id).execute()
+    if not c_res.data:
+        raise HTTPException(status_code=404, detail="Claim record not found.")
+    claim_data = c_res.data[0]
+
+    # Policy
+    policy_data = {}
+    if claim_data.get("policy_id"):
+        p_res = supabase.table("policies").select("*").eq("id", claim_data["policy_id"]).execute()
+        if p_res.data:
+            policy_data = p_res.data[0]
+
+    # Vehicle
+    vehicle_data = {}
+    vehicle_id = policy_data.get("vehicle_id") or claim_data.get("vehicle_id")
+    if vehicle_id:
+        v_res = supabase.table("vehicles").select("*").eq("id", vehicle_id).execute()
+        if v_res.data:
+            vehicle_data = v_res.data[0]
+
+    # Ledger reference
+    ledger_ref = {}
+    l_res = supabase.table("ledger_references").select("*").eq("entity_id", claim_id).execute()
+    if l_res.data:
+        ledger_ref = l_res.data[0]
+
+    # Documents
+    doc_res = supabase.table("documents").select("id, document_type, file_path, file_hash, extraction_status, created_at").eq("entity_id", claim_id).execute()
+    documents = doc_res.data or []
+
+    # Canonical hash
+    current_hash = get_canonical_hash(claim_data)
+
+    return {
+        "claim": claim_data,
+        "policy": policy_data,
+        "vehicle": vehicle_data,
+        "ledger": {
+            "sync_status": ledger_ref.get("sync_status", "NOT_COMMITTED"),
+            "blockchain_tx_id": ledger_ref.get("blockchain_tx_id"),
+            "canonical_hash": current_hash,
+            "created_at": ledger_ref.get("created_at")
+        },
+        "documents": documents,
+        "ml_intelligence_disclosure": {
+            "status": "DATA_LIMITED",
+            "reason": "Regulatory consumer privacy restrictions (IRDAI/IIB) legally limit public access to row-level claim histories.",
+            "available_features": ["Deterministic Depreciation Engine", "Rules-Based Document Extraction", "COCO-Damage CV Stub"]
+        }
+    }

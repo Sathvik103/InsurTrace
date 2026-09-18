@@ -23,10 +23,18 @@ async def extract_document_sync(
     extractor = DocumentExtractor()
     extraction_result = extractor.extract_text(contents, file.content_type)
     
-    if extraction_result["status"] != "SUCCESS":
+    if extraction_result["status"] == "PASSWORD_PROTECTED":
+        raise HTTPException(
+            status_code=422, 
+            detail="The uploaded PDF document is password-protected or encrypted. Please remove password protection before uploading."
+        )
+
+    if extraction_result["status"] not in ["SUCCESS", "SCANNED_PDF_NO_TEXT"]:
         raise HTTPException(status_code=400, detail=extraction_result.get("message", "Extraction failed"))
         
     parsed_fields = {}
+    is_scanned = extraction_result.get("status") == "SCANNED_PDF_NO_TEXT"
+
     if document_type == "POLICY":
         parsed = extractor.parse_policy_document(extraction_result)
         parsed_fields = parsed.get("fields", {})
@@ -38,6 +46,9 @@ async def extract_document_sync(
         "status": "COMPLETED",
         "document_type": document_type,
         "filename": file.filename,
+        "is_scanned": is_scanned,
+        "total_pages": extraction_result.get("total_pages", 1),
+        "extraction_method": extraction_result.get("extraction_method", "pdfplumber (Deterministic Rules-Based)"),
         "extracted_fields": parsed_fields,
         "raw_text": extraction_result.get("full_text", "")
     }
