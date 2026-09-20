@@ -1,15 +1,23 @@
 import type { Metadata } from "next";
-import { Inter, Geist } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
+import { AuthProvider } from "@/context/AuthContext";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const inter = Inter({ subsets: ["latin"] });
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "InsureTrace India",
-  description: "AI-powered, blockchain-backed motor-insurance intelligence platform.",
+  title: "VeriSure — Insurance Intelligence & Verification",
+  description: "Deterministic financial modeling, document provenance, and cryptographically verified vehicle records.",
+  openGraph: {
+    title: "VeriSure — Insurance Intelligence & Verification",
+    description: "Deterministic financial modeling, document provenance, and cryptographically verified vehicle records.",
+    siteName: "VeriSure",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -18,9 +26,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
-      <body className={inter.className}>
-        {children}
+    <html lang="en" className={geist.variable}>
+      <body className="font-sans antialiased text-zinc-900 bg-white dark:bg-zinc-950 dark:text-zinc-50 selection:bg-zinc-900 selection:text-white">
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
