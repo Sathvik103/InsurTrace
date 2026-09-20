@@ -1,4 +1,4 @@
-﻿# InsureTrace India - End-to-End Platform Demonstration Walkthrough
+# InsureTrace India - End-to-End Platform Demonstration Walkthrough
 
 This guide details how to execute and verify the complete **InsureTrace India** multi-role platform, from AI document ingestion and deterministic financial adjudication to genuine Hyperledger Fabric distributed ledger verification.
 
@@ -58,11 +58,11 @@ npm run dev
 ### Phase 1: Identity & Multi-Tenant Authentication (`/login`)
 1. Open `http://localhost:3000/login`.
 2. Inspect the **Role Selector Grid** featuring the 5 system personas:
-   - **Policyholder** (Rahul Sharma - `user@example.com`)
-   - **Insurer Underwriter** (Priya Patel - `claims@digit.com`)
-   - **Independent Surveyor** (Amit Verma - `surveyor@irda-lic.in`)
-   - **Authorized Garage** (Rajesh Auto Care - `garage@repair.com`)
-   - **System Admin & Auditor** (System Administrator - `admin@insuretrace.in`)
+   - **Policyholder** (Rahul Sharma (Demo) - `demo-policyholder@insuretrace.in`)
+   - **Insurer Underwriter** (Demo Insurer Officer - `demo-insurer@insuretrace.in`)
+   - **Independent Surveyor** (Demo Motor Loss Assessor - `demo-surveyor@insuretrace.in`)
+   - **Authorized Garage** (Demo Auto Workshop - `demo-garage@insuretrace.in`)
+   - **System Admin & Auditor** (Demo System Admin - `demo-admin@insuretrace.in`)
 3. Click **"Switch"** on **Policyholder**. The UI stores the authorized token and routes into the workspace.
 
 ---

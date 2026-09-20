@@ -25,13 +25,19 @@ CREATE TABLE profiles (
 );
 
 -- Helper functions for RLS (Security Definer to bypass RLS internally to prevent circular queries)
-CREATE OR REPLACE FUNCTION get_user_org_id() RETURNS UUID AS $$
-    SELECT organization_id FROM profiles WHERE id = auth.uid();
-$$ LANGUAGE sql SECURITY DEFINER;
+CREATE OR REPLACE FUNCTION public.get_user_org_id() RETURNS UUID 
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+    SELECT organization_id FROM public.profiles WHERE id = auth.uid();
+$$ LANGUAGE sql;
 
-CREATE OR REPLACE FUNCTION get_user_role() RETURNS user_role AS $$
-    SELECT role FROM profiles WHERE id = auth.uid();
-$$ LANGUAGE sql SECURITY DEFINER;
+CREATE OR REPLACE FUNCTION public.get_user_role() RETURNS public.user_role 
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+    SELECT role FROM public.profiles WHERE id = auth.uid();
+$$ LANGUAGE sql;
 
 -- 3. VEHICLES & OWNERSHIP
 CREATE TABLE vehicles (
@@ -328,21 +334,34 @@ CREATE INDEX IF NOT EXISTS idx_documents_entity ON documents(entity_type, entity
 -- 13. AUTH TRIGGER FOR AUTOMATIC PROFILE CREATION
 -- ============================================================================
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  parsed_role public.user_role := 'POLICYHOLDER'::public.user_role;
+  raw_role text;
 BEGIN
+  raw_role := UPPER(COALESCE(NEW.raw_user_meta_data->>'role', 'POLICYHOLDER'));
+  BEGIN
+    parsed_role := raw_role::public.user_role;
+  EXCEPTION WHEN OTHERS THEN
+    parsed_role := 'POLICYHOLDER'::public.user_role;
+  END;
+
   INSERT INTO public.profiles (id, email, full_name, role)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'POLICYHOLDER'::user_role)
+    parsed_role
   )
   ON CONFLICT (id) DO UPDATE
   SET email = EXCLUDED.email,
       full_name = EXCLUDED.full_name;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql;
 
 -- Trigger to execute on Supabase auth.users creation
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;

@@ -57,10 +57,17 @@ def get_current_user_id(credentials: Optional[HTTPAuthorizationCredentials] = Se
         return DEV_TOKENS[token]
 
     # Production Supabase JWT validation
-    jwt_secret = SUPABASE_JWT_SECRET
-    if IS_PRODUCTION and not jwt_secret:
-        raise HTTPException(status_code=500, detail="Server configuration error: SUPABASE_JWT_SECRET is missing.")
+    # 1. Direct Supabase Auth validation (supports modern ES256 and HS256 tokens)
+    if hasattr(supabase, "auth") and hasattr(supabase.auth, "get_user"):
+        try:
+            user_resp = supabase.auth.get_user(token)
+            if user_resp and getattr(user_resp, "user", None) and user_resp.user.id:
+                return str(user_resp.user.id)
+        except Exception:
+            pass
 
+    # 2. Local HS256 JWT decoding (fast offline validation when JWT secret is configured)
+    jwt_secret = SUPABASE_JWT_SECRET
     secret_key = jwt_secret or "dev-jwt-secret-min-32-chars-long-strictly-for-testing"
     try:
         payload = jwt.decode(token, secret_key, algorithms=["HS256"], options={"verify_aud": False})
@@ -71,12 +78,15 @@ def get_current_user_id(credentials: Optional[HTTPAuthorizationCredentials] = Se
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired: Please sign in again.")
     except jwt.InvalidTokenError:
-        if not IS_PRODUCTION and ENABLE_DEMO_AUTH:
-            # Fallback for dev mode only if token matches a direct profile UUID
-            res = supabase.table("profiles").select("id").eq("id", token).execute()
-            if res.data:
-                return token
-        raise HTTPException(status_code=401, detail="Invalid authentication token.")
+        pass
+
+    # 3. Fallback for dev mode only if token matches a direct profile UUID
+    if not IS_PRODUCTION and ENABLE_DEMO_AUTH:
+        res = supabase.table("profiles").select("id").eq("id", token).execute()
+        if res.data:
+            return token
+
+    raise HTTPException(status_code=401, detail="Invalid authentication token.")
 
 def get_current_profile(user_id: str = Depends(get_current_user_id)):
     """Fetches the user's authoritative profile and role from the database, NOT the JWT metadata."""

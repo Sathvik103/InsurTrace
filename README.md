@@ -1,4 +1,4 @@
-﻿# InsureTrace India
+# InsureTrace India
 
 > **Enterprise Motor Insurance Intelligence & Distributed Ledger Verification Platform**  
 > Built for the Indian motor insurance ecosystem in compliance with IRDAI regulatory guidelines and the Digital Personal Data Protection (DPDP) Act.
@@ -56,11 +56,11 @@ InsureTrace enforces strict tenant isolation and role-based access control acros
 
 | Role | Default Demo Identity | Workspace Route | Capabilities |
 | :--- | :--- | :--- | :--- |
-| **Policyholder** | Rahul Sharma (`user@example.com`) | `/decision` | Claim financial analysis, document upload, consent management, timeline view |
-| **Insurer** | Priya Patel (`claims@digit.com`) | `/dashboards/insurer` | Claims portfolio audit, loss ratio analysis, fraud detection, settlement review |
-| **Surveyor** | Amit Verma (`surveyor@irda-lic.in`) | `/dashboards/surveyor` | Physical inspection reports, parts admissibility verification, survey signing |
-| **Garage** | Rajesh Auto Care (`garage@repair.com`) | `/dashboards/garage` | Itemized repair estimates, labor rates, parts invoice uploads |
-| **Admin & Auditor** | System Admin (`admin@insuretrace.in`) | `/verification` | Hyperledger Fabric network health, consensus monitoring, ledger tamper audit |
+| **Policyholder** | Rahul Sharma (Demo) (`demo-policyholder@insuretrace.in`) | `/decision` | Claim financial analysis, document upload, consent management, timeline view |
+| **Insurer** | Demo Insurer Officer (`demo-insurer@insuretrace.in`) | `/dashboards/insurer` | Claims portfolio audit, loss ratio analysis, fraud detection, settlement review |
+| **Surveyor** | Demo Motor Loss Assessor (`demo-surveyor@insuretrace.in`) | `/dashboards/surveyor` | Physical inspection reports, parts admissibility verification, survey signing |
+| **Garage** | Demo Auto Workshop (`demo-garage@insuretrace.in`) | `/dashboards/garage` | Itemized repair estimates, labor rates, parts invoice uploads |
+| **Admin & Auditor** | Demo System Admin (`demo-admin@insuretrace.in`) | `/verification` | Hyperledger Fabric network health, consensus monitoring, ledger tamper audit |
 
 ---
 

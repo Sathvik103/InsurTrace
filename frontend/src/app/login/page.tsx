@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -29,8 +29,8 @@ const DEMO_PERSONAS = [
   {
     role: "POLICYHOLDER",
     label: "Policyholder (Demo)",
-    name: "Rahul Sharma",
-    email: "user@example.com",
+    name: "Rahul Sharma (Demo)",
+    email: "demo-policyholder@insuretrace.in",
     token: "dev-policyholder",
     targetRoute: "/decision",
     desc: "Vehicle owner evaluating claim math, deductible, NCB protection & blockchain history.",
@@ -40,8 +40,8 @@ const DEMO_PERSONAS = [
   {
     role: "INSURER",
     label: "Insurer (Demo)",
-    name: "Priya Patel",
-    email: "claims@digit.com",
+    name: "Demo Insurer Officer",
+    email: "demo-insurer@insuretrace.in",
     token: "dev-insurer",
     targetRoute: "/dashboards/insurer",
     desc: "Underwriting officer auditing claim dossiers, loss ratios & fraud indicators.",
@@ -51,19 +51,19 @@ const DEMO_PERSONAS = [
   {
     role: "SURVEYOR",
     label: "Surveyor (Demo)",
-    name: "Amit Verma",
-    email: "surveyor@irda-lic.in",
+    name: "Demo Motor Loss Assessor",
+    email: "demo-surveyor@insuretrace.in",
     token: "dev-surveyor",
     targetRoute: "/dashboards/surveyor",
-    desc: "IRDAI-licensed independent assessor verifying physical vehicle damage.",
+    desc: "Licensed independent assessor verifying physical vehicle damage.",
     icon: FileSearch,
     badgeColor: "border-amber-500/30 text-amber-400 bg-amber-500/10"
   },
   {
     role: "GARAGE",
     label: "Garage (Demo)",
-    name: "Rajesh Auto Care",
-    email: "garage@repair.com",
+    name: "Demo Auto Workshop",
+    email: "demo-garage@insuretrace.in",
     token: "dev-garage",
     targetRoute: "/dashboards/garage",
     desc: "Authorized workshop uploading itemized repair estimates and parts invoices.",
@@ -73,8 +73,8 @@ const DEMO_PERSONAS = [
   {
     role: "ADMIN",
     label: "Admin / Auditor (Demo)",
-    name: "System Administrator",
-    email: "admin@insuretrace.in",
+    name: "Demo System Administrator",
+    email: "demo-admin@insuretrace.in",
     token: "dev-admin",
     targetRoute: "/verification",
     desc: "Platform regulator auditing Hyperledger Fabric consensus and ledger integrity.",

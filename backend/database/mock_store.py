@@ -133,46 +133,46 @@ class MockDatabaseStore:
                 "id": "11111111-1111-1111-1111-111111111111",
                 "role": "ADMIN",
                 "organization_id": "00000000-0000-0000-0000-000000000001",
-                "email": "admin@insuretrace.in",
-                "full_name": "System Administrator"
+                "email": "demo-admin@insuretrace.in",
+                "full_name": "Demo System Administrator"
             },
             {
                 "id": "22222222-2222-2222-2222-222222222222",
                 "role": "POLICYHOLDER",
                 "organization_id": "00000000-0000-0000-0000-000000000002",
-                "email": "user@example.com",
-                "full_name": "Rahul Sharma"
+                "email": "demo-policyholder@insuretrace.in",
+                "full_name": "Rahul Sharma (Demo)"
             },
             {
                 "id": "33333333-3333-3333-3333-333333333333",
                 "role": "GARAGE",
                 "organization_id": "00000000-0000-0000-0000-000000000003",
-                "email": "garage@repair.com",
-                "full_name": "Quality Garage Works"
+                "email": "demo-garage@insuretrace.in",
+                "full_name": "Demo Authorized Workshop"
             },
             {
                 "id": "44444444-4444-4444-4444-444444444444",
                 "role": "INSURER",
                 "organization_id": "00000000-0000-0000-0000-000000000004",
-                "email": "claims@hdfcergo.com",
-                "full_name": "HDFC ERGO Claims Desk"
+                "email": "demo-insurer@insuretrace.in",
+                "full_name": "Demo Insurer Claims Desk"
             },
             {
                 "id": "55555555-5555-5555-5555-555555555555",
                 "role": "SURVEYOR",
                 "organization_id": "00000000-0000-0000-0000-000000000005",
-                "email": "surveyor@irda-licence.in",
-                "full_name": "Licensed Motor Surveyor"
+                "email": "demo-surveyor@insuretrace.in",
+                "full_name": "Demo Motor Loss Assessor"
             }
         ]
 
         # 2. Organizations
         self.tables["organizations"] = [
-            {"id": "00000000-0000-0000-0000-000000000001", "name": "InsureTrace Core Admin", "type": "REGULATOR"},
-            {"id": "00000000-0000-0000-0000-000000000002", "name": "Retail Policyholders", "type": "INDIVIDUAL"},
-            {"id": "00000000-0000-0000-0000-000000000003", "name": "Quality Garage & Bodyworks", "type": "GARAGE"},
-            {"id": "00000000-0000-0000-0000-000000000004", "name": "HDFC ERGO General Insurance", "type": "INSURER"},
-            {"id": "00000000-0000-0000-0000-000000000005", "name": "National Motor Surveyors Council", "type": "SURVEYOR"}
+            {"id": "00000000-0000-0000-0000-000000000001", "name": "InsureTrace Demo Governance", "type": "ADMIN"},
+            {"id": "00000000-0000-0000-0000-000000000002", "name": "Demo Policyholders Group", "type": "POLICYHOLDER"},
+            {"id": "00000000-0000-0000-0000-000000000003", "name": "Demo Auto Care Workshop", "type": "GARAGE"},
+            {"id": "00000000-0000-0000-0000-000000000004", "name": "Demo General Insurance Ltd", "type": "INSURER"},
+            {"id": "00000000-0000-0000-0000-000000000005", "name": "Demo Independent Assessors Guild", "type": "SURVEYOR"}
         ]
 
         # 3. Vehicles
