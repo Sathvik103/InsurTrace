@@ -1,16 +1,33 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { AppShell } from "@/components/layout/Shell";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  Activity, ShieldAlert, CheckCircle, Car, RefreshCw, 
-  FileText, ExternalLink, ShieldCheck, AlertCircle, X, Database
-} from "lucide-react";
-import Link from "next/link";
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { AppShell } from '@/components/layout/Shell';
+import { PageHeader } from '@/components/common/PageHeader';
+import { StatCard } from '@/components/common/StatCard';
+import { StatusBadge, VerificationBadge } from '@/components/common/StatusBadge';
+import { EmptyState, SkeletonCard } from '@/components/common/EmptyState';
+import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
+import { formatINR, formatDate, truncateHash } from '@/lib/formatters';
+import {
+  Activity,
+  ShieldAlert,
+  CheckCircle,
+  Car,
+  RefreshCw,
+  FileText,
+  ExternalLink,
+  ShieldCheck,
+  AlertCircle,
+  X,
+  Database,
+  Building,
+  Search,
+  Filter,
+  ArrowRight,
+  Lock,
+} from 'lucide-react';
 
 type ClaimSummary = {
   id: string;
@@ -72,24 +89,27 @@ type ClaimDossier = {
 };
 
 export default function InsurerDashboard() {
+  const router = useRouter();
   const [claims, setClaims] = useState<ClaimSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [dossier, setDossier] = useState<ClaimDossier | null>(null);
   const [dossierLoading, setDossierLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('ALL');
 
   const fetchClaims = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/claims", {
-        headers: { "Authorization": "Bearer dev-insurer" }
+      const res = await fetch('http://localhost:8000/api/v1/claims', {
+        headers: { Authorization: 'Bearer dev-insurer' },
       });
       if (res.ok) {
         const data = await res.json();
         setClaims(data || []);
       }
     } catch (e) {
-      console.error("Failed to fetch claims:", e);
+      console.error('Failed to fetch claims:', e);
     } finally {
       setLoading(false);
     }
@@ -104,14 +124,14 @@ export default function InsurerDashboard() {
     setDossierLoading(true);
     try {
       const res = await fetch(`http://localhost:8000/api/v1/claims/${claimId}`, {
-        headers: { "Authorization": "Bearer dev-insurer" }
+        headers: { Authorization: 'Bearer dev-insurer' },
       });
       if (res.ok) {
         const data = await res.json();
         setDossier(data);
       }
     } catch (e) {
-      console.error("Failed to fetch claim dossier:", e);
+      console.error('Failed to fetch claim dossier:', e);
     } finally {
       setDossierLoading(false);
     }
@@ -122,291 +142,354 @@ export default function InsurerDashboard() {
     setDossier(null);
   };
 
+  const filteredClaims = claims.filter((c) => {
+    const matchesSearch =
+      c.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.policy_id && c.policy_id.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesFilter = filterStatus === 'ALL' || c.status === filterStatus;
+    return matchesSearch && matchesFilter;
+  });
+
   return (
     <AppShell>
-      <div className="space-y-6 max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-end">
-          <div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                Authorized Insurer Portal
-              </Badge>
-              <span className="text-xs text-zinc-400">HDFC ERGO General Insurance • Desk ID: 0004</span>
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 mt-2">Insurer Command Center</h1>
-            <p className="text-zinc-500 mt-1 text-sm">
-              Live claims queue, policy verification, Hyperledger Fabric ledger audit, and regulatory ML disclosures.
-            </p>
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={fetchClaims} 
+      <PageHeader
+        title="Insurer Command Center"
+        description="Authorized underwriter desk: inspect claims queue, review surveyor loss assessments, audit on-chain Fabric state proofs, and execute claim adjudications."
+        breadcrumbs={[
+          { label: 'Platform', href: '/' },
+          { label: 'Enterprise Roles' },
+          { label: 'Insurer Command' },
+        ]}
+        actions={
+          <button
+            onClick={fetchClaims}
             disabled={loading}
-            className="text-xs flex items-center gap-1.5"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh Queue</span>
-          </Button>
-        </div>
+          </button>
+        }
+      />
 
-        {/* Metric Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-5 flex justify-between items-start">
-              <div>
-                <p className="text-xs text-zinc-500 font-medium uppercase">Active Claims</p>
-                <p className="text-2xl font-bold mt-1 text-zinc-900">{claims.length}</p>
-                <p className="text-[11px] text-zinc-400 mt-0.5">Database records</p>
-              </div>
-              <Activity className="w-5 h-5 text-blue-600" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-5 flex justify-between items-start">
-              <div>
-                <p className="text-xs text-zinc-500 font-medium uppercase">Fabric Ledger Anchors</p>
-                <p className="text-2xl font-bold mt-1 text-green-700">100%</p>
-                <p className="text-[11px] text-green-600 mt-0.5">All active claims anchored</p>
-              </div>
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-5 flex justify-between items-start">
-              <div>
-                <p className="text-xs text-zinc-500 font-medium uppercase">ML Intelligence Mode</p>
-                <p className="text-base font-bold mt-1 text-zinc-800">DATA_LIMITED</p>
-                <p className="text-[11px] text-amber-700 mt-0.5">IRDAI privacy compliant (Zero synthetic)</p>
-              </div>
-              <ShieldAlert className="w-5 h-5 text-amber-500" />
-            </CardContent>
-          </Card>
-        </div>
+      {/* KPI Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard
+          label="Active Claims Queue"
+          value={claims.length}
+          subtext="Relational database records"
+          icon={Activity}
+        />
+        <StatCard
+          label="On-Chain Anchors"
+          value="100%"
+          subtext="Sealed on Hyperledger Fabric"
+          icon={ShieldCheck}
+          trend={{ value: 'ALL SEALED', isPositive: true }}
+        />
+        <StatCard
+          label="Underwriting Desk"
+          value="HDFC ERGO"
+          subtext="Desk ID: 0004 • Motor OD"
+          icon={Building}
+        />
+        <StatCard
+          label="ML Audit Mode"
+          value="DATA_LIMITED"
+          subtext="IRDAI Compliant (Zero Hallucination)"
+          icon={ShieldAlert}
+          trend={{ value: 'DETERMINISTIC', isNeutral: true }}
+        />
+      </div>
 
-        {/* Claims Table Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Claims Processing Queue</CardTitle>
-            <CardDescription className="text-xs">Click any claim ID to inspect the complete Claim Dossier.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="py-8 text-center text-zinc-400 text-xs">Loading claims from PostgreSQL...</div>
-            ) : claims.length === 0 ? (
-              <div className="py-12 border-2 border-dashed rounded-xl text-center space-y-3">
-                <FileText className="w-8 h-8 text-zinc-300 mx-auto" />
-                <p className="text-sm font-medium text-zinc-700">No Claims in Queue</p>
-                <p className="text-xs text-zinc-500">Run a decision analysis or submit a claim to populate this queue.</p>
-                <Button size="sm" onClick={() => window.location.href = "/decision"}>
-                  Go to Decision Engine
-                </Button>
-              </div>
-            ) : (
-              <div className="border rounded-lg overflow-hidden">
-                <Table>
-                  <TableHeader className="bg-zinc-50">
-                    <TableRow>
-                      <TableHead className="text-xs">Claim ID</TableHead>
-                      <TableHead className="text-xs">Associated Policy</TableHead>
-                      <TableHead className="text-xs">Est. Repair Cost</TableHead>
-                      <TableHead className="text-xs">Status</TableHead>
-                      <TableHead className="text-xs">Ledger Status</TableHead>
-                      <TableHead className="text-xs text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {claims.map((c) => (
-                      <TableRow key={c.id} className="hover:bg-zinc-50 cursor-pointer" onClick={() => openDossier(c.id)}>
-                        <TableCell className="font-mono text-xs font-semibold text-blue-600">
-                          {c.id}
-                        </TableCell>
-                        <TableCell className="text-xs font-mono">{c.policy_id || "POL-REAL-101"}</TableCell>
-                        <TableCell className="text-xs font-medium">₹{(c.estimated_repair_cost || 0).toLocaleString()}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-[10px] bg-zinc-100 text-zinc-700">
-                            {c.status.replace(/_/g, " ")}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-[10px]">
-                            <ShieldCheck className="w-3 h-3 mr-1" /> COMMITTED
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={(e) => { e.stopPropagation(); openDossier(c.id); }}
-                            className="text-xs text-blue-600 hover:text-blue-700 h-7 px-2"
-                          >
-                            Inspect Dossier
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Claims Processing Queue */}
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 shadow-xs overflow-hidden">
+        {/* Table Toolbar */}
+        <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
+              Claims Adjudication Queue
+            </h3>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+              {filteredClaims.length} records
+            </span>
+          </div>
 
-        {/* Claim Dossier Modal */}
-        {selectedClaimId && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6 shadow-2xl border">
-              {/* Dossier Header */}
-              <div className="flex justify-between items-start border-b pb-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                      Claim Dossier
-                    </Badge>
-                    <span className="font-mono text-xs text-zinc-500">{selectedClaimId}</span>
-                  </div>
-                  <h2 className="text-xl font-bold text-zinc-900 mt-1">Complete Claim Verification Dossier</h2>
-                  <p className="text-xs text-zinc-500">Comprehensive view across policy, vehicle, documents, and blockchain ledger.</p>
-                </div>
-                <Button variant="ghost" size="sm" onClick={closeDossier} className="h-8 w-8 p-0 rounded-full">
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {dossierLoading ? (
-                <div className="py-12 text-center text-zinc-500 text-xs">Loading complete dossier from database & ledger...</div>
-              ) : dossier ? (
-                <div className="space-y-6">
-                  {/* Vehicle & Policy Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Vehicle Details */}
-                    <Card className="bg-zinc-50 border-zinc-200">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-xs uppercase text-zinc-500 flex items-center gap-1.5">
-                          <Car className="w-3.5 h-3.5" /> Vehicle Specification
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-xs space-y-1.5">
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Registration:</span>
-                          <span className="font-mono font-bold text-zinc-900">{dossier.vehicle?.registration_number || "MH02CB1234"}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Make & Model:</span>
-                          <span className="font-medium text-zinc-900">{dossier.vehicle?.make} {dossier.vehicle?.model}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Manufacture Year:</span>
-                          <span className="text-zinc-900">{dossier.vehicle?.manufacture_year}</span>
-                        </div>
-                        {dossier.vehicle?.vin && (
-                          <div className="flex justify-between">
-                            <span className="text-zinc-500">VIN:</span>
-                            <span className="font-mono text-zinc-900">{dossier.vehicle.vin}</span>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    {/* Policy Details */}
-                    <Card className="bg-zinc-50 border-zinc-200">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-xs uppercase text-zinc-500 flex items-center gap-1.5">
-                          <ShieldCheck className="w-3.5 h-3.5" /> Policy Parameters
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-xs space-y-1.5">
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Policy Number:</span>
-                          <span className="font-mono font-bold text-zinc-900">{dossier.policy?.policy_number || "2311/2004/99812/00/000"}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Insured Declared Value (IDV):</span>
-                          <span className="font-semibold text-zinc-900">₹{(dossier.policy?.idv || 650000).toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Compulsory Excess:</span>
-                          <span className="text-zinc-900">₹{(dossier.policy?.compulsory_deductible || 1000).toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Current NCB:</span>
-                          <span className="font-semibold text-green-700">{dossier.policy?.ncb_percentage || 25}%</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Blockchain Ledger Synchronization Card */}
-                  <Card className="border-indigo-200 bg-indigo-50/30">
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-center">
-                        <CardTitle className="text-xs uppercase text-indigo-900 flex items-center gap-1.5">
-                          <Database className="w-3.5 h-3.5" /> Hyperledger Fabric Ledger Status
-                        </CardTitle>
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-[10px]">
-                          {dossier.ledger?.sync_status || "COMMITTED"}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="text-xs space-y-2 font-mono">
-                      <div>
-                        <span className="text-zinc-500">Blockchain Tx ID:</span>
-                        <span className="block font-semibold text-zinc-900 break-all">{dossier.ledger?.blockchain_tx_id || "tx-b4fe2b23a1d471569427b3"}</span>
-                      </div>
-                      <div>
-                        <span className="text-zinc-500">Canonical SHA-256 Hash:</span>
-                        <span className="block font-semibold text-indigo-700 break-all">{dossier.ledger?.local_data_hash || "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Honest ML & Data Limitation Disclosure */}
-                  <Card className="border-amber-200 bg-amber-50/40">
-                    <CardContent className="pt-4 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0" />
-                        <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">
-                          Regulatory ML Availability Disclosure: {dossier.ml_intelligence_disclosure.status}
-                        </span>
-                      </div>
-                      <p className="text-xs text-amber-800 leading-relaxed">
-                        {dossier.ml_intelligence_disclosure.reason}
-                      </p>
-                      <div className="pt-2 border-t border-amber-200 text-[11px] text-amber-700 space-y-1">
-                        <div><strong>Compliance:</strong> {dossier.ml_intelligence_disclosure.regulatory_framework}</div>
-                        <div><strong>Data Honesty:</strong> {dossier.ml_intelligence_disclosure.integrity_commitment}</div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Navigation Shortcuts */}
-                  <div className="flex gap-3 pt-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => window.location.href = `/verification?claimId=${selectedClaimId}`}
-                      className="flex-1 text-xs"
-                    >
-                      <Database className="w-3.5 h-3.5 mr-1.5" />
-                      Verify on Blockchain Console
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => window.location.href = `/vehicles/${dossier.vehicle?.id || "V-REAL-101"}`}
-                      className="flex-1 text-xs"
-                    >
-                      <Car className="w-3.5 h-3.5 mr-1.5" />
-                      View Vehicle History Timeline
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="py-8 text-center text-red-600 text-xs">Failed to load dossier.</div>
-              )}
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search claim or policy..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 w-48 sm:w-64"
+              />
             </div>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-2.5 py-1.5 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="PENDING_SURVEY">Pending Survey</option>
+              <option value="UNDER_REVIEW">Under Review</option>
+              <option value="APPROVED">Approved</option>
+              <option value="SETTLED">Settled</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Claims Table */}
+        {loading ? (
+          <div className="p-6">
+            <SkeletonCard lines={4} />
+          </div>
+        ) : filteredClaims.length === 0 ? (
+          <div className="p-12">
+            <EmptyState
+              icon={FileText}
+              title="No Claims Found"
+              description="No active claims match your current filters. Simulate a new claim calculation to populate this queue."
+              action={{
+                label: 'Run Claim Decision',
+                onClick: () => router.push('/decision'),
+              }}
+            />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-zinc-50 dark:bg-zinc-900/80 text-zinc-600 dark:text-zinc-400 font-semibold border-b border-zinc-200 dark:border-zinc-800">
+                <tr>
+                  <th className="p-3 font-mono">Claim ID</th>
+                  <th className="p-3">Policy Number</th>
+                  <th className="p-3">Repair Estimate</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3">Ledger Anchor</th>
+                  <th className="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                {filteredClaims.map((c) => (
+                  <tr
+                    key={c.id}
+                    onClick={() => openDossier(c.id)}
+                    className="hover:bg-zinc-50/80 dark:hover:bg-zinc-900/40 cursor-pointer transition-colors"
+                  >
+                    <td className="p-3 font-mono font-bold text-zinc-900 dark:text-zinc-100">
+                      {c.id}
+                    </td>
+                    <td className="p-3 font-mono text-zinc-600 dark:text-zinc-400">
+                      {c.policy_id || 'POL-REAL-101'}
+                    </td>
+                    <td className="p-3 font-mono font-semibold text-zinc-900 dark:text-zinc-100">
+                      {formatINR(c.estimated_repair_cost)}
+                    </td>
+                    <td className="p-3">
+                      <StatusBadge status={c.status} />
+                    </td>
+                    <td className="p-3">
+                      <VerificationBadge isVerified={true} />
+                    </td>
+                    <td className="p-3 text-right">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDossier(c.id);
+                        }}
+                        className="px-2.5 py-1 text-xs font-semibold rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 transition-colors"
+                      >
+                        Inspect Dossier
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
+
+      {/* Claim Dossier Modal */}
+      {selectedClaimId && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-6 shadow-2xl border border-zinc-200 dark:border-zinc-800">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 font-semibold border border-blue-500/20">
+                    CLAIM DOSSIER
+                  </span>
+                  <span className="font-mono text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    {selectedClaimId}
+                  </span>
+                </div>
+                <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mt-1">
+                  Comprehensive Claim Verification Dossier
+                </h2>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  Multi-party view across policy, vehicle history, workshop estimates, and on-chain proofs.
+                </p>
+              </div>
+              <button
+                onClick={closeDossier}
+                className="p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 rounded-md"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {dossierLoading ? (
+              <div className="p-8 text-center text-xs text-zinc-500">
+                <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-zinc-400" />
+                <span>Loading complete dossier records...</span>
+              </div>
+            ) : dossier ? (
+              <div className="space-y-6">
+                {/* Vehicle & Policy Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Vehicle Spec */}
+                  <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/50 space-y-2 text-xs">
+                    <div className="flex items-center gap-1.5 font-bold uppercase text-zinc-700 dark:text-zinc-300 text-[11px] pb-1 border-b border-zinc-200 dark:border-zinc-800">
+                      <Car className="w-3.5 h-3.5" />
+                      <span>Vehicle Specification</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Registration:</span>
+                      <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
+                        {dossier.vehicle?.registration_number || 'MH02CB1234'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Make & Model:</span>
+                      <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {dossier.vehicle?.make} {dossier.vehicle?.model}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Manufacture Year:</span>
+                      <span className="text-zinc-900 dark:text-zinc-100">
+                        {dossier.vehicle?.manufacture_year}
+                      </span>
+                    </div>
+                    {dossier.vehicle?.vin && (
+                      <div className="flex justify-between">
+                        <span className="text-zinc-500">VIN:</span>
+                        <span className="font-mono text-zinc-900 dark:text-zinc-100">
+                          {dossier.vehicle.vin}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Policy Spec */}
+                  <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/50 space-y-2 text-xs">
+                    <div className="flex items-center gap-1.5 font-bold uppercase text-zinc-700 dark:text-zinc-300 text-[11px] pb-1 border-b border-zinc-200 dark:border-zinc-800">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Policy Parameters</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Policy Number:</span>
+                      <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
+                        {dossier.policy?.policy_number || '2311/2004/99812/00/000'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Insured Value (IDV):</span>
+                      <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
+                        {formatINR(dossier.policy?.idv || 650000)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Compulsory Excess:</span>
+                      <span className="font-mono text-zinc-900 dark:text-zinc-100">
+                        {formatINR(dossier.policy?.compulsory_deductible || 1000)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Current NCB:</span>
+                      <span className="font-mono font-bold text-emerald-600">
+                        {dossier.policy?.ncb_percentage || 25}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hyperledger Fabric State Proof */}
+                <div className="p-4 rounded-xl border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/40 dark:bg-indigo-950/20 space-y-2 text-xs font-mono">
+                  <div className="flex items-center justify-between font-sans">
+                    <div className="flex items-center gap-1.5 font-bold uppercase text-indigo-950 dark:text-indigo-200 text-[11px]">
+                      <Database className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Hyperledger Fabric Ledger Proof</span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 font-bold border border-emerald-500/20">
+                      {dossier.ledger?.sync_status || 'COMMITTED'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-zinc-500">Blockchain Transaction ID:</span>
+                    <span className="block text-zinc-900 dark:text-zinc-100 break-all select-all font-bold">
+                      {dossier.ledger?.blockchain_tx_id || 'tx-b4fe2b23a1d471569427b3'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-zinc-500">Canonical SHA-256 State Hash:</span>
+                    <span className="block text-indigo-700 dark:text-indigo-300 break-all select-all">
+                      {dossier.ledger?.local_data_hash ||
+                        'd7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Regulatory ML Disclosure */}
+                <div className="p-4 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/40 dark:bg-amber-950/20 space-y-2 text-xs">
+                  <div className="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wide text-[11px]">
+                    <ShieldAlert className="w-4 h-4 text-amber-700" />
+                    <span>
+                      Regulatory ML Availability Disclosure: {dossier.ml_intelligence_disclosure.status}
+                    </span>
+                  </div>
+                  <p className="text-amber-800 dark:text-amber-300 leading-relaxed">
+                    {dossier.ml_intelligence_disclosure.reason}
+                  </p>
+                  <div className="pt-2 border-t border-amber-200 dark:border-amber-900/40 text-[11px] text-amber-700 dark:text-amber-400 space-y-0.5">
+                    <div>
+                      <strong>Compliance:</strong> {dossier.ml_intelligence_disclosure.regulatory_framework}
+                    </div>
+                    <div>
+                      <strong>Integrity:</strong> {dossier.ml_intelligence_disclosure.integrity_commitment}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Navigation Actions */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <button
+                    onClick={() => router.push(`/verification?claimId=${selectedClaimId}`)}
+                    className="flex-1 py-2 px-3 rounded-lg border border-zinc-300 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <Database className="w-3.5 h-3.5" />
+                    <span>Verify Hashes in Console</span>
+                  </button>
+                  <button
+                    onClick={() => router.push(`/vehicles/${dossier.vehicle?.id || 'V-REAL-101'}`)}
+                    className="flex-1 py-2 px-3 rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 text-xs font-semibold hover:bg-zinc-800 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <Car className="w-3.5 h-3.5" />
+                    <span>Inspect Vehicle Dossier</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-8 text-center text-xs text-rose-600">
+                Failed to load dossier data from server.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }

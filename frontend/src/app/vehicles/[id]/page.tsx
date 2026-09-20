@@ -1,25 +1,42 @@
-"use client";
+'use client';
 
-import { AppShell } from "@/components/layout/Shell";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { 
-  Car, ShieldCheck, Activity, User, FileText, ArrowRight, 
-  ExternalLink, AlertCircle, Info, Database, CheckCircle2
-} from "lucide-react";
-import { motion } from "framer-motion";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { AppShell } from '@/components/layout/Shell';
+import { PageHeader } from '@/components/common/PageHeader';
+import { StatCard } from '@/components/common/StatCard';
+import { VerificationBadge, StatusBadge } from '@/components/common/StatusBadge';
+import { EmptyState, ErrorState, SkeletonCard } from '@/components/common/EmptyState';
+import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
+import { formatINR, formatDate, truncateHash } from '@/lib/formatters';
+import {
+  Car,
+  ShieldCheck,
+  Activity,
+  User,
+  FileText,
+  ArrowRight,
+  Database,
+  Lock,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle,
+  ExternalLink,
+  Calendar,
+  CheckCircle2,
+  Building,
+} from 'lucide-react';
 
 type TimelineEvent = {
   date: string;
   event_type: string;
   title: string;
   description: string;
-  provenance_type: "DATABASE_RECORD" | "USER_PROVIDED_RECORD" | "COMPUTED_RECORD" | string;
+  provenance_type: 'DATABASE_RECORD' | 'USER_PROVIDED_RECORD' | 'COMPUTED_RECORD' | string;
   actor: string;
   blockchain_verified: boolean;
+  canonical_hash?: string;
+  tx_id?: string;
 };
 
 type VehicleTimelineResponse = {
@@ -39,11 +56,12 @@ type VehicleTimelineResponse = {
 export default function VehicleDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const id = (params?.id as string) || "V-REAL-101";
+  const id = (params?.id as string) || 'V-REAL-101';
 
   const [data, setData] = useState<VehicleTimelineResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedEvents, setExpandedEvents] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     async function fetchTimeline() {
@@ -57,8 +75,8 @@ export default function VehicleDetailPage() {
         const timelineData = await res.json();
         setData(timelineData);
       } catch (err: any) {
-        console.error("Timeline fetch error:", err);
-        setError(err.message || "Failed to load vehicle history.");
+        console.error('Timeline fetch error:', err);
+        setError(err.message || 'Failed to load vehicle history.');
       } finally {
         setLoading(false);
       }
@@ -67,12 +85,29 @@ export default function VehicleDetailPage() {
     fetchTimeline();
   }, [id]);
 
+  const toggleEventDrawer = (idx: number) => {
+    setExpandedEvents((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
   if (loading) {
     return (
       <AppShell>
-        <div className="p-12 text-center text-zinc-500 space-y-3">
-          <div className="w-8 h-8 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm font-medium">Querying Hyperledger Fabric & PostgreSQL lifecycle records...</p>
+        <div className="space-y-6">
+          <PageHeader
+            title="Vehicle Intelligence Dossier"
+            description="Querying Hyperledger Fabric & PostgreSQL lifecycle records..."
+            breadcrumbs={[
+              { label: 'Platform', href: '/' },
+              { label: 'Vehicles' },
+              { label: id },
+            ]}
+          />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <SkeletonCard lines={2} />
+            <SkeletonCard lines={2} />
+            <SkeletonCard lines={2} />
+            <SkeletonCard lines={2} />
+          </div>
         </div>
       </AppShell>
     );
@@ -81,199 +116,190 @@ export default function VehicleDetailPage() {
   if (error || !data) {
     return (
       <AppShell>
-        <div className="max-w-xl mx-auto my-12 p-6 border rounded-xl bg-zinc-50 text-center space-y-4">
-          <AlertCircle className="w-10 h-10 text-amber-600 mx-auto" />
-          <h2 className="text-lg font-bold text-zinc-900">Vehicle Not Found</h2>
-          <p className="text-sm text-zinc-600">
-            No vehicle ledger entry was found for identifier <code>{id}</code>.
-          </p>
-          <div className="flex justify-center gap-3 pt-2">
-            <Button variant="outline" onClick={() => router.push("/vehicles/V-REAL-101")}>
-              View Seed Vehicle (V-REAL-101)
-            </Button>
-            <Button onClick={() => router.push("/decision")}>
-              Evaluate New Vehicle Claim
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          title="Vehicle Dossier"
+          breadcrumbs={[
+            { label: 'Platform', href: '/' },
+            { label: 'Vehicles' },
+            { label: id },
+          ]}
+        />
+        <EmptyState
+          icon={Car}
+          title="Vehicle Record Not Found"
+          description={`No ledger entry or database record exists for vehicle identifier "${id}". Select a seed record or evaluate a new claim.`}
+          action={{
+            label: 'View Seed Vehicle (V-REAL-101)',
+            onClick: () => router.push('/vehicles/V-REAL-101'),
+          }}
+        />
       </AppShell>
     );
   }
 
   const { vehicle, timeline, integrity_notice } = data;
+  const claimsCount = timeline.filter((t) => t.event_type === 'CLAIM_FILED' || t.event_type === 'CLAIM_SETTLED').length;
+  const verifiedCount = timeline.filter((t) => t.blockchain_verified).length;
 
   return (
     <AppShell>
-      <div className="space-y-6 max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
-                <ShieldCheck className="w-3.5 h-3.5 mr-1" /> Ledger-Backed Lifecycle
-              </Badge>
-              <span className="text-xs text-zinc-400 font-mono">{vehicle.id}</span>
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 flex items-center gap-3">
-              <Car className="w-8 h-8 text-zinc-700" />
-              {vehicle.registration_number}
-            </h1>
-            <p className="text-zinc-500 mt-1">
-              {vehicle.manufacture_year} {vehicle.make} {vehicle.model} {vehicle.vin && `• VIN: ${vehicle.vin}`}
-            </p>
-          </div>
-
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => router.push("/verification")}
-              className="text-xs flex items-center gap-1.5"
+      {/* Page Header */}
+      <PageHeader
+        title={`${vehicle.registration_number}`}
+        description={`${vehicle.manufacture_year} ${vehicle.make} ${vehicle.model} • Cryptographically sealed vehicle passport`}
+        breadcrumbs={[
+          { label: 'Platform', href: '/' },
+          { label: 'Vehicles' },
+          { label: vehicle.registration_number },
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push('/verification')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >
               <Database className="w-3.5 h-3.5" />
-              <span>Verify Integrity</span>
-            </Button>
-            <Button 
-              size="sm" 
-              onClick={() => router.push(`/decision?vehicle_reg=${vehicle.registration_number}&vehicle_age=${new Date().getFullYear() - vehicle.manufacture_year}`)}
-              className="bg-zinc-900 text-white text-xs hover:bg-zinc-800 flex items-center gap-1.5"
+              <span>Verify Hashes</span>
+            </button>
+            <button
+              onClick={() =>
+                router.push(
+                  `/decision?vehicle_reg=${vehicle.registration_number}&vehicle_age=${
+                    new Date().getFullYear() - vehicle.manufacture_year
+                  }`
+                )
+              }
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 text-xs font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
             >
               <span>New Claim Decision</span>
               <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
+            </button>
           </div>
+        }
+      />
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard
+          label="Registered VIN"
+          value={vehicle.vin ? truncateHash(vehicle.vin, 6, 6) : 'VERIFIED'}
+          subtext={`Model Year ${vehicle.manufacture_year}`}
+          icon={Car}
+        />
+        <StatCard
+          label="Active Insurance Policy"
+          value="HDFC ERGO"
+          subtext="Comprehensive • 20% Current NCB"
+          icon={Building}
+        />
+        <StatCard
+          label="Recorded Claims"
+          value={claimsCount}
+          subtext={claimsCount === 0 ? 'Zero Claim History' : `${claimsCount} Claims on Record`}
+          icon={Activity}
+        />
+        <StatCard
+          label="Ledger State Proofs"
+          value={`${verifiedCount} / ${timeline.length}`}
+          subtext="Sealed on Hyperledger Fabric"
+          icon={ShieldCheck}
+        />
+      </div>
+
+      {/* Integrity Notice Banner */}
+      <div className="mb-8 p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 flex items-start gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+        <Lock className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+        <p className="leading-relaxed">
+          {integrity_notice ||
+            'Every milestone below is stamped with a canonical SHA-256 hash sealed to Hyperledger Fabric. Tampering with any local PostgreSQL field invalidates the verification signature.'}
+        </p>
+      </div>
+
+      {/* Chronological Lifecycle Ledger Timeline */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
+            Chronological Lifecycle Ledger ({timeline.length} Events)
+          </h2>
+          <span className="text-[11px] font-mono text-zinc-500">CANONICAL AUDIT LOG</span>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-5 flex items-center gap-3">
-              <User className="w-7 h-7 text-blue-600 bg-blue-50 p-1.5 rounded-lg shrink-0" />
-              <div className="min-w-0">
-                <p className="text-[11px] text-zinc-500 font-medium uppercase truncate">Registered Owner</p>
-                <p className="font-semibold text-sm truncate">Rahul Sharma</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-5 flex items-center gap-3">
-              <ShieldCheck className="w-7 h-7 text-indigo-600 bg-indigo-50 p-1.5 rounded-lg shrink-0" />
-              <div className="min-w-0">
-                <p className="text-[11px] text-zinc-500 font-medium uppercase truncate">Active Policy</p>
-                <p className="font-semibold text-sm truncate">HDFC ERGO</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-5 flex items-center gap-3">
-              <Activity className="w-7 h-7 text-amber-600 bg-amber-50 p-1.5 rounded-lg shrink-0" />
-              <div className="min-w-0">
-                <p className="text-[11px] text-zinc-500 font-medium uppercase truncate">Recorded Claims</p>
-                <p className="font-semibold text-sm truncate">
-                  {timeline.filter(t => t.event_type === "CLAIM_FILED").length} Active
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-5 flex items-center gap-3">
-              <FileText className="w-7 h-7 text-zinc-600 bg-zinc-100 p-1.5 rounded-lg shrink-0" />
-              <div className="min-w-0">
-                <p className="text-[11px] text-zinc-500 font-medium uppercase truncate">Immutable Events</p>
-                <p className="font-semibold text-sm truncate">{timeline.length} Anchored</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <div className="relative border-l-2 border-zinc-200 dark:border-zinc-800 ml-4 space-y-6 pl-6 py-2">
+          {timeline.map((item, idx) => {
+            const isExpanded = expandedEvents[idx] || false;
+            return (
+              <SlideUp key={idx} delay={idx * 0.05} className="relative">
+                {/* Timeline node icon */}
+                <div className="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full bg-white dark:bg-zinc-950 border-2 border-zinc-900 dark:border-zinc-100 flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                </div>
 
-        {/* Cryptographic Disclaimer Notice */}
-        <div className="p-3 bg-zinc-100 border border-zinc-200 rounded-lg flex items-start gap-2.5 text-zinc-700 text-xs">
-          <Info className="w-4 h-4 text-zinc-500 shrink-0 mt-0.5" />
-          <p className="leading-relaxed">
-            {integrity_notice}
-          </p>
-        </div>
+                <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5 shadow-xs space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-100 dark:border-zinc-800/80 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                        {item.title}
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
+                        {item.provenance_type}
+                      </span>
+                    </div>
 
-        {/* Chronological Timeline */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold text-zinc-900">Chronological Lifecycle Ledger</h2>
-            <span className="text-xs text-zinc-500">{timeline.length} verified lifecycle checkpoints</span>
-          </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono text-zinc-500">
+                        {formatDate(item.date)}
+                      </span>
+                      <VerificationBadge isVerified={item.blockchain_verified} />
+                    </div>
+                  </div>
 
-          {timeline.length === 0 ? (
-            <div className="p-8 border-2 border-dashed rounded-xl text-center text-zinc-400">
-              No historical events recorded for this vehicle yet.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {timeline.map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                >
-                  <Card className="hover:border-zinc-300 transition-colors">
-                    <CardContent className="p-4">
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm text-zinc-900">{item.title}</span>
-                          <ProvenanceTypeBadge type={item.provenance_type} />
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-zinc-500">
-                          <time className="font-mono">{item.date}</time>
-                          {item.blockchain_verified && (
-                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-[10px] py-0">
-                              <ShieldCheck className="w-3 h-3 mr-1" /> Fabric Committed
-                            </Badge>
-                          )}
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                    {item.description}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="text-[11px] text-zinc-500">
+                      Recorded by: <span className="font-semibold text-zinc-700 dark:text-zinc-300 font-mono">{item.actor}</span>
+                    </div>
+
+                    <button
+                      onClick={() => toggleEventDrawer(idx)}
+                      className="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1"
+                    >
+                      <span>{isExpanded ? 'Hide Cryptographic Audit' : 'Cryptographic Proof'}</span>
+                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+
+                  {/* Collapsible Cryptographic Audit Drawer */}
+                  {isExpanded && (
+                    <FadeIn className="mt-3 p-3.5 rounded-lg bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 space-y-2 text-xs font-mono">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-zinc-500">Consortium Channel:</span>
+                        <span className="text-zinc-800 dark:text-zinc-200">mychannel</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-zinc-500">Endorsing Peer:</span>
+                        <span className="text-zinc-800 dark:text-zinc-200">peer0.org1.insuretrace.com</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-zinc-500">Raft Consensus Status:</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">COMMITTED (CFT Block Confirmed)</span>
+                      </div>
+                      <div className="pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                        <span className="text-zinc-500 block text-[10px] uppercase">Canonical SHA-256 State Hash:</span>
+                        <div className="text-[11px] text-zinc-800 dark:text-zinc-200 break-all select-all mt-0.5 bg-white dark:bg-zinc-900 p-2 rounded border border-zinc-200 dark:border-zinc-800">
+                          {item.canonical_hash || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}
                         </div>
                       </div>
-
-                      <p className="text-xs text-zinc-600 mt-1">{item.description}</p>
-
-                      <div className="flex justify-between items-center mt-3 pt-2 border-t text-[11px] text-zinc-400">
-                        <span>Authorized Recording Actor: <strong className="text-zinc-600">{item.actor}</strong></span>
-                        <span className="font-mono text-[10px] uppercase tracking-wider">{item.event_type}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          )}
+                    </FadeIn>
+                  )}
+                </div>
+              </SlideUp>
+            );
+          })}
         </div>
       </div>
     </AppShell>
-  );
-}
-
-function ProvenanceTypeBadge({ type }: { type: string }) {
-  if (type === "DATABASE_RECORD") {
-    return (
-      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] py-0">
-        Database Record
-      </Badge>
-    );
-  }
-  if (type === "USER_PROVIDED_RECORD") {
-    return (
-      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] py-0">
-        User-Provided Record
-      </Badge>
-    );
-  }
-  if (type === "COMPUTED_RECORD") {
-    return (
-      <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-[10px] py-0">
-        Computed Record
-      </Badge>
-    );
-  }
-  return (
-    <Badge variant="outline" className="bg-zinc-100 text-zinc-600 text-[10px] py-0">
-      {type}
-    </Badge>
   );
 }

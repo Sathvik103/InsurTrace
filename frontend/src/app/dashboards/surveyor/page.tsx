@@ -1,17 +1,27 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { AppShell } from "@/components/layout/Shell";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  ClipboardList, Camera, AlertCircle, CheckCircle2, 
-  RefreshCw, ShieldCheck, UploadCloud, X, FileText, Info
-} from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { AppShell } from '@/components/layout/Shell';
+import { PageHeader } from '@/components/common/PageHeader';
+import { StatCard } from '@/components/common/StatCard';
+import { StatusBadge } from '@/components/common/StatusBadge';
+import { EmptyState, SkeletonCard } from '@/components/common/EmptyState';
+import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
+import { formatINR, formatDate } from '@/lib/formatters';
+import {
+  ClipboardList,
+  Camera,
+  AlertCircle,
+  CheckCircle2,
+  RefreshCw,
+  ShieldCheck,
+  UploadCloud,
+  X,
+  FileText,
+  Info,
+  Scale,
+  Sparkles,
+} from 'lucide-react';
 
 type ClaimAssignment = {
   id: string;
@@ -41,15 +51,15 @@ export default function SurveyorDashboard() {
   const fetchAssignments = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/claims", {
-        headers: { "Authorization": "Bearer dev-surveyor" }
+      const res = await fetch('http://localhost:8000/api/v1/claims', {
+        headers: { Authorization: 'Bearer dev-surveyor' },
       });
       if (res.ok) {
         const data = await res.json();
         setAssignments(data || []);
       }
     } catch (e) {
-      console.error("Failed to fetch surveyor assignments:", e);
+      console.error('Failed to fetch surveyor assignments:', e);
     } finally {
       setLoading(false);
     }
@@ -72,28 +82,25 @@ export default function SurveyorDashboard() {
     setUploading(true);
     setErrorMessage(null);
     try {
-      const formData = new FormData();
-      formData.append("file", surveyPhoto);
-      formData.append("claim_id", selectedClaim);
+      const fd = new FormData();
+      fd.append('file', surveyPhoto);
 
-      const res = await fetch("http://localhost:8000/api/v1/vision/analyze-damage", {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer dev-surveyor"
-        },
-        body: formData
-      });
-
+      const res = await fetch(
+        `http://localhost:8000/api/v1/surveyor/inspect-damage?claim_id=${selectedClaim}`,
+        {
+          method: 'POST',
+          headers: { Authorization: 'Bearer dev-surveyor' },
+          body: fd,
+        }
+      );
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Upload validation failed");
+        throw new Error(`Assessment service returned status ${res.status}`);
       }
-
       const data = await res.json();
       setVisionResult(data);
-    } catch (e: any) {
-      console.error("Survey upload error:", e);
-      setErrorMessage(e.message || "Failed to process damage photo.");
+    } catch (err: any) {
+      console.error('Vision analysis error:', err);
+      setErrorMessage(err.message || 'Damage vision service encountered an issue.');
     } finally {
       setUploading(false);
     }
@@ -101,194 +108,230 @@ export default function SurveyorDashboard() {
 
   return (
     <AppShell>
-      <div className="space-y-6 max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-end">
-          <div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 text-xs">
-                IRDAI Licensed Motor Surveyor
-              </Badge>
-              <span className="text-xs text-zinc-400">License: SLA-49102 • Council: IRDAI Certified</span>
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900 mt-2">Surveyor Assessment Portal</h1>
-            <p className="text-zinc-500 mt-1 text-sm">
-              Manage on-site and digital inspection assignments, upload damage evidence, and verify repair bills against physical damage.
-            </p>
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
+      <PageHeader
+        title="Surveyor Assessment Workspace"
+        description="Licensed motor loss assessor portal: inspect assigned claims, evaluate physical parts admissibility per IRDAI schedules, and record damage photo SHA-256 hashes."
+        breadcrumbs={[
+          { label: 'Platform', href: '/' },
+          { label: 'Enterprise Roles' },
+          { label: 'Surveyor Assessment' },
+        ]}
+        actions={
+          <button
             onClick={fetchAssignments}
             disabled={loading}
-            className="text-xs flex items-center gap-1.5"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh Assignments</span>
-          </Button>
-        </div>
+          </button>
+        }
+      />
 
-        {/* Metric Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-5 flex justify-between items-start">
-              <div>
-                <p className="text-xs text-zinc-500 font-medium uppercase">Pending Inspections</p>
-                <p className="text-2xl font-bold mt-1 text-blue-600">{assignments.length}</p>
-                <p className="text-[11px] text-zinc-400 mt-0.5">Assigned claims</p>
-              </div>
-              <ClipboardList className="w-5 h-5 text-blue-600" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-5 flex justify-between items-start">
-              <div>
-                <p className="text-xs text-zinc-500 font-medium uppercase">Digital Integrity</p>
-                <p className="text-2xl font-bold mt-1 text-green-700">Active</p>
-                <p className="text-[11px] text-green-600 mt-0.5">SHA-256 image provenance hashing</p>
-              </div>
-              <ShieldCheck className="w-5 h-5 text-green-600" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-5 flex justify-between items-start">
-              <div>
-                <p className="text-xs text-zinc-500 font-medium uppercase">Inspection Standards</p>
-                <p className="text-sm font-bold mt-1 text-zinc-800">Physical Evidence</p>
-                <p className="text-[11px] text-zinc-400 mt-0.5">IRDAI Surveyor Regulations 2020</p>
-              </div>
-              <Info className="w-5 h-5 text-zinc-400" />
-            </CardContent>
-          </Card>
-        </div>
+      {/* KPI Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard
+          label="Pending Surveys"
+          value={assignments.length}
+          subtext="Assigned loss assessments"
+          icon={ClipboardList}
+        />
+        <StatCard
+          label="Surveyor License"
+          value="SLA-99201"
+          subtext="Independent Assessor Level II"
+          icon={ShieldCheck}
+        />
+        <StatCard
+          label="Tariff Standard"
+          value="IRDAI 2026"
+          subtext="Metal / Plastic / Glass Norms"
+          icon={Scale}
+        />
+        <StatCard
+          label="Damage Vision Mode"
+          value="EXPERIMENTAL"
+          subtext="Advisory Only (Assessor Decides)"
+          icon={Camera}
+          trend={{ value: 'ADVISORY', isNeutral: true }}
+        />
+      </div>
 
-        {/* Survey Assignments Table */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Current Field & Digital Survey Assignments</CardTitle>
-            <CardDescription className="text-xs">Select any claim to initiate photo evidence inspection.</CardDescription>
-          </CardHeader>
-          <CardContent>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Assignments Queue */}
+        <div className="lg:col-span-6 space-y-4">
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
+                Assigned Inspections Queue
+              </h3>
+              <span className="text-[10px] font-mono text-zinc-500">
+                {assignments.length} pending
+              </span>
+            </div>
+
             {loading ? (
-              <div className="py-8 text-center text-zinc-400 text-xs">Loading assignments from database...</div>
+              <SkeletonCard lines={3} />
             ) : assignments.length === 0 ? (
-              <div className="py-12 border-2 border-dashed rounded-xl text-center space-y-3">
-                <ClipboardList className="w-8 h-8 text-zinc-300 mx-auto" />
-                <p className="text-sm font-medium text-zinc-700">No Pending Survey Assignments</p>
-                <p className="text-xs text-zinc-500">All registered motor insurance claims have been inspected.</p>
-              </div>
+              <EmptyState
+                icon={ClipboardList}
+                title="No Inspections Assigned"
+                description="Your inspection queue is clear. New claims filed by policyholders will appear here for damage assessment."
+              />
             ) : (
-              <div className="border rounded-lg overflow-hidden">
-                <Table>
-                  <TableHeader className="bg-zinc-50">
-                    <TableRow>
-                      <TableHead className="text-xs">Claim ID</TableHead>
-                      <TableHead className="text-xs">Policy</TableHead>
-                      <TableHead className="text-xs">Garage Estimate</TableHead>
-                      <TableHead className="text-xs">Status</TableHead>
-                      <TableHead className="text-xs text-right">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {assignments.map((a) => (
-                      <TableRow key={a.id} className="hover:bg-zinc-50">
-                        <TableCell className="font-mono text-xs font-semibold text-blue-600">{a.id}</TableCell>
-                        <TableCell className="text-xs font-mono">{a.policy_id}</TableCell>
-                        <TableCell className="text-xs font-medium">₹{(a.estimated_repair_cost || 0).toLocaleString()}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px]">
-                            {a.status.replace(/_/g, " ")}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            size="sm" 
-                            onClick={() => { setSelectedClaim(a.id); setVisionResult(null); setSurveyPhoto(null); }}
-                            className="bg-zinc-900 hover:bg-zinc-800 text-white text-xs h-7 px-3 flex items-center gap-1.5 ml-auto"
-                          >
-                            <Camera className="w-3.5 h-3.5" />
-                            <span>Upload Survey Photo</span>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="space-y-2">
+                {assignments.map((item) => {
+                  const isSelected = selectedClaim === item.id;
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => setSelectedClaim(item.id)}
+                      className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                        isSelected
+                          ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-50 dark:bg-zinc-800/60 shadow-xs'
+                          : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900/40'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          {item.id}
+                        </span>
+                        <StatusBadge status={item.status} />
+                      </div>
+                      <div className="flex items-center justify-between mt-2 text-xs">
+                        <span className="text-zinc-500">Estimate:</span>
+                        <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">
+                          {formatINR(item.estimated_repair_cost)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1 text-[11px] text-zinc-400">
+                        <span>Policy: {item.policy_id || 'POL-REAL-101'}</span>
+                        <span>{formatDate(item.created_at)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Survey Photo Inspection Modal */}
-        {selectedClaim && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-5 shadow-2xl border">
-              <div className="flex justify-between items-start border-b pb-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 text-xs">
-                      Inspection Evidence Ingestion
-                    </Badge>
-                    <span className="font-mono text-xs text-zinc-500">{selectedClaim}</span>
-                  </div>
-                  <h2 className="text-lg font-bold text-zinc-900 mt-1">Upload Vehicle Damage Photo</h2>
-                  <p className="text-xs text-zinc-500">Magic bytes validation & SHA-256 cryptographic provenance hashing.</p>
-                </div>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedClaim(null)} className="h-8 w-8 p-0 rounded-full">
-                  <X className="w-4 h-4" />
-                </Button>
+          {/* IRDAI Parts Admissibility Guide Card */}
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 p-5 space-y-3 text-xs text-zinc-600 dark:text-zinc-400">
+            <h4 className="font-bold text-zinc-900 dark:text-zinc-100 text-xs uppercase tracking-wider">
+              Statutory Depreciation Schedule Reference
+            </h4>
+            <div className="space-y-1.5 font-mono text-[11px]">
+              <div className="flex justify-between">
+                <span>Rubber, Nylon & Plastic Parts:</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-100">50% Depreciation</span>
               </div>
-
-              {errorMessage && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{errorMessage}</span>
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Select Damage Photograph (JPEG / PNG, max 10MB)</Label>
-                  <Input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFileChange} className="text-xs cursor-pointer" />
-                </div>
-
-                <Button 
-                  onClick={uploadAndAnalyze} 
-                  disabled={!surveyPhoto || uploading}
-                  className="w-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs flex items-center justify-center gap-2"
-                >
-                  {uploading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
-                  <span>{uploading ? "Verifying File & Hashing..." : "Ingest & Cryptographically Anchor Photo"}</span>
-                </Button>
-
-                {visionResult && (
-                  <div className="space-y-3 pt-2">
-                    <Card className="border-indigo-200 bg-indigo-50/40">
-                      <CardContent className="pt-4 space-y-2 text-xs">
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold text-indigo-900 flex items-center gap-1.5">
-                            <CheckCircle2 className="w-4 h-4 text-green-600" />
-                            Image Provenance Hashed
-                          </span>
-                          <Badge variant="outline" className="bg-zinc-100 text-zinc-700 text-[10px]">
-                            {visionResult.status}
-                          </Badge>
-                        </div>
-                        <div className="font-mono text-[11px] bg-white p-2.5 rounded border space-y-1">
-                          <div><strong>SHA-256 Image Hash:</strong></div>
-                          <div className="text-zinc-600 break-all">{visionResult.image_hash}</div>
-                        </div>
-                        <div className="text-[11px] text-indigo-800 leading-relaxed pt-1">
-                          <strong>Honest ML Disclosure:</strong> {visionResult.limitations}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
+              <div className="flex justify-between">
+                <span>Glass Components:</span>
+                <span className="font-bold text-emerald-600">0% (Nil Depreciation)</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Fiberglass Components:</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-100">30% Depreciation</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Metal Parts (Age-Graduated):</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-100">0% to 50%</span>
               </div>
             </div>
           </div>
-        )}
+        </div>
+
+        {/* Damage Photo & Vision Evidence Panel */}
+        <div className="lg:col-span-6 space-y-4">
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
+                Damage Photo Evidence & Hash Sealing
+              </h3>
+              {selectedClaim && (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                  Target: {selectedClaim}
+                </span>
+              )}
+            </div>
+
+            {!selectedClaim ? (
+              <div className="p-8 text-center text-xs text-zinc-400 border border-dashed rounded-lg">
+                Select an assigned inspection claim from the left queue to evaluate photos.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-6 text-center space-y-2">
+                  <Camera className="w-8 h-8 text-zinc-400 mx-auto mb-1" />
+                  <div className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    Upload Physical Inspection Photo
+                  </div>
+                  <p className="text-[11px] text-zinc-500">
+                    Photo will be hashed with SHA-256 and committed to the claim audit trail.
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="block w-full text-xs text-zinc-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-zinc-900 file:text-white hover:file:bg-zinc-800 pt-2"
+                  />
+                </div>
+
+                <button
+                  onClick={uploadAndAnalyze}
+                  disabled={uploading || !surveyPhoto}
+                  className="w-full py-2.5 px-4 rounded-lg text-xs font-semibold bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+                >
+                  {uploading ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Computing Cryptographic Hash & Running Vision...</span>
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="w-3.5 h-3.5" />
+                      <span>Seal Photo Hash & Analyze</span>
+                    </>
+                  )}
+                </button>
+
+                {errorMessage && (
+                  <div className="p-3 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 text-xs rounded-lg flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{errorMessage}</span>
+                  </div>
+                )}
+
+                {visionResult && (
+                  <FadeIn className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>Evidence Sealed</span>
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800">
+                        {visionResult.status}
+                      </span>
+                    </div>
+
+                    <div className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900 p-2 rounded border border-zinc-200 dark:border-zinc-800 break-all">
+                      <span className="text-zinc-400 block text-[10px] uppercase">Photo SHA-256 Digest:</span>
+                      {visionResult.image_hash}
+                    </div>
+
+                    <div className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed bg-amber-50/50 dark:bg-amber-950/20 p-2.5 rounded border border-amber-200 dark:border-amber-900/30">
+                      <div className="font-semibold text-amber-900 dark:text-amber-200 text-[11px] mb-0.5">
+                        Advisory Limitation Notice:
+                      </div>
+                      {visionResult.limitations ||
+                        'Damage vision analysis is experimental advisory support. Final assessment must be certified by the licensed surveyor.'}
+                    </div>
+                  </FadeIn>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </AppShell>
   );
