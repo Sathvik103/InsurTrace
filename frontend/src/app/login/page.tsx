@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { PublicNavbar } from '@/components/public/PublicNavbar';
 import { PublicFooter } from '@/components/public/PublicFooter';
@@ -42,9 +42,11 @@ const ROLE_ROUTES: Record<string, string> = {
   ADMIN: '/verification',
 };
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
-  const { setDemoPersona } = useAuth();
+  const searchParams = useSearchParams();
+  const nextParam = searchParams.get('next');
+  const { user, role, setDemoPersona, status, initialized } = useAuth();
   const [activeProfile, setActiveProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [switching, setSwitching] = useState<string | null>(null);
@@ -55,6 +57,22 @@ export default function LoginPage() {
   const isDemoEnabled =
     process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN !== 'false' &&
     process.env.NEXT_PUBLIC_ENVIRONMENT !== 'production';
+
+  // Helper for safe internal redirects (prevent open redirect vulnerabilities)
+  const getSafeRedirect = (defaultRoute: string) => {
+    if (nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')) {
+      return decodeURIComponent(nextParam);
+    }
+    return defaultRoute;
+  };
+
+  // If already authenticated, redirect to destination
+  useEffect(() => {
+    if (initialized && status === 'authenticated' && user) {
+      const defaultRoute = ROLE_ROUTES[role?.toUpperCase() || ''] || '/decision';
+      router.replace(getSafeRedirect(defaultRoute));
+    }
+  }, [initialized, status, user, role, router, nextParam]);
 
   const fetchCurrentProfile = async () => {
     try {
@@ -123,8 +141,8 @@ export default function LoginPage() {
       const profile: Profile = await profileRes.json();
       setActiveProfile(profile);
 
-      // 3. Route according to authoritative backend role
-      const targetRoute = ROLE_ROUTES[profile.role] || '/decision';
+      // 3. Route according to authoritative backend role or preserved next param
+      const targetRoute = getSafeRedirect(ROLE_ROUTES[profile.role] || '/decision');
       router.push(targetRoute);
     } catch (err: any) {
       console.error('Login error:', err);
@@ -149,7 +167,8 @@ export default function LoginPage() {
         const profile = await res.json();
         setActiveProfile(profile);
       }
-      router.push(persona.targetRoute);
+      const targetRoute = getSafeRedirect(persona.targetRoute);
+      router.push(targetRoute);
     } catch (e: any) {
       console.error('Demo switch error:', e);
       setAuthError('Failed to activate demo persona.');
@@ -287,3 +306,18 @@ export default function LoginPage() {
     </div>
   );
 }
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6">
+          <VeriSureLogo size="md" />
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
+  );
+}
+

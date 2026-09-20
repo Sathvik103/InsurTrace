@@ -36,7 +36,7 @@ interface ShellProps {
 export default function Shell({ children }: ShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, role, signOut, isDemo, activePersona } = useAuth();
+  const { user, role, signOut, isDemo, activePersona, status, initialized } = useAuth();
   const { vehicles, selectedVehicle, selectedVehicleId, setSelectedVehicleId, isDemoActive } =
     useVehicle();
 
@@ -145,8 +145,39 @@ export default function Shell({ children }: ShellProps) {
 
   const handleLogout = async () => {
     await signOut();
-    router.push('/login');
+    router.replace('/login');
   };
+
+  // 1. Session Hydration Guard: show branded loading state, never prematurely redirect
+  if (!initialized || status === 'hydrating') {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6">
+        <div className="flex flex-col items-center space-y-4 max-w-sm text-center">
+          <VeriSureLogo size="lg" />
+          <div className="flex items-center gap-2.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 mt-2">
+            <div className="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
+            <span>Restoring your session...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Unauthenticated Guard: redirect to login preserving current route in `next`
+  if (status === 'unauthenticated' || !user) {
+    if (typeof window !== 'undefined') {
+      const nextTarget = encodeURIComponent(pathname);
+      router.replace(`/login?next=${nextTarget}`);
+    }
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6">
+        <div className="flex flex-col items-center space-y-3 text-center">
+          <VeriSureLogo size="md" />
+          <p className="text-xs text-zinc-500">Redirecting to sign in...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col md:flex-row">

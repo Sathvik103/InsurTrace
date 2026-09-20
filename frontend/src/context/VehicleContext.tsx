@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { getAuthToken } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 
 export interface Vehicle {
   id: string;
@@ -166,11 +167,12 @@ const STORAGE_KEY_SELECTED = 'verisure_active_vehicle_id';
 const STORAGE_KEY_CUSTOM = 'verisure_custom_vehicles';
 
 export function VehicleProvider({ children }: { children: React.ReactNode }) {
+  const { token, status } = useAuth();
   const [vehicles, setVehicles] = useState<Vehicle[]>(FALLBACK_SEED_VEHICLES);
   const [selectedVehicleId, setSelectedVehicleIdState] = useState<string>('V-REAL-101');
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Load custom vehicles from localStorage on mount
+  // 1. Initial hydration from localStorage
   useEffect(() => {
     try {
       const savedSelected = localStorage.getItem(STORAGE_KEY_SELECTED);
@@ -179,7 +181,6 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
       let initialVehicles = [...FALLBACK_SEED_VEHICLES];
       if (savedCustom) {
         const parsedCustom: Vehicle[] = JSON.parse(savedCustom);
-        // Merge without duplicates
         const customIds = new Set(parsedCustom.map((v) => v.id));
         initialVehicles = [
           ...parsedCustom,
@@ -188,6 +189,7 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
       }
       setVehicles(initialVehicles);
 
+      // Validate saved active vehicle exists
       if (savedSelected && initialVehicles.some((v) => v.id === savedSelected)) {
         setSelectedVehicleIdState(savedSelected);
       } else if (initialVehicles.length > 0) {
@@ -200,40 +202,58 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Sync with backend API
+  // 2. Cross-tab synchronization for active vehicle
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY_SELECTED && e.newValue) {
+        setSelectedVehicleIdState(e.newValue);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  // 3. Sync with backend API (runs when auth token or status stabilizes)
   const refreshVehicles = useCallback(async () => {
+    if (status === 'hydrating') return;
+
     try {
-      const token = getAuthToken();
+      const currentToken = token || getAuthToken();
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      if (currentToken) {
+        headers['Authorization'] = `Bearer ${currentToken}`;
       }
 
       const res = await fetch('http://localhost:8000/api/v1/vehicles', { headers });
       if (res.ok) {
         const backendVehicles: Vehicle[] = await res.json();
         if (Array.isArray(backendVehicles) && backendVehicles.length > 0) {
-          // Merge with custom vehicles & seed metadata
           setVehicles((prev) => {
             const map = new Map<string, Vehicle>();
-            // Add fallback seeds first
             FALLBACK_SEED_VEHICLES.forEach((v) => map.set(v.id, v));
-            // Overwrite with backend vehicles
             backendVehicles.forEach((v) => {
               const existing = map.get(v.id) || {};
               map.set(v.id, { ...existing, ...v });
             });
-            // Overwrite with any custom from local state
             prev.filter((v) => !v.is_demo).forEach((v) => map.set(v.id, v));
-            return Array.from(map.values());
+            const merged = Array.from(map.values());
+
+            // Validate and retain active vehicle selection
+            const savedSelected = localStorage.getItem(STORAGE_KEY_SELECTED);
+            if (savedSelected && merged.some((v) => v.id === savedSelected)) {
+              setSelectedVehicleIdState(savedSelected);
+            } else if (!merged.some((v) => v.id === selectedVehicleId) && merged.length > 0) {
+              setSelectedVehicleIdState(merged[0].id);
+            }
+
+            return merged;
           });
         }
       }
     } catch (err) {
-      // Backend unavailable; keep current state
       console.debug('Using cached/fallback vehicles:', err);
     }
-  }, []);
+  }, [token, status, selectedVehicleId]);
 
   useEffect(() => {
     refreshVehicles();
