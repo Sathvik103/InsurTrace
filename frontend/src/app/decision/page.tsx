@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { StatCard } from '@/components/common/StatCard';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR, formatPercent, truncateHash } from '@/lib/formatters';
+import { API_BASE_URL } from '@/lib/api';
 import {
   ShieldCheck,
   TrendingUp,
@@ -178,7 +179,7 @@ function ClaimDecisionContent() {
   const calculate = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/v1/financial/analyze-claim', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/financial/analyze-claim`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -210,7 +211,7 @@ function ClaimDecisionContent() {
     if (!result) return;
     setCommitting(true);
     try {
-      const res = await fetch('http://localhost:8000/api/v1/claims', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/claims`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

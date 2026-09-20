@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { StatCard } from '@/components/common/StatCard';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR, truncateHash } from '@/lib/formatters';
+import { API_BASE_URL } from '@/lib/api';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -63,7 +64,7 @@ function VerificationContent() {
     if (!targetId) return;
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/admin/verify-claim/${targetId}`);
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/verify-claim/${targetId}`);
       if (!res.ok) {
         throw new Error(`Verification endpoint returned status ${res.status}`);
       }
@@ -87,7 +88,7 @@ function VerificationContent() {
     if (!claimId) return;
     setActionLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/admin/tamper-claim/${claimId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/tamper-claim/${claimId}`, {
         method: 'POST',
         headers: {
           Authorization: 'Bearer dev-admin',
@@ -109,7 +110,7 @@ function VerificationContent() {
     setActionLoading(true);
     try {
       const res = await fetch(
-        `http://localhost:8000/api/v1/admin/restore-claim/${claimId}?original_cost=${originalCost}`,
+        `${API_BASE_URL}/api/v1/admin/restore-claim/${claimId}?original_cost=${originalCost}`,
         {
           method: 'POST',
           headers: {

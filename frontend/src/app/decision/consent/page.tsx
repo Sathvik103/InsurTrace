@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { FadeIn } from '@/components/motion/MotionPrimitives';
 import { formatDate } from '@/lib/formatters';
 import { useVehicle } from '@/context/VehicleContext';
+import { API_BASE_URL } from '@/lib/api';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -76,7 +77,7 @@ export default function ConsentDashboard() {
   const fetchConsents = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/api/v1/consents', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/consents`, {
         headers: { Authorization: 'Bearer dev-policyholder' },
       });
       if (res.ok) {
@@ -134,7 +135,7 @@ export default function ConsentDashboard() {
   const revoke = async (id: string) => {
     setActionLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/consents/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/consents/${id}`, {
         method: 'DELETE',
         headers: { Authorization: 'Bearer dev-policyholder' },
       });
@@ -161,7 +162,7 @@ export default function ConsentDashboard() {
     expiryDate.setDate(expiryDate.getDate() + validityDays);
 
     try {
-      const res = await fetch('http://localhost:8000/api/v1/consents', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/consents`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

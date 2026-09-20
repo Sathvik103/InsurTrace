@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { StatCard } from '@/components/common/StatCard';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR } from '@/lib/formatters';
+import { API_BASE_URL } from '@/lib/api';
 import {
   FileUp,
   FileCheck,
@@ -102,7 +103,7 @@ export default function DocumentExtractionPage() {
       fd.append('file', file);
       fd.append('document_type', docType);
 
-      const res = await fetch('http://localhost:8000/api/v1/documents/extract', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/documents/extract`, {
         method: 'POST',
         body: fd,
       });

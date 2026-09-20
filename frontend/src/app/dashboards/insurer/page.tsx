@@ -10,6 +10,7 @@ import { StatusBadge, VerificationBadge } from '@/components/common/StatusBadge'
 import { EmptyState, SkeletonCard } from '@/components/common/EmptyState';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR, formatDate, truncateHash } from '@/lib/formatters';
+import { API_BASE_URL } from '@/lib/api';
 import {
   Activity,
   ShieldAlert,
@@ -101,7 +102,7 @@ export default function InsurerDashboard() {
   const fetchClaims = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/api/v1/claims', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/claims`, {
         headers: { Authorization: 'Bearer dev-insurer' },
       });
       if (res.ok) {
@@ -123,7 +124,7 @@ export default function InsurerDashboard() {
     setSelectedClaimId(claimId);
     setDossierLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/claims/${claimId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/claims/${claimId}`, {
         headers: { Authorization: 'Bearer dev-insurer' },
       });
       if (res.ok) {

@@ -9,6 +9,7 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { EmptyState, SkeletonCard } from '@/components/common/EmptyState';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR, formatDate } from '@/lib/formatters';
+import { API_BASE_URL } from '@/lib/api';
 import {
   Wrench,
   CheckSquare,
@@ -58,7 +59,7 @@ export default function GarageDashboard() {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/api/v1/claims', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/claims`, {
         headers: { Authorization: 'Bearer dev-garage' },
       });
       if (res.ok) {
@@ -99,7 +100,7 @@ export default function GarageDashboard() {
     setSubmitting(true);
     setSuccessMessage(null);
     try {
-      const res = await fetch('http://localhost:8000/api/v1/claims', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/claims`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

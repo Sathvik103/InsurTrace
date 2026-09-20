@@ -11,6 +11,7 @@ import { EmptyState, ErrorState, SkeletonCard } from '@/components/common/EmptyS
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR, formatDate, truncateHash } from '@/lib/formatters';
 import { useVehicle } from '@/context/VehicleContext';
+import { API_BASE_URL } from '@/lib/api';
 import {
   Car,
   ShieldCheck,
@@ -79,7 +80,7 @@ export default function VehicleDetailPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/vehicles/${id}/timeline`);
+        const res = await fetch(`${API_BASE_URL}/api/v1/vehicles/${id}/timeline`);
         if (res.ok) {
           const timelineData: VehicleTimelineResponse = await res.json();
           setData(timelineData);

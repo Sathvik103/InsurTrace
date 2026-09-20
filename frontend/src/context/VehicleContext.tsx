@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { getAuthToken } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { API_BASE_URL } from '@/lib/api';
 
 export interface Vehicle {
   id: string;
@@ -224,7 +225,7 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
         headers['Authorization'] = `Bearer ${currentToken}`;
       }
 
-      const res = await fetch('http://localhost:8000/api/v1/vehicles', { headers });
+      const res = await fetch(`${API_BASE_URL}/api/v1/vehicles`, { headers });
       if (res.ok) {
         const backendVehicles: Vehicle[] = await res.json();
         if (Array.isArray(backendVehicles) && backendVehicles.length > 0) {
@@ -284,7 +285,7 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-      const res = await fetch('http://localhost:8000/api/v1/vehicles', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/vehicles`, {
         method: 'POST',
         headers,
         body: JSON.stringify({

@@ -8,6 +8,7 @@ import { PublicFooter } from '@/components/public/PublicFooter';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { setAuthToken, getAuthToken, supabase } from '@/lib/supabase';
 import { useAuth, DEMO_PERSONAS, Persona } from '@/context/AuthContext';
+import { API_BASE_URL } from '@/lib/api';
 import { VeriSureLogo } from '@/components/brand/VeriSureLogo';
 import {
   Shield,
@@ -82,7 +83,7 @@ function LoginContent() {
         setActiveProfile(null);
         return;
       }
-      const res = await fetch('http://localhost:8000/api/v1/profiles/me', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/profiles/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -128,7 +129,7 @@ function LoginContent() {
 
       // 2. Pass JWT to backend for cryptographic verification & authoritative profile lookup
       setAuthToken(accessToken);
-      const profileRes = await fetch('http://localhost:8000/api/v1/profiles/me', {
+      const profileRes = await fetch(`${API_BASE_URL}/api/v1/profiles/me`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
@@ -160,7 +161,7 @@ function LoginContent() {
       setAuthToken(persona.token);
 
       // Verify persona profile from backend
-      const res = await fetch('http://localhost:8000/api/v1/profiles/me', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/profiles/me`, {
         headers: { Authorization: `Bearer ${persona.token}` },
       });
       if (res.ok) {

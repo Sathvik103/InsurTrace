@@ -8,6 +8,7 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { EmptyState, SkeletonCard } from '@/components/common/EmptyState';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR, formatDate } from '@/lib/formatters';
+import { API_BASE_URL } from '@/lib/api';
 import {
   ClipboardList,
   Camera,
@@ -51,7 +52,7 @@ export default function SurveyorDashboard() {
   const fetchAssignments = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/api/v1/claims', {
+      const res = await fetch(`${API_BASE_URL}/api/v1/claims`, {
         headers: { Authorization: 'Bearer dev-surveyor' },
       });
       if (res.ok) {
@@ -86,7 +87,7 @@ export default function SurveyorDashboard() {
       fd.append('file', surveyPhoto);
 
       const res = await fetch(
-        `http://localhost:8000/api/v1/surveyor/inspect-damage?claim_id=${selectedClaim}`,
+        `${API_BASE_URL}/api/v1/surveyor/inspect-damage?claim_id=${selectedClaim}`,
         {
           method: 'POST',
           headers: { Authorization: 'Bearer dev-surveyor' },
