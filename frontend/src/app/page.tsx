@@ -15,15 +15,79 @@ import {
 } from '@/components/motion/MotionPrimitives';
 import { formatINR } from '@/lib/formatters';
 
+const SEED_VEHICLES = [
+  {
+    id: 'V-REAL-101',
+    reg: 'MH-02-CB-1234',
+    name: 'Hyundai Creta SX',
+    type: 'Midsize SUV',
+    age: 3,
+    idv: 500000,
+    ncb: 20,
+    defaultRepair: 42500,
+    depRate: 0.20,
+    deductible: 2000,
+    ncbLoss3Yr: 8400,
+    txId: 'e14646ae...b7488f'
+  },
+  {
+    id: 'V-REAL-102',
+    reg: 'DL-01-EV-4321',
+    name: 'Tata Nexon EV Max',
+    type: 'Electric Vehicle',
+    age: 1,
+    idv: 1450000,
+    ncb: 25,
+    defaultRepair: 68000,
+    depRate: 0.0, // Zero-dep active
+    deductible: 2500,
+    ncbLoss3Yr: 15750,
+    txId: '99e1428f...348123'
+  },
+  {
+    id: 'V-REAL-103',
+    reg: 'KA-03-MG-7890',
+    name: 'Maruti Suzuki Swift',
+    type: 'Hatchback',
+    age: 5,
+    idv: 480000,
+    ncb: 35,
+    defaultRepair: 12500,
+    depRate: 0.40, // 5-yr plastic/metal
+    deductible: 1000,
+    ncbLoss3Yr: 11200,
+    txId: '7c92ae49...ca91b8'
+  },
+  {
+    id: 'V-REAL-104',
+    reg: 'TS-09-FA-5678',
+    name: 'Honda City ZX',
+    type: 'Sedan',
+    age: 2,
+    idv: 950000,
+    ncb: 50,
+    defaultRepair: 84500,
+    depRate: 0.10,
+    deductible: 1500,
+    ncbLoss3Yr: 28500,
+    txId: 'f8205104...ab1409'
+  }
+];
+
 export default function HomePage() {
-  const [sliderRepairCost, setSliderRepairCost] = useState(42500);
+  const [selectedVehicle, setSelectedVehicle] = useState(SEED_VEHICLES[0]);
+  const [sliderRepairCost, setSliderRepairCost] = useState(SEED_VEHICLES[0].defaultRepair);
+
+  const handleSelectVehicle = (veh: typeof SEED_VEHICLES[0]) => {
+    setSelectedVehicle(veh);
+    setSliderRepairCost(veh.defaultRepair);
+  };
 
   // Dynamic interactive calculation based on standard Indian Motor Tariff rules
-  // 3-year old vehicle, metal part (20% dep), 2000 deductible, 20% NCB on 15k base premium
-  const depreciation = Math.round(sliderRepairCost * 0.20);
-  const deductible = 2000;
+  const depreciation = Math.round(sliderRepairCost * selectedVehicle.depRate);
+  const deductible = selectedVehicle.deductible;
   const admissibleClaim = Math.max(0, sliderRepairCost - depreciation - deductible);
-  const ncbLoss3Year = 8400; // 3-year projected NCB stepback
+  const ncbLoss3Year = selectedVehicle.ncbLoss3Yr;
   const effectiveClaimCost = deductible + ncbLoss3Year;
   const netAdvantage = admissibleClaim - ncbLoss3Year;
   const shouldClaim = netAdvantage > 0;
@@ -44,7 +108,7 @@ export default function HomePage() {
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   <span>VeriSure Infrastructure 2.0</span>
                   <span className="text-zinc-400">•</span>
-                  <span>Hyperledger Fabric Verified</span>
+                  <span>Hyperledger Fabric-Backed Verification</span>
                 </div>
               </FadeIn>
 
@@ -53,13 +117,13 @@ export default function HomePage() {
                   Insurance decisions backed by{' '}
                   <span className="text-zinc-600 dark:text-zinc-400 font-bold">evidence</span>,{' '}
                   <span className="text-emerald-700 dark:text-emerald-400 font-bold">financial clarity</span>, and{' '}
-                  <span className="text-indigo-600 dark:text-indigo-400 font-bold">verified vehicle history</span>.
+                  <span className="text-indigo-600 dark:text-indigo-400 font-bold">verifiable recorded history</span>.
                 </h1>
               </SlideUp>
 
               <SlideUp delay={0.3} distance={20}>
                 <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed font-normal">
-                  VeriSure unifies policy terms, itemized garage estimates, depreciation mathematics, and immutable blockchain records into one transparent decision workspace for vehicle owners, insurers, surveyors, and workshops.
+                  VeriSure unifies policy terms, itemized garage estimates, depreciation mathematics, and tamper-evident ledger records into one transparent decision workspace for vehicle owners, insurers, surveyors, and workshops.
                 </p>
               </SlideUp>
 
@@ -86,11 +150,11 @@ export default function HomePage() {
                 <div className="pt-4 flex flex-wrap items-center gap-6 text-xs text-zinc-500 dark:text-zinc-400">
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    <span>IRDAI Tariff Compliant</span>
+                    <span>Indian Motor Tariff Guidelines</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                    <span>Dual-Peer Raft Blockchain</span>
+                    <span>Consortium Test Network Active</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
@@ -111,13 +175,13 @@ export default function HomePage() {
                         <Car className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="font-bold text-xs text-zinc-900 dark:text-zinc-100">MH-02-CB-1234</p>
-                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Hyundai Creta SX • 3 Years Old</p>
+                        <p className="font-bold text-xs text-zinc-900 dark:text-zinc-100">{selectedVehicle.reg}</p>
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400">{selectedVehicle.name} • {selectedVehicle.age} Years Old</p>
                       </div>
                     </div>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/70 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/70 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40 font-mono">
                       <ShieldCheck className="w-3 h-3" />
-                      Ledger Verified
+                      Tx: {selectedVehicle.txId}
                     </span>
                   </div>
 
@@ -129,10 +193,10 @@ export default function HomePage() {
                         <FileText className="w-4 h-4 text-blue-600" />
                         <div>
                           <p className="font-medium text-zinc-800 dark:text-zinc-200">Comprehensive Policy</p>
-                          <p className="text-[10px] text-zinc-500">IDV: ₹5,00,000 • NCB: 20%</p>
+                          <p className="text-[10px] text-zinc-500">IDV: {formatINR(selectedVehicle.idv)} • NCB: {selectedVehicle.ncb}%</p>
                         </div>
                       </div>
-                      <span className="font-mono font-semibold text-zinc-700 dark:text-zinc-300">₹1,000 Ded.</span>
+                      <span className="font-mono font-semibold text-zinc-700 dark:text-zinc-300">{formatINR(selectedVehicle.deductible)} Ded.</span>
                     </div>
 
                     {/* Node 2: Workshop Estimate */}
@@ -141,25 +205,27 @@ export default function HomePage() {
                         <UploadCloud className="w-4 h-4 text-indigo-600" />
                         <div>
                           <p className="font-medium text-zinc-800 dark:text-zinc-200">Workshop Estimate</p>
-                          <p className="text-[10px] text-zinc-500">Front Bumper & Fender (Metal 20%)</p>
+                          <p className="text-[10px] text-zinc-500">Parts & Labor Assessment</p>
                         </div>
                       </div>
-                      <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">₹42,500</span>
+                      <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">{formatINR(sliderRepairCost)}</span>
                     </div>
 
                     {/* Node 3: Mathematical Outcome */}
                     <div className="p-3 rounded-xl bg-zinc-900 text-white dark:bg-zinc-950 dark:border dark:border-zinc-800 space-y-2">
                       <div className="flex items-center justify-between text-[11px]">
                         <span className="text-zinc-400">Calculated Admissible Claim</span>
-                        <span className="font-mono font-bold text-emerald-400">₹32,000</span>
+                        <span className="font-mono font-bold text-emerald-400">{formatINR(admissibleClaim)}</span>
                       </div>
                       <div className="flex items-center justify-between text-[11px]">
                         <span className="text-zinc-400">3-Year NCB Step-back Loss</span>
-                        <span className="font-mono text-amber-400">-₹8,400</span>
+                        <span className="font-mono text-amber-400">-{formatINR(ncbLoss3Year)}</span>
                       </div>
                       <div className="pt-2 border-t border-zinc-800 flex items-center justify-between">
                         <span className="text-xs font-medium text-zinc-300">Net Financial Advantage</span>
-                        <span className="font-mono font-bold text-sm text-emerald-400">+₹23,600</span>
+                        <span className={`font-mono font-bold text-sm ${netAdvantage >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {netAdvantage >= 0 ? `+${formatINR(netAdvantage)}` : `-${formatINR(Math.abs(netAdvantage))}`}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -170,8 +236,12 @@ export default function HomePage() {
                       <Scale className="w-4 h-4 text-emerald-600" />
                       <span className="font-medium text-zinc-700 dark:text-zinc-300">Engine Recommendation:</span>
                     </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-bold text-xs bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800">
-                      FILE A CLAIM
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-bold text-xs ${
+                      shouldClaim 
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
+                        : 'bg-blue-100 text-blue-800 border border-blue-300 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800'
+                    }`}>
+                      {shouldClaim ? 'FILE A CLAIM' : 'PAY OUT OF POCKET'}
                     </span>
                   </div>
                 </div>
@@ -222,31 +292,57 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 dark:bg-indigo-950/40 dark:border-indigo-900/50">
                 <Lock className="w-5 h-5" />
               </div>
-              <h3 className="font-semibold text-base text-zinc-900 dark:text-zinc-100">Unverified Vehicle Records</h3>
+              <h3 className="font-semibold text-base text-zinc-900 dark:text-zinc-100">Opaque Historical Event Logs</h3>
               <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Accident dossiers and repair estimates are easily manipulated or altered across internal databases. VeriSure anchors canonical records to Hyperledger Fabric for cryptographic auditability.
+                Accident dossiers and repair estimates can be altered across internal databases. VeriSure anchors canonical records to Hyperledger Fabric for tamper-evident verification. (Blockchain proves data integrity after commitment; it does not independently verify physical ground truth).
               </p>
             </div>
           </div>
         </div>
       </SectionReveal>
 
-      {/* Section: Live Interactive Financial Decision Showcase */}
+      {/* Section: Live Interactive Financial Decision Showcase with 4 Seed Vehicles */}
       <SectionReveal className="py-20 border-b border-zinc-100 dark:border-zinc-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
-            <div className="lg:col-span-5 space-y-5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                Deterministic Financial Engine
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                Evaluate Claim vs Self-Pay instantly
-              </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-normal">
-                Move the repair estimate slider to watch the engine mathematically simulate admissible claim payout against deductible deductions and 3-year projected NCB step-back penalties in real time.
-              </p>
+          <div className="max-w-3xl mx-auto text-center space-y-3 mb-12">
+            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+              Interactive Decision Engine
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+              Evaluate Claim vs Self-Pay with realistic vehicle profiles
+            </h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-normal">
+              Select any of the 4 verified seed vehicles from the consortium ledger to simulate claim payout against 3-year NCB penalties under standard Indian motor tariff guidelines.
+            </p>
+          </div>
 
+          {/* Vehicle Selector Tabs */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
+            {SEED_VEHICLES.map((veh) => {
+              const isSelected = selectedVehicle.id === veh.id;
+              return (
+                <button
+                  key={veh.id}
+                  onClick={() => handleSelectVehicle(veh)}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    isSelected
+                      ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-50 dark:bg-zinc-900 shadow-sm'
+                      : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-white dark:bg-zinc-950/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono font-bold text-zinc-500">{veh.id}</span>
+                    <span className="text-[10px] font-semibold text-emerald-600">{veh.ncb}% NCB</span>
+                  </div>
+                  <div className="font-bold text-xs text-zinc-900 dark:text-zinc-100 mt-1">{veh.name}</div>
+                  <div className="text-[10px] text-zinc-500">{veh.reg} • {veh.type}</div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-5 space-y-5">
               <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80 dark:bg-zinc-900 dark:border-zinc-800 space-y-3">
                 <div className="flex justify-between items-center text-xs font-medium">
                   <span className="text-zinc-600 dark:text-zinc-400">Simulated Repair Estimate</span>
@@ -254,27 +350,34 @@ export default function HomePage() {
                 </div>
                 <input
                   type="range"
-                  min="10000"
-                  max="100000"
+                  min="5000"
+                  max="120000"
                   step="2500"
                   value={sliderRepairCost}
                   onChange={(e) => setSliderRepairCost(Number(e.target.value))}
                   className="w-full accent-zinc-900 cursor-pointer"
                 />
                 <div className="flex justify-between text-[10px] text-zinc-400">
-                  <span>₹10,000 (Minor repair)</span>
-                  <span>₹50,000</span>
-                  <span>₹1,00,000 (Major overhaul)</span>
+                  <span>₹5,000 (Minor scratch)</span>
+                  <span>₹60,000</span>
+                  <span>₹1,20,000 (Major rebuild)</span>
                 </div>
               </div>
 
-              <div>
+              <div className="flex flex-col gap-2">
                 <Link
-                  href="/decision"
-                  className="inline-flex items-center gap-2 text-xs font-semibold text-zinc-900 hover:text-zinc-700 dark:text-zinc-100 dark:hover:text-zinc-300"
+                  href={`/decision?vehicle_age=${selectedVehicle.age}&idv=${selectedVehicle.idv}&ncb=${selectedVehicle.ncb}&deductible=${selectedVehicle.deductible}&repair_cost=${sliderRepairCost}`}
+                  className="inline-flex items-center justify-between p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-xs font-semibold text-zinc-900 dark:text-zinc-100 transition-colors"
                 >
-                  <span>Launch full decision workspace with custom policy upload</span>
+                  <span>Open Full Decision Workspace for {selectedVehicle.name}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <Link
+                  href={`/vehicles/${selectedVehicle.id}`}
+                  className="inline-flex items-center justify-between p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+                >
+                  <span>Inspect On-Chain Dossier ({selectedVehicle.reg})</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             </div>
@@ -283,7 +386,10 @@ export default function HomePage() {
             <div className="lg:col-span-7">
               <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-md dark:border-zinc-800 dark:bg-zinc-900">
                 <div className="flex items-center justify-between pb-4 border-b border-zinc-100 dark:border-zinc-800">
-                  <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Comparative Financial Outcome</h3>
+                  <div>
+                    <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Comparative Financial Outcome</h3>
+                    <p className="text-[11px] text-zinc-500">{selectedVehicle.name} • Depreciation {Math.round(selectedVehicle.depRate * 100)}%</p>
+                  </div>
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${
                     shouldClaim 
                       ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300'
@@ -302,11 +408,11 @@ export default function HomePage() {
                       <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">{formatINR(admissibleClaim)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zinc-500">Compulsory Deductible:</span>
+                      <span className="text-zinc-500">Compulsory Excess:</span>
                       <span className="font-mono text-zinc-700 dark:text-zinc-300">{formatINR(deductible)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zinc-500">Depreciation (20% Metal):</span>
+                      <span className="text-zinc-500">Part Depreciation:</span>
                       <span className="font-mono text-zinc-700 dark:text-zinc-300">{formatINR(depreciation)}</span>
                     </div>
                     <div className="flex justify-between">
@@ -331,11 +437,11 @@ export default function HomePage() {
                       <span className="font-mono text-zinc-400">₹0</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zinc-500">NCB Retention (Progression):</span>
+                      <span className="text-zinc-500">NCB Progression:</span>
                       <span className="font-mono text-emerald-700 dark:text-emerald-400">Preserved</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zinc-500">Renewal Premium Savings:</span>
+                      <span className="text-zinc-500">Renewal Savings:</span>
                       <span className="font-mono text-emerald-700 dark:text-emerald-400">-{formatINR(ncbLoss3Year)}</span>
                     </div>
                     <div className="pt-2 border-t border-zinc-200/80 dark:border-zinc-700 flex justify-between font-bold text-zinc-900 dark:text-zinc-50">
@@ -373,7 +479,7 @@ export default function HomePage() {
               Records should be verifiable, not merely stored
             </h2>
             <p className="text-sm text-zinc-400 leading-relaxed font-normal">
-              Every accident record, policy extraction, and repair estimate is deterministically hashed with SHA-256 and committed to a dual-peer Hyperledger Fabric ledger with Raft consensus.
+              Every accident record, policy extraction, and repair estimate is deterministically hashed with SHA-256 and committed to a dual-peer Hyperledger Fabric ledger with Raft consensus (Consortium Test Network).
             </p>
           </div>
 
@@ -410,7 +516,7 @@ export default function HomePage() {
               </div>
               <h4 className="font-bold text-xs text-white">Fabric Transaction</h4>
               <p className="text-[11px] text-zinc-400 leading-relaxed">
-                Committed via Node.js REST Gateway to dual-peer Org1/Org2 consortium with Raft consensus.
+                Committed via Node.js Gateway to dual-peer Org1/Org2 consortium with Raft consensus.
               </p>
             </div>
 
@@ -422,7 +528,7 @@ export default function HomePage() {
               </div>
               <h4 className="font-bold text-xs text-white">PostgreSQL RLS Storage</h4>
               <p className="text-[11px] text-zinc-400 leading-relaxed">
-                Encrypted database record stored with Fabric transaction reference ID and tenant isolation.
+                Relational record stored with Fabric transaction reference ID and Row-Level Security isolation.
               </p>
             </div>
 
@@ -434,7 +540,7 @@ export default function HomePage() {
               </div>
               <h4 className="font-bold text-xs text-white">Integrity Audit</h4>
               <p className="text-[11px] text-zinc-400 leading-relaxed">
-                Real-time cryptographic hash verification detects database tampering immediately.
+                Real-time cryptographic hash comparison detects database tampering immediately.
               </p>
             </div>
           </div>
@@ -452,7 +558,7 @@ export default function HomePage() {
               Engineered for the entire insurance lifecycle
             </h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-normal">
-              Each stakeholder accesses an intentional, purpose-built interface enforcing Row-Level Security (RLS) and DPDP consent permissions.
+              Each stakeholder accesses an intentional, purpose-built interface enforcing Row-Level Security (RLS) and DPDP-aligned consent patterns.
             </p>
           </div>
 
@@ -481,7 +587,7 @@ export default function HomePage() {
               </div>
               <h4 className="font-bold text-sm text-zinc-900 dark:text-zinc-50">Claims Command Center</h4>
               <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Audit active claims queue, inspect full Claim Dossiers with itemized parts admissibility, and verify immutable blockchain transaction status.
+                Audit active claims queue, inspect full Claim Dossiers with itemized parts admissibility, and verify cryptographically sealed ledger status.
               </p>
               <Link href="/dashboards/insurer" className="inline-flex items-center gap-1 text-xs font-semibold text-zinc-900 hover:text-zinc-700 dark:text-zinc-100 pt-2">
                 <span>Enter Workspace</span>

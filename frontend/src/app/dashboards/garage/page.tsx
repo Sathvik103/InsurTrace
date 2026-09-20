@@ -113,7 +113,7 @@ export default function GarageDashboard() {
         }),
       });
       if (!res.ok) throw new Error('Failed to record garage estimate');
-      setSuccessMessage('Itemized estimate transmitted to insurer desk and sealed to ledger.');
+      setSuccessMessage('Itemized estimate transmitted to insurer desk and recorded.');
       await fetchJobs();
     } catch (e) {
       console.error(e);
@@ -245,14 +245,18 @@ export default function GarageDashboard() {
             <div className="space-y-3">
               <div>
                 <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                  Target Policy Identifier
+                  Target Vehicle & Policy
                 </label>
-                <input
-                  type="text"
+                <select
                   value={targetPolicy}
                   onChange={(e) => setTargetPolicy(e.target.value)}
                   className="w-full px-3 py-2 text-xs font-mono rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
-                />
+                >
+                  <option value="POL-REAL-101">POL-REAL-101: Hyundai Creta (MH-02-CB-1234)</option>
+                  <option value="POL-REAL-102">POL-REAL-102: Tata Nexon EV (DL-01-EV-4321)</option>
+                  <option value="POL-REAL-103">POL-REAL-103: Maruti Swift (KA-03-MG-7890)</option>
+                  <option value="POL-REAL-104">POL-REAL-104: Honda City ZX (TS-09-FA-5678)</option>
+                </select>
               </div>
 
               {/* Parts Table */}

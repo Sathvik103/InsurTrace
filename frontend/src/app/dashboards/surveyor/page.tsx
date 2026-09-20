@@ -137,9 +137,9 @@ export default function SurveyorDashboard() {
           icon={ClipboardList}
         />
         <StatCard
-          label="Surveyor License"
-          value="SLA-99201"
-          subtext="Independent Assessor Level II"
+          label="Assessor Mode"
+          value="INDEPENDENT"
+          subtext="Standard Motor Assessment"
           icon={ShieldCheck}
         />
         <StatCard

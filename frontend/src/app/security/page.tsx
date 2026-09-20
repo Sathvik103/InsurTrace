@@ -21,12 +21,12 @@ export default function SecurityPage() {
     },
     {
       icon: FileCheck2,
-      title: 'Hyperledger Fabric State Immutability',
-      desc: 'Claim events and vehicle milestones are converted into canonical SHA-256 digests and sealed on Hyperledger Fabric ledger blocks. Any out-of-band database tampering is flagged instantly by the system integrity auditor.'
+      title: 'Hyperledger Fabric Tamper-Evidence',
+      desc: 'Claim events and vehicle milestones are converted into canonical SHA-256 digests and sealed on Hyperledger Fabric ledger blocks (Consortium Test Network). Out-of-band database tampering is flagged instantly by the system integrity auditor. Blockchain verifies data integrity after commitment, establishing tamper-evidence rather than independently proving physical ground truth.'
     },
     {
       icon: Eye,
-      title: 'DPDP Act 2023 Consent Lifecycle',
+      title: 'DPDP-Aligned Consent Lifecycle',
       desc: 'No repair invoice or vehicle history record is accessible by external parties without an active, cryptographically recorded consent grant. Policyholders can inspect active permissions and revoke consent instantly.'
     }
   ];
@@ -95,7 +95,7 @@ export default function SecurityPage() {
                 SHA-256(canonical_json(claim_id, policy_number, vehicle_vin, parts_estimate, net_payable, timestamp))
               </div>
               <p>
-                This hash is committed to the Hyperledger Fabric channel. When a user or auditor inspects a claim, the system recalculates the live database hash and compares it against the immutable on-chain record. Any discrepancy indicates immediate unauthorized state mutation.
+                This hash is committed to the Hyperledger Fabric channel. When a user or auditor inspects a claim, the system recalculates the live database hash and compares it against the on-chain consortium block hash. Any discrepancy indicates immediate unauthorized state mutation.
               </p>
             </div>
           </div>

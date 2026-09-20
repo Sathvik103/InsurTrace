@@ -56,10 +56,10 @@ export default function TermsPage() {
 
             <section className="space-y-2">
               <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-                4. Cryptographic Record Immutability
+                4. Cryptographic Record Tamper-Evidence
               </h2>
               <p>
-                Users acknowledge that transactions committed to the Hyperledger Fabric ledger are cryptographically sealed. While relational database records may be amended in accordance with statutory rights, on-chain hash checkpoints serve as permanent proofs of state at the time of commitment.
+                Users acknowledge that transactions committed to the Hyperledger Fabric ledger are cryptographically sealed. While relational database records may be amended in accordance with statutory rights, on-chain hash checkpoints serve as tamper-evident proofs of state at the time of commitment. Blockchain ledger verification certifies the data integrity of recorded events; it does not independently prove original physical ground truth.
               </p>
             </section>
           </div>

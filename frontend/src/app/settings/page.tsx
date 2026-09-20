@@ -30,7 +30,7 @@ export default function SettingsPage() {
       user: user?.email,
       role: role,
       ledger: 'Hyperledger Fabric mychannel',
-      standards: 'DPDP Act 2023 & IRDAI Motor Tariff 2026',
+      standards: 'DPDP-Aligned Patterns & Standard Motor Tariff Guidelines',
       exported_at: new Date().toISOString(),
     };
     const blob = new Blob([JSON.stringify(mockData, null, 2)], { type: 'application/json' });
@@ -46,7 +46,7 @@ export default function SettingsPage() {
     <AppShell>
       <PageHeader
         title="Settings & System Configuration"
-        description="Manage identity profiles, organizational affiliations, DPDP data protection rights, and Hyperledger Fabric RPC connectivity."
+        description="Manage identity profiles, organizational affiliations, DPDP-aligned data rights, and Hyperledger Fabric connectivity."
         breadcrumbs={[
           { label: 'Platform', href: '/' },
           { label: 'Governance' },

@@ -189,7 +189,9 @@ async def get_claim_details(claim_id: str, profile: dict = Depends(get_current_p
         "documents": documents,
         "ml_intelligence_disclosure": {
             "status": "DATA_LIMITED",
-            "reason": "Regulatory consumer privacy restrictions (IRDAI/IIB) legally limit public access to row-level claim histories.",
+            "reason": "Regulatory consumer privacy restrictions (IRDAI/IIB) legally limit public access to row-level claim histories. Operational models run in experimental/data-limited mode.",
+            "regulatory_framework": "IRDAI Consumer Privacy & DPDP Data Minimization Principles",
+            "integrity_commitment": "Deterministic financial rules executed; no synthetic fraud probabilities presented as facts.",
             "available_features": ["Deterministic Depreciation Engine", "Rules-Based Document Extraction", "COCO-Damage CV Stub"]
         }
     }

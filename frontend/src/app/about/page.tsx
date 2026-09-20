@@ -12,17 +12,17 @@ export default function AboutPage() {
     {
       icon: Scale,
       title: 'Deterministic Over Speculative',
-      description: 'Insurance financial math must never be left to probabilistic guessing or generative language models. Every rupee of deductible, depreciation, and No-Claim Bonus (NCB) loss in VeriSure is calculated through deterministic, audited arithmetic grounded in IRDAI motor tariff guidelines.'
+      description: 'Insurance financial math must never be left to probabilistic guessing or generative language models. Every rupee of deductible, depreciation, and No-Claim Bonus (NCB) loss in VeriSure is calculated through deterministic, audited arithmetic grounded in standard Indian motor tariff guidelines.'
     },
     {
       icon: Lock,
       title: 'Cryptographic State Integrity',
-      description: 'Trust in multi-party insurance workflows cannot rely on database honor systems. Every milestone—from workshop estimate upload to surveyor assessment and claim settlement—is canonically hashed using SHA-256 and committed to a private Hyperledger Fabric ledger.'
+      description: 'Trust in multi-party insurance workflows cannot rely on database honor systems. Every milestone—from workshop estimate upload to surveyor assessment and claim settlement—is canonically hashed using SHA-256 and committed to a Hyperledger Fabric ledger (consortium test network).'
     },
     {
       icon: Shield,
-      title: 'DPDP 2023 Consent Architecture',
-      description: 'Vehicle data, claim histories, and repair documents belong to the policyholder. In strict accordance with India’s Digital Personal Data Protection (DPDP) Act 2023, data sharing across insurers, garages, and surveyors requires explicit, time-bounded consent grants.'
+      title: 'DPDP-Aligned Consent Architecture',
+      description: 'Vehicle data, claim histories, and repair documents belong to the policyholder. Built with DPDP-aligned consent patterns, data sharing across insurers, garages, and surveyors requires explicit, time-bounded consent grants.'
     },
     {
       icon: FileText,
@@ -71,7 +71,7 @@ export default function AboutPage() {
                 Simultaneously, insurance underwriters struggle with exaggerated repair estimates and lack of historical damage visibility, while workshops struggle with opaque part depreciation rules and prolonged claim settlement cycles.
               </p>
               <p>
-                VeriSure bridges this divide by providing an objective, deterministic financial modeling engine paired with an immutable Hyperledger Fabric ledger that certifies every transaction milestone across all stakeholders.
+                VeriSure bridges this divide by providing an objective, deterministic financial modeling engine paired with a tamper-evident Hyperledger Fabric ledger that cryptographically records transaction milestones across participating nodes.
               </p>
             </div>
           </div>
@@ -116,7 +116,7 @@ export default function AboutPage() {
             <div className="space-y-2 max-w-xl">
               <div className="flex items-center gap-2 text-xs font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>IRDAI COMPLIANCE & MATHEMATICAL CERTAINTY</span>
+                <span>MOTOR TARIFF GUIDELINES & MATHEMATICAL CERTAINTY</span>
               </div>
               <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
                 Explore the technical architecture

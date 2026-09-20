@@ -60,6 +60,14 @@ export default function DisclaimerPage() {
                 Optical character recognition (OCR) and document extraction tools are provided to assist in data entry. Extracted values are tagged with provenance markers and must be verified by a human user or licensed surveyor prior to financial reliance.
               </p>
             </section>
+            <section className="space-y-2">
+              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                4. Cryptographic Ledger Truth Boundary
+              </h2>
+              <p>
+                Cryptographic ledgers (Hyperledger Fabric) guarantee that records, once committed, cannot be altered undetected. Ledger verification certifies the data integrity of recorded event payloads; it does not independently inspect, authenticate, or guarantee the physical ground truth of an accident, repair, or vehicle condition. Furthermore, the blockchain operates in a consortium test network mode for demonstration and evaluation.
+              </p>
+            </section>
           </div>
         </section>
       </main>

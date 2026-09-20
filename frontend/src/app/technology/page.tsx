@@ -12,9 +12,9 @@ export default function TechnologyPage() {
     {
       icon: Network,
       layer: 'Consensus & Ledger Layer',
-      tech: 'Hyperledger Fabric 2.5 (Dual-Peer Raft)',
+      tech: 'Hyperledger Fabric 2.5 (Dual-Peer Raft Consortium Test Network)',
       details: [
-        'Dual-peer private consortium network with crash fault-tolerant (CFT) Raft ordering service.',
+        'Dual-peer consortium test network (Org1 & Org2) with crash fault-tolerant (CFT) Raft ordering service.',
         'VehicleHistory chaincode deployed with strict state endorsement policies.',
         'Canonical JSON serialization and SHA-256 deterministic hashing across all event records.',
         'Node.js Fabric Gateway integration with automatic certificate management and wallet persistence.'
@@ -37,7 +37,7 @@ export default function TechnologyPage() {
       tech: 'FastAPI & Python 3.11 Architecture',
       details: [
         'High-performance async ASGI architecture with Pydantic v2 strict type validation.',
-        'Deterministic claim financial decision engine executing IRDAI depreciation and NCB step-down algorithms.',
+        'Deterministic claim financial decision engine executing standard Indian motor tariff depreciation and NCB step-down algorithms.',
         'Document intelligence pipeline utilizing PyMuPDF and OCR for structured policy and estimate extraction.',
         'Tamper-detection subsystem continuously auditing relational state against Hyperledger Fabric block hashes.'
       ]

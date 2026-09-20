@@ -178,6 +178,33 @@ export default function VehicleDetailPage() {
         }
       />
 
+      {/* 4 Seed Vehicles Quick Switcher Tabs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        {[
+          { id: 'V-REAL-101', name: 'Hyundai Creta SX', reg: 'MH-02-CB-1234', year: 2023, color: 'text-blue-600' },
+          { id: 'V-REAL-102', name: 'Tata Nexon EV Max', reg: 'DL-01-EV-4321', year: 2025, color: 'text-emerald-600' },
+          { id: 'V-REAL-103', name: 'Maruti Suzuki Swift', reg: 'KA-03-MG-7890', year: 2021, color: 'text-amber-600' },
+          { id: 'V-REAL-104', name: 'Honda City ZX', reg: 'TS-09-FA-5678', year: 2024, color: 'text-indigo-600' },
+        ].map((v) => (
+          <button
+            key={v.id}
+            onClick={() => router.push(`/vehicles/${v.id}`)}
+            className={`p-3 rounded-xl border text-left transition-all ${
+              id === v.id
+                ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm'
+                : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900/60 text-zinc-800 dark:text-zinc-200'
+            }`}
+          >
+            <div className="flex items-center justify-between text-[10px] font-mono opacity-80">
+              <span>{v.id}</span>
+              <span>{v.year}</span>
+            </div>
+            <div className="text-xs font-bold truncate mt-0.5">{v.name}</div>
+            <div className="text-[10px] font-mono opacity-70">{v.reg}</div>
+          </button>
+        ))}
+      </div>
+
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard

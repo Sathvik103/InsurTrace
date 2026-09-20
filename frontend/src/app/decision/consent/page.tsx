@@ -66,7 +66,7 @@ export default function ConsentDashboard() {
       });
       if (res.ok) {
         setConsents((prev) => prev.filter((c) => c.id !== id));
-        setGrantSuccess('Consent privilege revoked and stamped in the immutable audit log.');
+        setGrantSuccess('Consent privilege revoked and recorded in the audit log.');
       }
     } catch (e) {
       console.error('Failed to revoke consent:', e);
@@ -105,7 +105,7 @@ export default function ConsentDashboard() {
     <AppShell>
       <PageHeader
         title="Consent & Privacy Controls"
-        description="Statutory consent governance compliant with the Digital Personal Data Protection (DPDP) Act, 2023. Grant, inspect, or revoke external access to your vehicle's ledger records."
+        description="Statutory consent governance built with DPDP-aligned consent and data minimization patterns. Grant, inspect, or revoke external access to your vehicle's records."
         breadcrumbs={[
           { label: 'Platform', href: '/' },
           { label: 'Consent & Privacy' },
@@ -131,9 +131,9 @@ export default function ConsentDashboard() {
           icon={ShieldCheck}
         />
         <StatCard
-          label="Statutory Standard"
-          value="DPDP 2023"
-          subtext="Section 6 Consent Framework"
+          label="Privacy Standard"
+          value="DPDP ALIGNED"
+          subtext="Consent & Revocation Patterns"
           icon={Lock}
         />
         <StatCard
@@ -147,7 +147,7 @@ export default function ConsentDashboard() {
           value="SEALED"
           subtext="Cryptographic Timestamp"
           icon={ShieldAlert}
-          trend={{ value: 'IMMUTABLE', isPositive: true }}
+          trend={{ value: 'TAMPER-EVIDENT', isPositive: true }}
         />
       </div>
 

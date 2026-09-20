@@ -175,6 +175,14 @@ function VerificationContent() {
         />
       </div>
 
+            {/* Truth Boundary & Test Consortium Notice */}
+      <div className="mb-6 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 text-xs text-zinc-600 dark:text-zinc-400 flex items-start gap-3">
+        <Lock className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+        <p className="leading-relaxed">
+          <strong>Blockchain Truth Boundary:</strong> Hyperledger Fabric Raft consensus certifies the mathematical integrity of recorded claims against unauthorized database alteration after commitment. It does not independently verify physical real-world ground truth. Network operates in local dual-peer consortium test mode.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Verification Query & Live Inspector */}
         <div className="lg:col-span-8 space-y-6">
@@ -194,22 +202,50 @@ function VerificationContent() {
               </span>
             </div>
 
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={claimId}
-                onChange={(e) => setClaimId(e.target.value)}
-                placeholder="Enter Claim Identifier (e.g., CLM-999 or POL-REAL-101)"
-                className="flex-1 px-3.5 py-2 text-xs font-mono rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-900"
-              />
-              <button
-                onClick={() => runVerification(claimId)}
-                disabled={loading}
-                className="px-4 py-2 rounded-lg text-xs font-semibold bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors flex items-center gap-1.5 shrink-0"
-              >
-                {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
-                <span>Verify State Hashes</span>
-              </button>
+            <div className="space-y-3">
+              {/* Quick Select Buttons for 4 Seed Claims */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-semibold text-zinc-500">Seed Claims:</span>
+                {[
+                  { id: 'CLM-999', label: 'CLM-999 (Creta • Tamper Target)', badge: 'TAMPER TEST' },
+                  { id: 'CLM-101', label: 'CLM-101 (Swift • Settled)', badge: 'SETTLED' },
+                  { id: 'CLM-102', label: 'CLM-102 (Nexon EV • Under Review)', badge: 'REVIEW' },
+                  { id: 'CLM-103', label: 'CLM-103 (City ZX • Approved)', badge: 'APPROVED' },
+                ].map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => {
+                      setClaimId(c.id);
+                      runVerification(c.id);
+                    }}
+                    className={`px-2.5 py-1 text-[11px] rounded-lg border font-mono transition-colors ${
+                      claimId === c.id
+                        ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold'
+                        : 'border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100'
+                    }`}
+                  >
+                    {c.id} ({c.badge})
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={claimId}
+                  onChange={(e) => setClaimId(e.target.value)}
+                  placeholder="Enter Claim Identifier (e.g., CLM-999 or CLM-101)"
+                  className="flex-1 px-3.5 py-2 text-xs font-mono rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                />
+                <button
+                  onClick={() => runVerification(claimId)}
+                  disabled={loading}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors flex items-center gap-1.5 shrink-0"
+                >
+                  {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                  <span>Verify State Hashes</span>
+                </button>
+              </div>
             </div>
           </div>
 

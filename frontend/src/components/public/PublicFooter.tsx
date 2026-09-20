@@ -22,11 +22,11 @@ export function PublicFooter() {
             <p className="text-xs leading-relaxed max-w-sm text-zinc-500 dark:text-zinc-400">
               Insurance Intelligence & Verification. Deterministic financial decision engines,
               multi-party cryptographic audit trails on Hyperledger Fabric, and automated claim adjudication
-              grounded in IRDAI regulatory guidelines.
+              grounded in standard Indian motor tariff guidelines.
             </p>
             <div className="flex items-center gap-2 text-zinc-500 text-[11px]">
               <Lock className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-              <span>Cryptographic state hashes sealed on Hyperledger Fabric Raft consensus.</span>
+              <span>Cryptographic state hashes sealed on Hyperledger Fabric Raft consensus (Consortium Test Network).</span>
             </div>
           </div>
 
@@ -67,7 +67,7 @@ export function PublicFooter() {
             <ul className="space-y-2">
               <li>
                 <Link href="/decision" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Claim Decision Calculator
+                  Claim Decision Terminal
                 </Link>
               </li>
               <li>
@@ -96,12 +96,12 @@ export function PublicFooter() {
           {/* Column 4: Trust & Contact */}
           <div>
             <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider text-[11px] mb-3">
-              Compliance & Contact
+              Governance & Contact
             </h4>
             <ul className="space-y-2">
               <li>
                 <Link href="/privacy" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Privacy Policy (DPDP 2023)
+                  Privacy Policy (DPDP Aligned)
                 </Link>
               </li>
               <li>
@@ -111,7 +111,7 @@ export function PublicFooter() {
               </li>
               <li>
                 <Link href="/disclaimer" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Regulatory Disclaimer
+                  Regulatory Notice
                 </Link>
               </li>
               <li>
@@ -120,7 +120,7 @@ export function PublicFooter() {
                   className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors text-zinc-600 dark:text-zinc-400"
                 >
                   <Mail className="w-3 h-3" />
-                  <span>Contact Engineer</span>
+                  <span>sathvikkandukuri202@gmail.com</span>
                 </a>
               </li>
             </ul>
@@ -129,9 +129,9 @@ export function PublicFooter() {
 
         {/* Bottom Bar */}
         <div className="mt-10 pt-6 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-zinc-500">
-          <p>© {new Date().getFullYear()} VeriSure. All rights reserved.</p>
+          <p>© 2026 VeriSure. All rights reserved.</p>
           <p className="max-w-xl text-center sm:text-right">
-            VeriSure is a decision-support and cryptographic verification platform. Financial figures are deterministic projections calculated from policy schedules and garage estimates.
+            VeriSure provides mathematical decision-support and cryptographic verification of recorded events. Blockchain verifies data integrity after commitment; it does not independently verify physical ground truth.
           </p>
         </div>
       </div>

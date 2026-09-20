@@ -264,6 +264,70 @@ function ClaimDecisionContent() {
               </span>
             </div>
 
+            {/* Seed Vehicle Preset Selector */}
+            <div>
+              <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+                Load Seed Vehicle Preset
+              </label>
+              <select
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'V-REAL-101') {
+                    setFormData({
+                      vehicleAge: '3',
+                      idv: '500000',
+                      deductible: '2000',
+                      ncb: '20',
+                      repairCost: '42500',
+                      partCategory: 'metal',
+                      basePremium: '15000',
+                      zeroDep: 'false',
+                    });
+                  } else if (val === 'V-REAL-102') {
+                    setFormData({
+                      vehicleAge: '1',
+                      idv: '1450000',
+                      deductible: '2500',
+                      ncb: '25',
+                      repairCost: '68000',
+                      partCategory: 'metal',
+                      basePremium: '28000',
+                      zeroDep: 'true',
+                    });
+                  } else if (val === 'V-REAL-103') {
+                    setFormData({
+                      vehicleAge: '5',
+                      idv: '480000',
+                      deductible: '1000',
+                      ncb: '35',
+                      repairCost: '12500',
+                      partCategory: 'plastic',
+                      basePremium: '12000',
+                      zeroDep: 'false',
+                    });
+                  } else if (val === 'V-REAL-104') {
+                    setFormData({
+                      vehicleAge: '2',
+                      idv: '950000',
+                      deductible: '1500',
+                      ncb: '50',
+                      repairCost: '84500',
+                      partCategory: 'metal',
+                      basePremium: '22000',
+                      zeroDep: 'true',
+                    });
+                  }
+                }}
+                className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-medium"
+              >
+                <option value="V-REAL-101">V-REAL-101: Hyundai Creta SX (3 Yr, 20% NCB, ₹42.5k Est)</option>
+                <option value="V-REAL-102">V-REAL-102: Tata Nexon EV (1 Yr, 25% NCB, Zero-Dep, ₹68k Est)</option>
+                <option value="V-REAL-103">V-REAL-103: Maruti Suzuki Swift (5 Yr, 35% NCB, Plastic 50%, ₹12.5k Est)</option>
+                <option value="V-REAL-104">V-REAL-104: Honda City ZX (2 Yr, 50% NCB, Zero-Dep, ₹84.5k Est)</option>
+                <option value="CUSTOM">Custom Parameters</option>
+              </select>
+            </div>
+
             <div className="space-y-3">
               <div>
                 <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400 mb-1">

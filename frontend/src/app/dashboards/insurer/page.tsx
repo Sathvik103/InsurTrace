@@ -456,10 +456,10 @@ export default function InsurerDashboard() {
                   </p>
                   <div className="pt-2 border-t border-amber-200 dark:border-amber-900/40 text-[11px] text-amber-700 dark:text-amber-400 space-y-0.5">
                     <div>
-                      <strong>Compliance:</strong> {dossier.ml_intelligence_disclosure.regulatory_framework}
+                      <strong>Compliance:</strong> {dossier.ml_intelligence_disclosure?.regulatory_framework || 'IRDAI & DPDP Guidelines'}
                     </div>
                     <div>
-                      <strong>Integrity:</strong> {dossier.ml_intelligence_disclosure.integrity_commitment}
+                      <strong>Integrity:</strong> {dossier.ml_intelligence_disclosure?.integrity_commitment || 'Deterministic rules executed.'}
                     </div>
                   </div>
                 </div>

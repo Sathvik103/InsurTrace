@@ -16,13 +16,13 @@ export default function PrivacyPage() {
           <FadeIn>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-6">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>DPDP Act 2023 Compliance Notice</span>
+              <span>DPDP-Aligned Privacy Notice</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
               Privacy Policy & Data Fiduciary Charter
             </h1>
             <p className="mt-3 text-xs text-zinc-500 font-mono">
-              Last revised: September 2026 • Compliant with the Digital Personal Data Protection Act, 2023
+              Last revised: September 2026 • Built with DPDP-aligned consent and data minimization patterns
             </p>
           </FadeIn>
 
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
                 1. Purpose & Scope
               </h2>
               <p>
-                VeriSure operates as a digital decision-support and cryptographic verification system for motor insurance claims. We are committed to safeguarding personal information in strict accordance with the Digital Personal Data Protection (DPDP) Act, 2023 of India.
+                VeriSure operates as a digital decision-support and cryptographic verification system for motor insurance claims. We are committed to safeguarding personal information following the principles and patterns of the Digital Personal Data Protection (DPDP) Act, 2023 of India.
               </p>
             </section>
 
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
                 3. Cryptographic Hashing & On-Chain Privacy
               </h2>
               <p>
-                VeriSure enforces cryptographic minimization on the Hyperledger Fabric ledger. Personally Identifiable Information (PII), such as full owner names, phone numbers, and physical residential addresses, is never written directly to immutable ledger blocks. Instead, records are transformed into salted canonical SHA-256 state hashes. The underlying data remains in encrypted PostgreSQL tables shielded by Row-Level Security.
+                VeriSure enforces cryptographic minimization on the Hyperledger Fabric ledger. Personally Identifiable Information (PII), such as full owner names, phone numbers, and physical residential addresses, is never written directly to distributed ledger blocks. Instead, records are transformed into salted canonical SHA-256 state hashes. The underlying data remains in encrypted PostgreSQL tables shielded by Row-Level Security.
               </p>
             </section>
 
