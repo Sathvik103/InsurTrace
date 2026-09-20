@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { VehicleProvider } from "@/context/VehicleContext";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -29,7 +30,9 @@ export default function RootLayout({
     <html lang="en" className={geist.variable}>
       <body className="font-sans antialiased text-zinc-900 bg-white dark:bg-zinc-950 dark:text-zinc-50 selection:bg-zinc-900 selection:text-white">
         <AuthProvider>
-          {children}
+          <VehicleProvider>
+            {children}
+          </VehicleProvider>
         </AuthProvider>
       </body>
     </html>

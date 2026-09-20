@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Optional
+from typing import List, Optional, Any
 from pydantic import BaseModel
 import datetime
 from dependencies import get_current_profile, supabase
@@ -8,15 +8,21 @@ router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 
 class VehicleBase(BaseModel):
     registration_number: str
-    vin: Optional[str]
+    vin: Optional[str] = None
     make: str
     model: str
     manufacture_year: int
-    fuel_type: Optional[str]
+    fuel_type: Optional[str] = None
+    variant: Optional[str] = None
+    usage_type: Optional[str] = "PERSONAL"
+    permit_info: Optional[str] = None
+    fitness_valid_until: Optional[str] = None
+    downtime_cost_per_day: Optional[float] = None
+    is_demo: Optional[bool] = False
 
 class VehicleResponse(VehicleBase):
     id: str
-    created_at: datetime.datetime
+    created_at: Optional[Any] = None
 
 @router.get("", response_model=List[VehicleResponse])
 @router.get("/", response_model=List[VehicleResponse])

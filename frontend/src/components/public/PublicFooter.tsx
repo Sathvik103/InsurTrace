@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Shield, Lock, ExternalLink, Mail } from 'lucide-react';
+import { VeriSureLogo } from '@/components/brand/VeriSureLogo';
 
 export function PublicFooter() {
   return (
@@ -11,14 +12,7 @@ export function PublicFooter() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           {/* Column 1: Brand & Philosophy */}
           <div className="md:col-span-2 space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-md bg-zinc-900 flex items-center justify-center text-white dark:bg-zinc-100 dark:text-zinc-900">
-                <Shield className="w-4 h-4" />
-              </div>
-              <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">
-                VeriSure
-              </span>
-            </div>
+            <VeriSureLogo size="sm" asLink href="/" />
             <p className="text-xs leading-relaxed max-w-sm text-zinc-500 dark:text-zinc-400">
               Insurance Intelligence & Verification. Deterministic financial decision engines,
               multi-party cryptographic audit trails on Hyperledger Fabric, and automated claim adjudication

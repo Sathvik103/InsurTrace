@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Shield, Menu, X, ArrowRight, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { VeriSureLogo } from '@/components/brand/VeriSureLogo';
 
 export function PublicNavbar() {
   const pathname = usePathname();
@@ -38,19 +39,7 @@ export function PublicNavbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-lg bg-zinc-900 flex items-center justify-center text-white shadow-xs group-hover:bg-zinc-800 transition-colors dark:bg-zinc-100 dark:text-zinc-900">
-              <Shield className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="font-bold text-lg tracking-tight text-zinc-900 dark:text-zinc-50">
-                VeriSure
-              </span>
-              <span className="hidden sm:inline-block ml-2 text-[10px] uppercase font-semibold text-zinc-600 tracking-wider dark:text-zinc-400">
-                Insurance Intelligence
-              </span>
-            </div>
-          </Link>
+          <VeriSureLogo size="md" asLink href="/" />
 
           {/* Desktop Links */}
           <nav className="hidden md:flex items-center space-x-1">

@@ -8,6 +8,7 @@ import { PublicFooter } from '@/components/public/PublicFooter';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { setAuthToken, getAuthToken, supabase } from '@/lib/supabase';
 import { useAuth, DEMO_PERSONAS, Persona } from '@/context/AuthContext';
+import { VeriSureLogo } from '@/components/brand/VeriSureLogo';
 import {
   Shield,
   User,
@@ -165,14 +166,14 @@ export default function LoginPage() {
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16">
           <FadeIn>
             <div className="text-center max-w-xl mx-auto mb-10">
-              <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center text-white mx-auto mb-4 dark:bg-zinc-100 dark:text-zinc-900">
-                <Shield className="w-5 h-5" />
+              <div className="flex justify-center mb-5">
+                <VeriSureLogo size="lg" />
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
-                Sign In to VeriSure
+                Sign In to Your Workspace
               </h1>
               <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                Insurance Intelligence & Verification Platform
+                Access your vehicles, verified records, and insurance analytics
               </p>
             </div>
           </FadeIn>

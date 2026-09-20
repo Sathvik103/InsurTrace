@@ -7,6 +7,7 @@ import { ChevronRight, ShieldCheck } from 'lucide-react';
 interface PageHeaderProps {
   title: string;
   description?: string;
+  subtitle?: string;
   breadcrumbs?: { label: string; href?: string }[];
   actions?: React.ReactNode;
   isSandbox?: boolean;
@@ -15,10 +16,12 @@ interface PageHeaderProps {
 export function PageHeader({
   title,
   description,
+  subtitle,
   breadcrumbs,
   actions,
   isSandbox = false,
 }: PageHeaderProps) {
+  const displayDesc = description || subtitle;
   return (
     <div className="mb-6 border-b border-zinc-200 dark:border-zinc-800 pb-5">
       {breadcrumbs && breadcrumbs.length > 0 && (
@@ -52,9 +55,9 @@ export function PageHeader({
               </span>
             )}
           </div>
-          {description && (
+          {displayDesc && (
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400 max-w-3xl">
-              {description}
+              {displayDesc}
             </p>
           )}
         </div>

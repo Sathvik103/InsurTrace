@@ -181,41 +181,85 @@ class MockDatabaseStore:
                 "id": "V-REAL-101",
                 "registration_number": "MH02CB1234",
                 "make": "Hyundai",
-                "model": "Creta SX (O)",
+                "model": "Creta",
+                "variant": "SX (O)",
                 "manufacture_year": 2021,
                 "vin": "MALC341CBM0010192",
                 "fuel_type": "Petrol",
+                "usage_type": "PERSONAL",
+                "is_demo": True,
                 "created_at": "2021-05-10T10:00:00Z"
             },
             {
                 "id": "V-REAL-102",
                 "registration_number": "KA01MJ5678",
                 "make": "Tata",
-                "model": "Nexon EV Fearless",
+                "model": "Nexon EV",
+                "variant": "Fearless+",
                 "manufacture_year": 2024,
                 "vin": "MAT612015N0023411",
                 "fuel_type": "Electric",
+                "usage_type": "PERSONAL",
+                "is_demo": True,
                 "created_at": "2024-02-14T09:30:00Z"
             },
             {
                 "id": "V-REAL-103",
                 "registration_number": "DL04AA9999",
                 "make": "Maruti Suzuki",
-                "model": "Swift ZXi+",
+                "model": "Swift",
+                "variant": "ZXi+",
                 "manufacture_year": 2022,
                 "vin": "MA3EKB11SM0098231",
                 "fuel_type": "Petrol",
+                "usage_type": "PERSONAL",
+                "is_demo": True,
                 "created_at": "2022-08-20T11:15:00Z"
             },
             {
                 "id": "V-REAL-104",
                 "registration_number": "TS09EZ4321",
                 "make": "Honda",
-                "model": "City ZX",
+                "model": "City",
+                "variant": "ZX e:HEV",
                 "manufacture_year": 2023,
                 "vin": "MAKGM6680N0045129",
                 "fuel_type": "Hybrid",
+                "usage_type": "PERSONAL",
+                "is_demo": True,
                 "created_at": "2023-04-05T14:45:00Z"
+            },
+            {
+                "id": "V-COMM-201",
+                "registration_number": "KA04C8821",
+                "make": "Mahindra",
+                "model": "Bolero Maxi Truck",
+                "variant": "Plus CNG",
+                "manufacture_year": 2023,
+                "vin": "MA1XX8821N0091244",
+                "fuel_type": "CNG / Diesel",
+                "usage_type": "GOODS_CARRIER",
+                "permit_info": "All-India National Goods Permit",
+                "fitness_valid_until": "2027-04-30",
+                "downtime_cost_per_day": 3500.0,
+                "is_demo": True,
+                "created_at": "2023-06-12T08:00:00Z"
+            },
+            {
+                "id": "V-COMM-202",
+                "registration_number": "DL01T4501",
+                "make": "Maruti Suzuki",
+                "model": "Dzire Tour S",
+                "variant": "Std Commercial",
+                "manufacture_year": 2024,
+                "vin": "MA3TOUR4501P003299",
+                "fuel_type": "CNG",
+                "usage_type": "TAXI",
+                "permit_info": "Delhi NCR Taxi Permit",
+                "fitness_valid_until": "2026-12-15",
+                "downtime_cost_per_day": 2200.0,
+                "is_demo": True,
+                "created_at": "2024-01-20T10:00:00Z"
             }
         ]
 
@@ -248,6 +292,20 @@ class MockDatabaseStore:
                 "owner_profile_id": "22222222-2222-2222-2222-222222222222",
                 "start_date": "2023-04-05",
                 "created_at": "2023-04-05T14:50:00Z"
+            },
+            {
+                "id": "OWN-005",
+                "vehicle_id": "V-COMM-201",
+                "owner_profile_id": "22222222-2222-2222-2222-222222222222",
+                "start_date": "2023-06-12",
+                "created_at": "2023-06-12T08:05:00Z"
+            },
+            {
+                "id": "OWN-006",
+                "vehicle_id": "V-COMM-202",
+                "owner_profile_id": "22222222-2222-2222-2222-222222222222",
+                "start_date": "2024-01-20",
+                "created_at": "2024-01-20T10:05:00Z"
             }
         ]
 
@@ -312,6 +370,36 @@ class MockDatabaseStore:
                 "start_date": "2026-04-10",
                 "end_date": "2027-04-09",
                 "created_at": "2026-04-10T00:00:00Z"
+            },
+            {
+                "id": "POL-COMM-201",
+                "vehicle_id": "V-COMM-201",
+                "policyholder_id": "22222222-2222-2222-2222-222222222222",
+                "organization_id": "00000000-0000-0000-0000-000000000004",
+                "policy_number": "5520/7710/44910/00/000",
+                "policy_type": "COMMERCIAL_GOODS_PACKAGE",
+                "idv": 580000.0,
+                "compulsory_deductible": 2500.0,
+                "ncb_percentage": 20,
+                "zero_depreciation_addon": False,
+                "start_date": "2026-06-15",
+                "end_date": "2027-06-14",
+                "created_at": "2026-06-15T00:00:00Z"
+            },
+            {
+                "id": "POL-COMM-202",
+                "vehicle_id": "V-COMM-202",
+                "policyholder_id": "22222222-2222-2222-2222-222222222222",
+                "organization_id": "00000000-0000-0000-0000-000000000004",
+                "policy_number": "6612/8821/11920/00/000",
+                "policy_type": "COMMERCIAL_PASSENGER_TAXI",
+                "idv": 620000.0,
+                "compulsory_deductible": 1500.0,
+                "ncb_percentage": 0,
+                "zero_depreciation_addon": True,
+                "start_date": "2026-01-25",
+                "end_date": "2027-01-24",
+                "created_at": "2026-01-25T00:00:00Z"
             }
         ]
 

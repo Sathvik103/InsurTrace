@@ -134,12 +134,11 @@ function VerificationContent() {
   return (
     <AppShell>
       <PageHeader
-        title="Ledger Verification Console"
-        description="Inspect Hyperledger Fabric Raft consensus blocks, verify SHA-256 state proofs against live PostgreSQL records, and evaluate tamper detection."
+        title="Record Verification"
+        description="VeriSure cryptographically seals vehicle lifecycle records and insurance claims to verify they have not been altered after recording."
         breadcrumbs={[
-          { label: 'Platform', href: '/' },
-          { label: 'Governance' },
-          { label: 'Verification Console' },
+          { label: 'Platform', href: '/decision' },
+          { label: 'Record Verification' },
         ]}
       />
 

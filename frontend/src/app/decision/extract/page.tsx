@@ -25,28 +25,28 @@ import {
 function ProvenanceBadge({ field, isEdited }: { field?: any; isEdited?: boolean }) {
   if (isEdited) {
     return (
-      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 font-medium">
-        MANUAL_CORRECTION
+      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+        Entered by you
       </span>
     );
   }
   if (!field) {
     return (
-      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-100 text-zinc-500 border border-zinc-200">
-        MISSING
+      <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-zinc-700">
+        Not in document
       </span>
     );
   }
   if (field.provenance === 'EXTRACTED') {
     return (
-      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20 font-medium">
-        EXTRACTED (Page {field.page || 1})
+      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+        From uploaded document (Page {field.page || 1})
       </span>
     );
   }
   return (
-    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-medium">
-      CONFIRMED
+    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+      Verified
     </span>
   );
 }
@@ -164,24 +164,36 @@ export default function DocumentExtractionPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Document Intelligence & Provenance Audit"
-        description="Ingest genuine Indian motor insurance schedules or garage estimates. Audit provenance tags, make human corrections, and feed verified parameters into the decision engine."
+        title="Document Review"
+        description="Upload an insurance policy schedule or garage repair estimate to verify line items, check depreciation, and auto-populate claim math."
         breadcrumbs={[
-          { label: 'Platform', href: '/' },
-          { label: 'Document Intelligence' },
+          { label: 'Platform', href: '/decision' },
+          { label: 'Document Review' },
         ]}
       />
 
       {/* Stepper progress */}
       <div className="mb-8 grid grid-cols-3 gap-2 text-xs">
-        <div className={`p-3 rounded-lg border ${!extractedData ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-500'}`}>
+        <div
+          className={`p-3 rounded-lg border ${
+            !extractedData
+              ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold'
+              : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-500'
+          }`}
+        >
           1. Upload Document
         </div>
-        <div className={`p-3 rounded-lg border ${extractedData ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-500'}`}>
-          2. Provenance Review
+        <div
+          className={`p-3 rounded-lg border ${
+            extractedData
+              ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold'
+              : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-500'
+          }`}
+        >
+          2. Review & Verify
         </div>
         <div className="p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-500">
-          3. Decision Simulation
+          3. Claim Decision
         </div>
       </div>
 

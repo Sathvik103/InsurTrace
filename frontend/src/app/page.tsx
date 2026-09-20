@@ -114,34 +114,36 @@ export default function HomePage() {
 
               <SlideUp delay={0.2} distance={24}>
                 <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 leading-[1.12]">
-                  Insurance decisions backed by{' '}
-                  <span className="text-zinc-600 dark:text-zinc-400 font-bold">evidence</span>,{' '}
-                  <span className="text-emerald-700 dark:text-emerald-400 font-bold">financial clarity</span>, and{' '}
-                  <span className="text-indigo-600 dark:text-indigo-400 font-bold">verifiable recorded history</span>.
+                  Insurance decisions,{' '}
+                  <span className="text-sky-600 dark:text-sky-400 font-bold">made clearer</span>.
                 </h1>
+                <p className="mt-3 text-lg sm:text-xl text-zinc-700 dark:text-zinc-300 font-medium">
+                  Understand your vehicle, insurance, claims, and verified records in one place.
+                </p>
               </SlideUp>
 
               <SlideUp delay={0.3} distance={20}>
-                <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed font-normal">
-                  VeriSure unifies policy terms, itemized garage estimates, depreciation mathematics, and tamper-evident ledger records into one transparent decision workspace for vehicle owners, insurers, surveyors, and workshops.
+                <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 max-w-2xl leading-relaxed font-normal">
+                  Should you file an insurance claim or pay out-of-pocket? VeriSure provides deterministic financial math—accounting for deductibles, parts depreciation schedules, and multi-year No-Claim Bonus (NCB) loss—sealed with cryptographic record verification.
                 </p>
               </SlideUp>
 
               <SlideUp delay={0.4} distance={16}>
                 <div className="flex flex-wrap items-center gap-3.5 pt-2">
                   <Link
-                    href="/decision"
-                    className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-all"
+                    href="/onboarding"
+                    className="inline-flex items-center gap-2 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-all"
                   >
-                    <span>Explore Decision Engine</span>
+                    <span>Get Started</span>
                     <ArrowRight className="w-4 h-4" />
                   </Link>
 
                   <Link
-                    href="#architecture"
-                    className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800/80 transition-all"
+                    href="/decision"
+                    className="inline-flex items-center gap-2 rounded-xl border border-zinc-300 bg-white px-5 py-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800/80 transition-all"
                   >
-                    <span>See How It Works</span>
+                    <Scale className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                    <span>Check a Claim</span>
                   </Link>
                 </div>
               </SlideUp>
