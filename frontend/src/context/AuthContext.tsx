@@ -18,7 +18,7 @@ export const DEMO_PERSONAS: Persona[] = [
     role: 'POLICYHOLDER',
     label: 'Policyholder',
     name: 'Rahul Sharma (Demo)',
-    email: 'demo-policyholder@insuretrace.in',
+    email: 'demo-policyholder@verisure.in',
     token: 'dev-policyholder',
     targetRoute: '/decision',
     desc: 'Vehicle owner evaluating claim math, deductible, NCB protection & blockchain history.',
@@ -27,7 +27,7 @@ export const DEMO_PERSONAS: Persona[] = [
     role: 'INSURER',
     label: 'Insurer Underwriter',
     name: 'Demo Insurer Officer',
-    email: 'demo-insurer@insuretrace.in',
+    email: 'demo-insurer@verisure.in',
     token: 'dev-insurer',
     targetRoute: '/dashboards/insurer',
     desc: 'Underwriting officer auditing claim dossiers, loss ratios & fraud indicators.',
@@ -36,7 +36,7 @@ export const DEMO_PERSONAS: Persona[] = [
     role: 'SURVEYOR',
     label: 'Motor Loss Assessor',
     name: 'Demo Motor Loss Assessor',
-    email: 'demo-surveyor@insuretrace.in',
+    email: 'demo-surveyor@verisure.in',
     token: 'dev-surveyor',
     targetRoute: '/dashboards/surveyor',
     desc: 'Licensed independent assessor verifying physical vehicle damage & admissible parts.',
@@ -45,7 +45,7 @@ export const DEMO_PERSONAS: Persona[] = [
     role: 'GARAGE',
     label: 'Authorized Workshop',
     name: 'Demo Auto Workshop',
-    email: 'demo-garage@insuretrace.in',
+    email: 'demo-garage@verisure.in',
     token: 'dev-garage',
     targetRoute: '/dashboards/garage',
     desc: 'Authorized workshop uploading itemized repair estimates and parts invoices.',
@@ -54,7 +54,7 @@ export const DEMO_PERSONAS: Persona[] = [
     role: 'ADMIN',
     label: 'Ledger Auditor',
     name: 'System Security Auditor',
-    email: 'demo-admin@insuretrace.in',
+    email: 'demo-admin@verisure.in',
     token: 'dev-admin',
     targetRoute: '/verification',
     desc: 'Auditor verifying Hyperledger Fabric SHA-256 state proofs and tamper resistance.',
@@ -179,6 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     if (typeof window !== 'undefined') {
+      localStorage.removeItem('verisure_token');
       localStorage.removeItem('insuretrace_token');
     }
     await supabase.auth.signOut();

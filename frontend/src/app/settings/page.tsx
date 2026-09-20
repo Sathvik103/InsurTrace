@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { StatCard } from '@/components/common/StatCard';
 import { FadeIn } from '@/components/motion/MotionPrimitives';
 import { useAuth } from '@/context/AuthContext';
+import { useVehicle } from '@/context/VehicleContext';
 import {
   User,
   Building,
@@ -17,23 +18,41 @@ import {
   AlertTriangle,
   Mail,
   CheckCircle2,
+  Car,
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user, role, isDemo, activePersona } = useAuth();
+  const { user, role, isDemo } = useAuth();
+  const { vehicles, selectedVehicle } = useVehicle();
   const [activeTab, setActiveTab] = useState<'PROFILE' | 'ORGANIZATION' | 'PRIVACY' | 'LEDGER'>('PROFILE');
   const [downloaded, setDownloaded] = useState(false);
 
   const handleDownloadPassport = () => {
     setDownloaded(true);
-    const mockData = {
-      user: user?.email,
-      role: role,
-      ledger: 'Hyperledger Fabric mychannel',
-      standards: 'DPDP-Aligned Patterns & Standard Motor Tariff Guidelines',
+    const exportData = {
+      product: 'VeriSure — Insurance Intelligence & Verification',
+      user: user?.email || 'demo-policyholder@verisure.in',
+      role: role || 'POLICYHOLDER',
+      vehicles_count: vehicles.length,
+      active_vehicle: selectedVehicle ? {
+        id: selectedVehicle.id,
+        make: selectedVehicle.make,
+        model: selectedVehicle.model,
+        registration: selectedVehicle.registration_number,
+        usage_type: selectedVehicle.usage_type,
+      } : null,
+      all_vehicles: vehicles.map((v) => ({
+        id: v.id,
+        make: v.make,
+        model: v.model,
+        registration: v.registration_number,
+        usage_type: v.usage_type,
+      })),
+      ledger: 'Hyperledger Fabric mychannel (Dual-Peer Raft Consortium)',
+      privacy_standard: 'DPDP-Aligned Consent & Data Minimization Architecture',
       exported_at: new Date().toISOString(),
     };
-    const blob = new Blob([JSON.stringify(mockData, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -110,7 +129,7 @@ export default function SettingsPage() {
               <div>
                 <span className="text-zinc-500 block text-[11px]">Primary Email</span>
                 <span className="font-mono text-zinc-900 dark:text-zinc-100 font-semibold">
-                  {user?.email || 'demo-policyholder@insuretrace.in'}
+                  {user?.email || 'demo-policyholder@verisure.in'}
                 </span>
               </div>
 
@@ -126,6 +145,22 @@ export default function SettingsPage() {
                 <span className="font-mono text-xs text-zinc-700 dark:text-zinc-300">
                   {isDemo ? 'Sandbox Persona (Dev Token)' : 'Supabase Auth JWT (ES256)'}
                 </span>
+              </div>
+
+              <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                <span className="text-zinc-500 block text-[11px]">Registered Vehicles</span>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-zinc-800 dark:text-zinc-200 font-medium">
+                    {vehicles.length} vehicles registered {selectedVehicle ? `(Active: ${selectedVehicle.registration_number})` : ''}
+                  </span>
+                  <a
+                    href="/vehicles"
+                    className="text-sky-600 hover:text-sky-700 text-[11px] font-semibold flex items-center gap-1"
+                  >
+                    <span>Manage</span>
+                    <span>&rarr;</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -145,19 +180,25 @@ export default function SettingsPage() {
                 <span className="text-zinc-500 block text-[11px]">Organization Name</span>
                 <span className="font-bold text-zinc-900 dark:text-zinc-100">
                   {role === 'insurer'
-                    ? 'HDFC ERGO General Insurance Co. Ltd.'
+                    ? 'Demo General Insurance Ltd.'
                     : role === 'garage'
-                    ? 'Quality Garage & Bodyworks'
+                    ? 'Quality Auto Care Workshop'
                     : role === 'surveyor'
-                    ? 'Independent Motor Loss Assessor Desk'
+                    ? 'Demo Independent Assessors Guild'
                     : 'Personal Policyholder Account'}
                 </span>
               </div>
 
               <div>
-                <span className="text-zinc-500 block text-[11px]">IRDAI License / Code</span>
-                <span className="font-mono text-zinc-800 dark:text-zinc-200">
-                  {role === 'insurer' ? 'IRDAI/NL-01/HDFC' : role === 'surveyor' ? 'SLA-99201-IND' : 'N/A'}
+                <span className="text-zinc-500 block text-[11px]">Institutional Designation</span>
+                <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                  {role === 'insurer'
+                    ? 'General Insurance Underwriting Desk'
+                    : role === 'garage'
+                    ? 'Authorized Network Bodyworks & Repair Facility'
+                    : role === 'surveyor'
+                    ? 'Independent Motor Loss Assessor (Level II)'
+                    : 'Registered Vehicle Owner'}
                 </span>
               </div>
             </div>
