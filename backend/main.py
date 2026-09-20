@@ -16,8 +16,8 @@ from dependencies import (
 )
 
 app = FastAPI(
-    title="InsureTrace India API",
-    description="Backend API for InsureTrace India - Motor Insurance Intelligence Platform"
+    title="VeriSure API",
+    description="Backend API for VeriSure - Insurance Intelligence & Verification"
 )
 
 allowed_origins_env = os.environ.get("ALLOWED_ORIGINS")

@@ -25,6 +25,7 @@ def get_canonical_hash(data: dict) -> str:
     canonical_str = json.dumps(hash_data, separators=(',', ':'), sort_keys=True)
     return hashlib.sha256(canonical_str.encode('utf-8')).hexdigest()
 
+@router.get("", response_model=List[dict])
 @router.get("/", response_model=List[dict])
 async def list_claims(profile: dict = Depends(get_current_profile)):
     if profile["role"] == "POLICYHOLDER":
@@ -37,6 +38,7 @@ async def list_claims(profile: dict = Depends(get_current_profile)):
         res = supabase.table("claims").select("*").limit(50).execute()
     return res.data
 
+@router.post("")
 @router.post("/")
 async def create_claim(claim: ClaimBase, profile: dict = Depends(get_current_profile)):
     claim_dict = claim.dict()

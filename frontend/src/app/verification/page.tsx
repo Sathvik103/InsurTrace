@@ -311,9 +311,9 @@ function VerificationContent() {
                       }`}
                     >
                       {isVerified
-                        ? 'The live database state hash matches the immutable Hyperledger Fabric block record character-for-character. No unauthorized mutations have occurred.'
+                        ? 'The live database state hash matches the on-chain Hyperledger Fabric block record character-for-character. No unauthorized mutations have occurred.'
                         : isTampered
-                        ? 'The PostgreSQL state has diverged from the immutable on-chain record! The database repair cost or claim metadata has been mutated out-of-band.'
+                        ? 'The PostgreSQL state has diverged from the on-chain consortium block record! The database repair cost or claim metadata has been mutated out-of-band.'
                         : status.message || 'Audit complete.'}
                     </p>
                   </div>
@@ -344,7 +344,7 @@ function VerificationContent() {
 
                   <div>
                     <div className="text-[10px] text-zinc-500 uppercase mb-1">
-                      2. Immutable Hyperledger Fabric Block Hash:
+                      2. On-Chain Hyperledger Fabric Block Hash:
                     </div>
                     <div className="p-3 rounded-lg border bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 break-all select-all">
                       {status.ledger_hash || status.blockchain_hash || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}

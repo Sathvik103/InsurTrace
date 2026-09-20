@@ -11,6 +11,7 @@ class ConsentRequest(BaseModel):
     requesting_org_id: str
     valid_until: Optional[str] = None
 
+@router.get("")
 @router.get("/")
 async def list_consents(profile: dict = Depends(get_current_profile)):
     if profile["role"] == "POLICYHOLDER":
@@ -19,6 +20,7 @@ async def list_consents(profile: dict = Depends(get_current_profile)):
         res = supabase.table("consents").select("*, profiles(full_name)").eq("requesting_org_id", profile["organization_id"]).execute()
     return res.data
 
+@router.post("")
 @router.post("/")
 async def grant_consent(req: ConsentRequest, profile: dict = Depends(get_current_profile)):
     if profile["role"] != "POLICYHOLDER":

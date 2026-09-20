@@ -18,6 +18,7 @@ class VehicleResponse(VehicleBase):
     id: str
     created_at: datetime.datetime
 
+@router.get("", response_model=List[VehicleResponse])
 @router.get("/", response_model=List[VehicleResponse])
 async def list_vehicles(profile: dict = Depends(get_current_profile)):
     # Depending on role, fetch relevant vehicles
@@ -48,6 +49,7 @@ async def get_vehicle(vehicle_id: str, profile: dict = Depends(get_current_profi
         raise HTTPException(status_code=404, detail="Vehicle not found")
     return res.data[0]
 
+@router.post("", response_model=VehicleResponse)
 @router.post("/", response_model=VehicleResponse)
 async def create_vehicle(vehicle: VehicleBase, profile: dict = Depends(get_current_profile)):
     # Create the vehicle
