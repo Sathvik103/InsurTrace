@@ -110,9 +110,11 @@ function LoginContent() {
     setLoading(true);
 
     try {
+      const normalizedEmail = email.trim().toLowerCase().replace('@insuretrace.in', '@verisure.in');
+
       // 1. Authenticate with Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: normalizedEmail,
         password,
       });
 
@@ -254,6 +256,19 @@ function LoginContent() {
                   <Lock className="w-3.5 h-3.5" />
                   <span>Sign In</span>
                 </button>
+
+                <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 text-[11px] text-zinc-500 space-y-1">
+                  <p className="font-semibold text-zinc-700 dark:text-zinc-300">Default Demo Credentials:</p>
+                  <p className="font-mono text-[10px] text-zinc-600 dark:text-zinc-400">
+                    Email: <span className="text-zinc-900 dark:text-zinc-200">demo-policyholder@verisure.in</span>
+                  </p>
+                  <p className="font-mono text-[10px] text-zinc-600 dark:text-zinc-400">
+                    Password: <span className="text-zinc-900 dark:text-zinc-200">VeriSure@2026</span>
+                  </p>
+                  <p className="text-[10px] text-zinc-400 pt-0.5">
+                    Tip: You can also use the one-click persona switcher on the right for instant access without entering a password.
+                  </p>
+                </div>
               </form>
             </div>
 
