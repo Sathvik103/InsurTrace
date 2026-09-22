@@ -3,10 +3,10 @@ import logging
 import urllib.request
 import json
 from typing import Dict, Any, Optional
-from services.fabric_client import FabricClient
+from services.fabric_adapter import get_fabric_adapter
 
 logger = logging.getLogger(__name__)
-fabric_client = FabricClient()
+fabric_adapter = get_fabric_adapter()
 
 GATEWAY_URL = os.environ.get("GATEWAY_URL", "http://localhost:3001")
 IS_PRODUCTION = os.environ.get("ENVIRONMENT", "development").lower() == "production"
@@ -56,9 +56,9 @@ async def commit_event_to_ledger(vehicle_id: str, event_type: str, entity_id: st
             "source": "NODE_GATEWAY"
         }
 
-    # 2. Attempt Direct Fabric Peer Transaction via FabricClient
-    if fabric_client.is_network_active():
-        result = fabric_client.record_event(vehicle_id, event_type, entity_id, local_hash, timestamp=timestamp)
+    # 2. Attempt Direct Fabric Peer Transaction via FabricAdapter
+    if fabric_adapter.is_network_active():
+        result = fabric_adapter.record_event(vehicle_id, event_type, entity_id, local_hash, timestamp=timestamp)
         if result.get("success"):
             return {
                 "success": True,
@@ -136,9 +136,9 @@ async def verify_event_from_ledger(vehicle_id: str, timestamp: str, entity_id: s
                 "source": "NODE_GATEWAY"
             }
 
-    # 2. Attempt Direct Fabric Ledger Query via FabricClient
-    if fabric_client.is_network_active():
-        res = fabric_client.verify_event(vehicle_id, timestamp, entity_id)
+    # 2. Attempt Direct Fabric Ledger Query via FabricAdapter
+    if fabric_adapter.is_network_active():
+        res = fabric_adapter.verify_event(vehicle_id, timestamp, entity_id)
         if not res.get("success"):
             return {
                 "status": "NOT_FOUND",

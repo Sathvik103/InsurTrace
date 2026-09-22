@@ -157,6 +157,8 @@ interface VehicleContextType {
   selectedVehicle: Vehicle | null;
   setSelectedVehicleId: (id: string) => void;
   addVehicle: (vehicle: Omit<Vehicle, 'id'>) => Promise<Vehicle>;
+  updateVehicle: (id: string, updates: Partial<Vehicle>) => Promise<Vehicle | null>;
+  deleteVehicle: (id: string) => Promise<boolean>;
   refreshVehicles: () => Promise<void>;
   isLoading: boolean;
   isDemoActive: boolean;
@@ -328,6 +330,63 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
     return newVehicle;
   }, [setSelectedVehicleId]);
 
+  const updateVehicle = useCallback(
+    async (id: string, updates: Partial<Vehicle>): Promise<Vehicle | null> => {
+      let updatedVeh: Vehicle | null = null;
+      setVehicles((prev) => {
+        const updated = prev.map((v) => {
+          if (v.id === id) {
+            updatedVeh = { ...v, ...updates };
+            return updatedVeh;
+          }
+          return v;
+        });
+
+        try {
+          const customVehicles = updated.filter((v) => !v.is_demo);
+          localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(customVehicles));
+        } catch (e) {
+          console.warn('Failed to persist updated vehicles', e);
+        }
+
+        return updated;
+      });
+      return updatedVeh;
+    },
+    []
+  );
+
+  const deleteVehicle = useCallback(
+    async (id: string): Promise<boolean> => {
+      const target = vehicles.find((v) => v.id === id);
+      if (!target || target.is_demo) {
+        // Do not delete demo templates
+        return false;
+      }
+
+      setVehicles((prev) => {
+        const filtered = prev.filter((v) => v.id !== id);
+        try {
+          const customVehicles = filtered.filter((v) => !v.is_demo);
+          localStorage.setItem(STORAGE_KEY_CUSTOM, JSON.stringify(customVehicles));
+        } catch (e) {
+          console.warn('Failed to update storage on vehicle deletion', e);
+        }
+        return filtered;
+      });
+
+      if (selectedVehicleId === id) {
+        const remaining = vehicles.filter((v) => v.id !== id);
+        if (remaining.length > 0) {
+          setSelectedVehicleId(remaining[0].id);
+        }
+      }
+
+      return true;
+    },
+    [vehicles, selectedVehicleId, setSelectedVehicleId]
+  );
+
   const selectedVehicle = useMemo(() => {
     return vehicles.find((v) => v.id === selectedVehicleId) || vehicles[0] || null;
   }, [vehicles, selectedVehicleId]);
@@ -341,6 +400,8 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
       selectedVehicle,
       setSelectedVehicleId,
       addVehicle,
+      updateVehicle,
+      deleteVehicle,
       refreshVehicles,
       isLoading,
       isDemoActive,
@@ -351,6 +412,8 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
       selectedVehicle,
       setSelectedVehicleId,
       addVehicle,
+      updateVehicle,
+      deleteVehicle,
       refreshVehicles,
       isLoading,
       isDemoActive,

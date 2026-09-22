@@ -1,12 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/Shell';
 import { useVehicle } from '@/context/VehicleContext';
 import { PageHeader } from '@/components/common/PageHeader';
 import { StatCard } from '@/components/common/StatCard';
+import { TrustBadge } from '@/components/common/TrustBadge';
+import { DecisionJourney, DecisionJourneyData } from '@/components/visualizations/DecisionJourney';
+import { YourMoneyComparison, YourMoneyData } from '@/components/visualizations/YourMoneyComparison';
+import { VeriSureExplains } from '@/components/visualizations/VeriSureExplains';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR, formatPercent, truncateHash } from '@/lib/formatters';
 import { API_BASE_URL } from '@/lib/api';
@@ -25,6 +29,8 @@ import {
   Clock,
   Sparkles,
   HelpCircle,
+  Sliders,
+  ChevronDown
 } from 'lucide-react';
 import {
   LineChart,
@@ -83,7 +89,7 @@ export default function ClaimDecisionPage() {
       fallback={
         <AppShell>
           <div className="p-12 text-center text-zinc-500">
-            <div className="w-8 h-8 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <div className="w-8 h-8 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin mx-auto mb-3 dark:border-zinc-100" />
             <p className="text-sm font-medium">Initializing Financial Engine...</p>
           </div>
         </AppShell>
@@ -108,9 +114,9 @@ function ClaimDecisionContent() {
 
   const [formData, setFormData] = useState({
     vehicleAge: '3',
-    idv: '500000',
+    idv: '650000',
     deductible: '2000',
-    ncb: '20',
+    ncb: '25',
     repairCost: '45000',
     partCategory: 'metal',
     basePremium: '15000',
@@ -126,8 +132,8 @@ function ClaimDecisionContent() {
         setFormData((prev) => ({
           ...prev,
           vehicleAge: (new Date().getFullYear() - found.manufacture_year).toString(),
-          idv: (found.idv || 500000).toString(),
-          ncb: (found.ncb_percentage !== undefined ? found.ncb_percentage : 20).toString(),
+          idv: (found.idv || 650000).toString(),
+          ncb: (found.ncb_percentage !== undefined ? found.ncb_percentage : 25).toString(),
           zeroDep: found.has_zero_dep ? 'true' : 'false',
           repairCost: searchParams.get('repair_cost') || (found.downtime_cost_per_day ? '35000' : '45000'),
         }));
@@ -165,8 +171,8 @@ function ClaimDecisionContent() {
       setFormData((prev) => ({
         ...prev,
         vehicleAge: (new Date().getFullYear() - selectedVehicle.manufacture_year).toString(),
-        idv: (selectedVehicle.idv || 500000).toString(),
-        ncb: (selectedVehicle.ncb_percentage !== undefined ? selectedVehicle.ncb_percentage : 20).toString(),
+        idv: (selectedVehicle.idv || 650000).toString(),
+        ncb: (selectedVehicle.ncb_percentage !== undefined ? selectedVehicle.ncb_percentage : 25).toString(),
         zeroDep: selectedVehicle.has_zero_dep ? 'true' : 'false',
       }));
     }
@@ -176,7 +182,7 @@ function ClaimDecisionContent() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const calculate = async () => {
+  const calculate = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/financial/analyze-claim`, {
@@ -198,19 +204,27 @@ function ClaimDecisionContent() {
           estimated_base_premium_next_year: parseFloat(formData.basePremium) || 15000,
         }),
       });
-      const data = await response.json();
-      setResult(data);
+      if (response.ok) {
+        const data = await response.json();
+        setResult(data);
+      }
     } catch (err) {
       console.error('Decision calculation error:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData]);
+
+  // Initial calculation on mount or vehicle switch
+  useEffect(() => {
+    calculate();
+  }, [calculate]);
 
   const commitToLedger = async () => {
     if (!result) return;
     setCommitting(true);
     try {
+      const currentVehId = selectedVehicle?.id || 'V-REAL-101';
       const res = await fetch(`${API_BASE_URL}/api/v1/claims`, {
         method: 'POST',
         headers: {
@@ -218,7 +232,8 @@ function ClaimDecisionContent() {
           Authorization: 'Bearer dev-policyholder',
         },
         body: JSON.stringify({
-          policy_id: 'POL-REAL-101',
+          vehicle_id: currentVehId,
+          policy_id: selectedVehicle?.policy_number || 'POL-REAL-101',
           accident_id: 'ACC-' + Date.now().toString().slice(-6),
           estimated_repair_cost: parseFloat(formData.repairCost) || 45000,
           status: 'PENDING_SURVEY',
@@ -235,35 +250,79 @@ function ClaimDecisionContent() {
     }
   };
 
+  // Convert backend calculation result to DecisionJourneyData format
+  const journeyData: DecisionJourneyData | null = result
+    ? {
+        vehicleName: selectedVehicle ? `${selectedVehicle.make} ${selectedVehicle.model}` : 'Hyundai Creta',
+        registrationNumber: selectedVehicle?.registration_number || 'MH-02-CB-1234',
+        vehicleAge: parseFloat(formData.vehicleAge) || 3,
+        insurerName: docDetails.insurer || 'Comprehensive Insurer',
+        ncbPercentage: parseInt(formData.ncb) || 25,
+        hasZeroDep: formData.zeroDep === 'true',
+        totalRepairCost: result.total_estimate,
+        depreciationDeduction: result.depreciation_deduction,
+        deductibleDeduction: result.deductible_deduction,
+        estimatedPayout: result.estimated_payout,
+        immediateOutOfPocket: result.depreciation_deduction + result.deductible_deduction,
+        futureNcbImpact: result.future_ncb_impact,
+        effectiveClaimCost: result.effective_claim_cost,
+        selfPayCost: result.self_pay_cost,
+        estimatedSaving: result.estimated_saving,
+        recommendation: result.recommendation,
+        ruleVersion: 'MOTOR_INDIA_2026_V1',
+      }
+    : null;
+
+  // Convert backend calculation result to YourMoneyData format
+  const moneyData: YourMoneyData | null = result
+    ? {
+        totalRepairCost: result.total_estimate,
+        estimatedPayout: result.estimated_payout,
+        deductibleDeduction: result.deductible_deduction,
+        immediateOutOfPocket: result.depreciation_deduction + result.deductible_deduction,
+        futureNcbImpact: result.future_ncb_impact,
+        effectiveClaimCost: result.effective_claim_cost,
+        selfPayCost: result.self_pay_cost,
+        estimatedSaving: result.estimated_saving,
+        recommendation: result.recommendation,
+        simulation3Year: result.simulation_3_year,
+      }
+    : null;
+
   return (
     <AppShell>
       <PageHeader
         title="Should I claim or pay myself?"
-        description="Evaluate out-of-pocket repair costs against your estimated insurance payout and future No-Claim Bonus (NCB) impact."
+        description="Evaluate out-of-pocket repair costs against your estimated insurance payout and 3-year No-Claim Bonus (NCB) impact."
         breadcrumbs={[
           { label: 'Platform', href: '/decision' },
           { label: 'Claim Decision' },
         ]}
         actions={
-          <button
-            onClick={() => router.push('/decision/extract')}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-2xs"
-          >
-            <FileSearch className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-            <span>Upload Policy or Repair Bill</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push('/decision/extract')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors shadow-2xs"
+            >
+              <FileSearch className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+              <span>Upload Policy / Bill</span>
+            </button>
+          </div>
         }
       />
 
-      {/* Provenance Alert from Document Extraction */}
+      {/* Provenance Alert if from Document Extraction */}
       {fromExtract && (
         <FadeIn className="mb-6">
-          <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between text-emerald-900 dark:text-emerald-300">
+          <div className="p-4 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/60 rounded-xl flex items-center justify-between text-sky-900 dark:text-sky-300">
             <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0" />
               <div>
-                <p className="font-semibold text-xs">Parameters Auto-Populated from Verified Documents</p>
-                <p className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-0.5">
+                <p className="font-semibold text-xs flex items-center gap-2">
+                  <span>Parameters Extracted from Document</span>
+                  <TrustBadge source="DOCUMENT_EXTRACTED" compact />
+                </p>
+                <p className="text-[11px] text-sky-700 dark:text-sky-400 mt-0.5">
                   Vehicle: <strong className="font-mono">{docDetails.vehicleReg || 'MH02CB1234'}</strong> • Insurer:{' '}
                   <strong>{docDetails.insurer || 'HDFC ERGO'}</strong> • Policy:{' '}
                   <strong className="font-mono">{docDetails.policyNum || '2311/2004/99812/00/000'}</strong>
@@ -272,7 +331,7 @@ function ClaimDecisionContent() {
             </div>
             <button
               onClick={() => router.push('/decision/extract')}
-              className="text-xs font-semibold px-3 py-1 bg-white dark:bg-zinc-900 border border-emerald-300 dark:border-emerald-800 rounded-md hover:bg-emerald-50 dark:hover:bg-zinc-800 transition-colors"
+              className="text-xs font-semibold px-3 py-1 bg-white dark:bg-zinc-900 border border-sky-300 dark:border-sky-800 rounded-md hover:bg-sky-50 dark:hover:bg-zinc-800 transition-colors"
             >
               Re-Upload
             </button>
@@ -280,32 +339,38 @@ function ClaimDecisionContent() {
         </FadeIn>
       )}
 
+      {/* CORE DECISION JOURNEY VISUALIZATION */}
+      {journeyData && (
+        <SlideUp delay={0.1} className="mb-8">
+          <DecisionJourney data={journeyData} />
+        </SlideUp>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Parameter Inputs */}
+        {/* Left Column: Parameter Control Panel */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5 shadow-xs space-y-4">
+          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
               <div>
-                <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                  Vehicle & Policy Schedule
+                <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-sky-600" />
+                  <span>Claim Parameters</span>
                 </h2>
                 <p className="text-[11px] text-zinc-500">
-                  Standard Indian Motor Tariff rules
+                  Deterministic Indian Motor Tariff model
                 </p>
               </div>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
-                AUDITABLE
-              </span>
+              <TrustBadge source="COMPUTED_RESULT" label="Tariff GR.8/9" />
             </div>
 
-            {/* Dynamic Vehicle Selector */}
+            {/* Vehicle Selector */}
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="block text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
-                  Select Vehicle
+                  Select Vehicle Profile
                 </label>
                 <Link
-                  href="/vehicles/new"
+                  href="/onboarding"
                   className="text-[10px] text-sky-600 dark:text-sky-400 hover:underline font-semibold"
                 >
                   + Add Vehicle
@@ -321,28 +386,33 @@ function ClaimDecisionContent() {
                     setFormData((prev) => ({
                       ...prev,
                       vehicleAge: (new Date().getFullYear() - found.manufacture_year).toString(),
-                      idv: (found.idv || 500000).toString(),
-                      ncb: (found.ncb_percentage !== undefined ? found.ncb_percentage : 20).toString(),
+                      idv: (found.idv || 650000).toString(),
+                      ncb: (found.ncb_percentage !== undefined ? found.ncb_percentage : 25).toString(),
                       zeroDep: found.has_zero_dep ? 'true' : 'false',
                       repairCost: found.downtime_cost_per_day ? '35000' : prev.repairCost,
                     }));
                   }
                 }}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-medium"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-medium focus:ring-1 focus:ring-zinc-900"
               >
                 {vehicles.map((v) => (
                   <option key={v.id} value={v.id}>
-                    {v.make} {v.model} ({v.registration_number}) — {v.usage_type?.replace('_', ' ') || 'Personal'}
+                    {v.make} {v.model} ({v.registration_number}) {v.is_demo ? '[DEMO]' : '[MY VEHICLE]'}
                   </option>
                 ))}
               </select>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               <div>
-                <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                  Workshop Repair Estimate (₹)
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                    Workshop Repair Estimate (₹)
+                  </label>
+                  <span className="font-mono text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                    {formatINR(Number(formData.repairCost) || 0)}
+                  </span>
+                </div>
                 <input
                   name="repairCost"
                   type="number"
@@ -354,7 +424,7 @@ function ClaimDecisionContent() {
 
               <div>
                 <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                  Dominant Part Category
+                  Dominant Damaged Part Category
                 </label>
                 <select
                   name="partCategory"
@@ -362,8 +432,8 @@ function ClaimDecisionContent() {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-900"
                 >
-                  <option value="metal">Metal (Age-based Depreciation 0-50%)</option>
-                  <option value="plastic">Plastic / Nylon (Fixed 50% Depreciation)</option>
+                  <option value="metal">Metal (Age-based Depreciation 0%–50%)</option>
+                  <option value="plastic">Plastic / Rubber (Fixed 50% Depreciation)</option>
                   <option value="glass">Glass (0% Depreciation)</option>
                   <option value="fiberglass">Fiberglass (Fixed 30% Depreciation)</option>
                 </select>
@@ -372,7 +442,7 @@ function ClaimDecisionContent() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Insured Value / IDV (₹)
+                    Insured Declared Value (₹)
                   </label>
                   <input
                     name="idv"
@@ -384,7 +454,7 @@ function ClaimDecisionContent() {
                 </div>
                 <div>
                   <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Deductible (₹)
+                    Compulsory Deductible (₹)
                   </label>
                   <input
                     name="deductible"
@@ -439,7 +509,7 @@ function ClaimDecisionContent() {
                 </div>
                 <div>
                   <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Zero-Dep Addon
+                    Zero-Depreciation Addon
                   </label>
                   <select
                     name="zeroDep"
@@ -447,7 +517,7 @@ function ClaimDecisionContent() {
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
                   >
-                    <option value="false">No (Standard Dep)</option>
+                    <option value="false">No (Standard Tariff Dep)</option>
                     <option value="true">Yes (Zero Dep Active)</option>
                   </select>
                 </div>
@@ -457,173 +527,74 @@ function ClaimDecisionContent() {
             <button
               onClick={calculate}
               disabled={loading}
-              className="w-full py-2.5 px-4 rounded-lg text-xs font-semibold bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 mt-4"
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 mt-4"
             >
               {loading ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Computing IRDAI Equations...</span>
+                  <span>Computing Motor Tariff Math...</span>
                 </>
               ) : (
                 <>
                   <Scale className="w-3.5 h-3.5" />
-                  <span>Calculate Financial Decision</span>
+                  <span>Re-Calculate Comparison</span>
                 </>
               )}
             </button>
           </div>
+
+          {/* Quick Notice on External Authority */}
+          <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 text-xs text-zinc-500 space-y-1">
+            <p className="font-semibold text-zinc-700 dark:text-zinc-300">External Authority Notice</p>
+            <p className="leading-relaxed">
+              VeriSure models financial outcomes based on Indian Motor Tariff GR.8/GR.9 schedules. The final settlement or claim approval remains with your authorized insurer/surveyor.
+            </p>
+          </div>
         </div>
 
-        {/* Right Column: Comparative Ledger & Analysis */}
+        {/* Right Column: Comparative Visualizations & Explanations */}
         <div className="lg:col-span-8 space-y-6">
-          {!result ? (
-            <div className="rounded-xl border border-dashed border-zinc-300 dark:border-zinc-800 p-12 text-center bg-zinc-50/50 dark:bg-zinc-900/20">
+          {!result || !moneyData ? (
+            <div className="rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-800 p-12 text-center bg-zinc-50/50 dark:bg-zinc-900/20">
               <Scale className="w-10 h-10 text-zinc-400 mx-auto mb-3" />
               <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
                 Awaiting Parameter Input
               </h3>
               <p className="text-xs text-zinc-500 max-w-md mx-auto mt-1">
-                Configure your repair estimate and current policy schedule on the left, then execute the calculation to view the deterministic comparison.
+                Configure your repair estimate and current policy schedule on the left to view the deterministic comparison.
               </p>
             </div>
           ) : (
             <FadeIn className="space-y-6">
-              {/* Financial Recommendation Banner */}
-              <div
-                className={`rounded-2xl border p-6 ${
-                  result.recommendation === 'CLAIM'
-                    ? 'border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-950/20'
-                    : 'border-sky-500/30 bg-sky-50/60 dark:bg-sky-950/20'
-                }`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <div className="text-[11px] uppercase tracking-wider text-zinc-500 dark:text-zinc-400 font-semibold">
-                      Recommendation
-                    </div>
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <span
-                        className={`text-sm sm:text-base font-extrabold px-3 py-1.5 rounded-xl font-mono ${
-                          result.recommendation === 'CLAIM'
-                            ? 'bg-emerald-600 text-white'
-                            : 'bg-sky-600 text-white'
-                        }`}
-                      >
-                        {result.recommendation === 'CLAIM'
-                          ? 'MAKE AN INSURANCE CLAIM'
-                          : 'PAY OUT-OF-POCKET'}
-                      </span>
-                      <span
-                        className={`text-sm font-bold ${
-                          result.recommendation === 'CLAIM'
-                            ? 'text-emerald-700 dark:text-emerald-300'
-                            : 'text-sky-700 dark:text-sky-300'
-                        }`}
-                      >
-                        Net Benefit: {formatINR(Math.abs(result.estimated_saving))}
-                      </span>
-                    </div>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-2.5 leading-relaxed">
-                      <strong>Break-even Point:</strong> Repairs exceeding{' '}
-                      <strong className="font-mono text-zinc-900 dark:text-zinc-100">
-                        {formatINR(result.break_even_threshold)}
-                      </strong>{' '}
-                      make filing a claim worthwhile. For smaller repairs, paying out-of-pocket
-                      preserves your No-Claim Bonus discount.
-                    </p>
-                  </div>
+              {/* SIDE-BY-SIDE YOUR MONEY COMPARISON BARS */}
+              <YourMoneyComparison data={moneyData} loading={loading} />
 
-                  <div className="grid grid-cols-2 gap-3 shrink-0">
-                    <div className="p-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-center">
-                      <div className="text-[10px] text-zinc-500 uppercase font-semibold">
-                        Claim Out-of-Pocket
-                      </div>
-                      <div className="text-base font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-0.5">
-                        {formatINR(result.effective_claim_cost)}
-                      </div>
-                      <div className="text-[9px] text-zinc-400">Deductible + Lost NCB</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-center">
-                      <div className="text-[10px] text-zinc-500 uppercase font-semibold">
-                        Self-Pay Cost
-                      </div>
-                      <div className="text-base font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-0.5">
-                        {formatINR(result.self_pay_cost)}
-                      </div>
-                      <div className="text-[9px] text-zinc-400">Direct Garage Bill</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Comparative Ledger Table */}
-              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 overflow-hidden shadow-xs">
-                <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                    Deterministic Cost Breakdown
-                  </h3>
-                  <span className="text-[10px] font-mono text-zinc-400">AUDITABLE SCHEDULE</span>
-                </div>
-                <div className="divide-y divide-zinc-100 dark:divide-zinc-800 text-xs">
-                  <div className="grid grid-cols-3 p-3 text-zinc-500 font-semibold bg-zinc-50/50 dark:bg-zinc-900/40">
-                    <div>Financial Parameter</div>
-                    <div className="text-right">Option A: Claim</div>
-                    <div className="text-right">Option B: Self-Pay</div>
-                  </div>
-                  <div className="grid grid-cols-3 p-3">
-                    <div>Gross Repair Estimate</div>
-                    <div className="text-right font-mono">{formatINR(result.total_estimate)}</div>
-                    <div className="text-right font-mono">{formatINR(result.total_estimate)}</div>
-                  </div>
-                  <div className="grid grid-cols-3 p-3">
-                    <div>Parts Depreciation Deduction</div>
-                    <div className="text-right font-mono text-rose-600 dark:text-rose-400">
-                      -{formatINR(result.depreciation_deduction)}
-                    </div>
-                    <div className="text-right font-mono text-zinc-400">—</div>
-                  </div>
-                  <div className="grid grid-cols-3 p-3">
-                    <div>Compulsory / Voluntary Deductible</div>
-                    <div className="text-right font-mono text-rose-600 dark:text-rose-400">
-                      -{formatINR(result.deductible_deduction)}
-                    </div>
-                    <div className="text-right font-mono text-zinc-400">—</div>
-                  </div>
-                  <div className="grid grid-cols-3 p-3 bg-zinc-50/30 dark:bg-zinc-900/20 font-semibold">
-                    <div>Immediate Insurer Payout</div>
-                    <div className="text-right font-mono text-emerald-600 dark:text-emerald-400">
-                      +{formatINR(result.estimated_payout)}
-                    </div>
-                    <div className="text-right font-mono text-zinc-400">₹0</div>
-                  </div>
-                  <div className="grid grid-cols-3 p-3">
-                    <div>Cumulative 3-Year Future NCB Loss</div>
-                    <div className="text-right font-mono text-rose-600 dark:text-rose-400">
-                      +{formatINR(result.future_ncb_impact)}
-                    </div>
-                    <div className="text-right font-mono text-emerald-600 dark:text-emerald-400">
-                      ₹0 (Bonus Preserved)
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 p-3 bg-zinc-100/60 dark:bg-zinc-800/40 font-bold text-zinc-900 dark:text-zinc-100">
-                    <div>Net Economic Cost to You</div>
-                    <div className="text-right font-mono">{formatINR(result.effective_claim_cost)}</div>
-                    <div className="text-right font-mono">{formatINR(result.self_pay_cost)}</div>
-                  </div>
-                </div>
-              </div>
+              {/* VERISURE EXPLAINS PROGRESSIVE DISCLOSURE */}
+              <VeriSureExplains
+                totalRepairCost={result.total_estimate}
+                estimatedPayout={result.estimated_payout}
+                deductible={result.deductible_deduction}
+                depreciationDeduction={result.depreciation_deduction}
+                ncbPercentage={parseInt(formData.ncb) || 20}
+                futureNcbImpact={result.future_ncb_impact}
+                recommendation={result.recommendation}
+                ruleVersion="MOTOR_INDIA_2026_V1"
+                txId={committedClaim?.blockchain_tx_id}
+                canonicalHash={committedClaim?.canonical_hash}
+              />
 
               {/* 3-Year Projection Sensitivity Chart */}
-              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5 shadow-xs space-y-4">
+              <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5 shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                      3-Year Compound Premium Trajectory
+                      3-Year Estimated Financial Impact Trajectory
                     </h3>
                     <p className="text-[11px] text-zinc-500 mt-0.5">
-                      Illustrating NCB reset penalty vs cumulative renewal discount growth
+                      Comparing future renewal premiums: NCB reset after claim vs cumulative discount intact
                     </p>
                   </div>
+                  <TrustBadge source="COMPUTED_RESULT" label="Multi-Year Model" />
                 </div>
 
                 <div className="h-60">
@@ -646,7 +617,7 @@ function ClaimDecisionContent() {
                         type="monotone"
                         name="If Self-Paid (NCB Intact)"
                         dataKey="self_pay_premium"
-                        stroke="#2563eb"
+                        stroke="#0284c7"
                         strokeWidth={2}
                         dot={{ r: 3 }}
                       />
@@ -656,60 +627,58 @@ function ClaimDecisionContent() {
               </div>
 
               {/* Record Verification Commitment Box */}
-              <div className="rounded-xl border border-sky-200 dark:border-sky-900/40 bg-sky-50/40 dark:bg-sky-950/20 p-5 space-y-3">
+              <div className="rounded-2xl border border-sky-200 dark:border-sky-900/40 bg-sky-50/40 dark:bg-sky-950/20 p-5 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-sky-100 dark:bg-sky-900/50 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0 mt-0.5">
+                    <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-900/50 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0 mt-0.5">
                       <Lock className="w-4 h-4" />
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                        Seal Record to Ledger
+                        Anchor Decision Calculation to Consortium Ledger
                       </h4>
                       <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
-                        Create a tamper-evident record of this decision calculation and policy terms.
+                        Commit a SHA-256 state fingerprint to the Hyperledger Fabric dual-peer consortium for tamper-evident record verification.
                       </p>
                     </div>
                   </div>
                   <button
                     onClick={commitToLedger}
                     disabled={committing}
-                    className="px-4 py-2 rounded-lg text-xs font-semibold bg-sky-600 text-white hover:bg-sky-700 transition-colors flex items-center gap-1.5 shrink-0 shadow-2xs"
+                    className="px-4 py-2 rounded-xl text-xs font-semibold bg-sky-600 text-white hover:bg-sky-700 transition-colors flex items-center gap-1.5 shrink-0 shadow-2xs"
                   >
                     {committing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
-                    <span>{committing ? 'Verifying Record...' : 'Save & Verify Record'}</span>
+                    <span>{committing ? 'Verifying on Fabric...' : 'Commit to Private Ledger'}</span>
                   </button>
                 </div>
 
                 {committedClaim && (
-                  <FadeIn className="p-3 bg-white dark:bg-zinc-900 rounded-lg border border-sky-200 dark:border-sky-800 space-y-2 mt-2">
+                  <FadeIn className="p-3 bg-white dark:bg-zinc-900 rounded-xl border border-sky-200 dark:border-sky-800 space-y-2 mt-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1.5">
+                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        Record Verified & Sealed
+                        Record Verified & Committed
                       </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                        {committedClaim.network_mode || 'REAL_FABRIC'}
-                      </span>
+                      <TrustBadge source="BLOCKCHAIN_RECORD" txId={committedClaim.blockchain_tx_id} />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-950 p-2.5 rounded">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-950 p-2.5 rounded-lg">
                       <div>
                         <span className="text-zinc-400">Record ID:</span> {committedClaim.id}
                       </div>
                       <div>
-                        <span className="text-zinc-400">Verification ID:</span>{' '}
+                        <span className="text-zinc-400">Verification Tx:</span>{' '}
                         {truncateHash(committedClaim.blockchain_tx_id, 8, 8)}
                       </div>
                       <div className="sm:col-span-2 truncate">
-                        <span className="text-zinc-400">Record Fingerprint (SHA-256):</span> {committedClaim.canonical_hash}
+                        <span className="text-zinc-400">Fingerprint (SHA-256):</span> {committedClaim.canonical_hash}
                       </div>
                     </div>
                     <div className="pt-1 flex gap-2">
                       <button
                         onClick={() => router.push(`/verification?claimId=${committedClaim.id}`)}
-                        className="text-xs text-sky-600 hover:underline flex items-center gap-1 font-medium"
+                        className="text-xs text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 font-medium"
                       >
-                        <span>Audit in Record Verification Console</span>
+                        <span>Inspect in Verification Console</span>
                         <ArrowRight className="w-3 h-3" />
                       </button>
                     </div>

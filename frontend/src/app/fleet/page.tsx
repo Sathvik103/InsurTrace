@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/layout/Shell';
@@ -39,13 +39,20 @@ export default function FleetPage() {
   const [repairDaysClaim, setRepairDaysClaim] = useState<number>(10);
   const [repairDaysFastTrack, setRepairDaysFastTrack] = useState<number>(2);
   const [repairEstimate, setRepairEstimate] = useState<number>(35000);
+  const [userDailyRate, setUserDailyRate] = useState<number>(3000);
 
   const activeSimVehicle =
     vehicles.find((v) => v.id === selectedSimVehicleId) || commercialVehicles[0] || vehicles[0];
 
-  const dailyRate = activeSimVehicle?.downtime_cost_per_day || 3000;
-  const downtimeLossClaim = repairDaysClaim * dailyRate;
-  const downtimeLossFastTrack = repairDaysFastTrack * dailyRate;
+  // Update daily rate when vehicle selection changes
+  useEffect(() => {
+    if (activeSimVehicle?.downtime_cost_per_day) {
+      setUserDailyRate(activeSimVehicle.downtime_cost_per_day);
+    }
+  }, [activeSimVehicle]);
+
+  const downtimeLossClaim = repairDaysClaim * userDailyRate;
+  const downtimeLossFastTrack = repairDaysFastTrack * userDailyRate;
 
   // Total Fleet Stats
   const totalFleetDowntimeDaily = commercialVehicles.reduce(
@@ -184,18 +191,22 @@ export default function FleetPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Days for Fast-Track Self-Pay Repair
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                    User-Provided Downtime Cost/Day (₹)
+                  </label>
+                  <span className="font-mono text-xs font-bold text-amber-600 dark:text-amber-400">
+                    {formatINR(userDailyRate)}/day
+                  </span>
+                </div>
                 <input
                   type="number"
-                  value={repairDaysFastTrack}
-                  onChange={(e) => setRepairDaysFastTrack(parseInt(e.target.value) || 1)}
-                  min="1"
-                  max="10"
+                  step="500"
+                  value={userDailyRate}
+                  onChange={(e) => setUserDailyRate(parseFloat(e.target.value) || 0)}
                   className="w-full text-xs font-mono px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800"
                 />
-                <p className="text-[10px] text-zinc-400 mt-1">Direct garage turnover: 1 to 3 days</p>
+                <p className="text-[10px] text-zinc-400 mt-1">Formula: Days unavailable × user-provided downtime cost/day</p>
               </div>
             </div>
 

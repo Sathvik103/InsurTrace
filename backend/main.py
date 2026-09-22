@@ -74,3 +74,6 @@ app.include_router(consent_router, prefix="/api/v1")
 
 from routers.profiles import router as profiles_router
 app.include_router(profiles_router, prefix="/api/v1")
+
+from routers.system_status import router as system_status_router
+app.include_router(system_status_router, prefix="/api/v1")
