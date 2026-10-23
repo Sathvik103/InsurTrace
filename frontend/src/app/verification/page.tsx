@@ -1,396 +1,266 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { AppShell } from '@/components/layout/Shell';
-import { PageHeader } from '@/components/common/PageHeader';
-import { StatCard } from '@/components/common/StatCard';
-import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
-import { formatINR, truncateHash } from '@/lib/formatters';
-import { apiFetch, describeApiError } from '@/lib/api';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { toast } from 'sonner';
+import { CheckCircle2, Clock, FlaskConical, HelpCircle, RefreshCw, Search, ShieldAlert, ShieldCheck, ShieldQuestion, X } from 'lucide-react';
+import { AppShell } from '@/components/layout/Shell';
+import { apiFetch, describeApiError } from '@/lib/api';
 import { useSystemStatus } from '@/lib/useSystemStatus';
-import {
-  ShieldCheck,
-  ShieldAlert,
-  ServerCrash,
-  RefreshCw,
-  RotateCcw,
-  Info,
-  Database,
-  CheckCircle2,
-  Lock,
-  Cpu,
-  AlertTriangle,
-  Network,
-  Activity,
-  Terminal,
-} from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useVehicle } from '@/context/VehicleContext';
+import { useAssistant } from '@/context/AssistantContext';
+import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
+import { rupees } from '@/lib/claimCheck';
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+interface VerifyResponse {
+  status: string;
+  network_mode?: string;
+  message?: string;
+  transaction_id?: string | null;
+  hash?: string;
+  database_hash?: string;
+  ledger_hash?: string | null;
+  original_cost?: number;
+  error?: string;
+}
+
+interface ClaimOption {
+  id: string;
+  claim_number?: string;
+  vehicle_id?: string;
+  estimated_repair_cost: number;
+  created_at?: string;
+  ledger?: { sync_status: string };
+}
 
 export default function VerificationPage() {
   return (
-    <Suspense
-      fallback={
-        <AppShell>
-          <div className="p-12 text-center text-zinc-500">
-            <div className="w-8 h-8 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-sm font-medium">Connecting to Hyperledger Fabric Gateway...</p>
-          </div>
-        </AppShell>
-      }
-    >
-      <VerificationContent />
-    </Suspense>
+    <AppShell>
+      <Suspense fallback={<div className="vs-shimmer mx-auto h-96 max-w-3xl rounded-[28px]" />}>
+        <VerifyContent />
+      </Suspense>
+    </AppShell>
   );
 }
 
-function VerificationContent() {
-  const searchParams = useSearchParams();
-  const [claimId, setClaimId] = useState('CLM-999');
-  const [status, setStatus] = useState<any>(null);
+function VerifyContent() {
+  const params = useSearchParams();
+  const reduce = useReducedMotion();
+  const { role } = useAuth();
+  const { vehicles } = useVehicle();
+  const { open } = useAssistant();
+  const { status: system } = useSystemStatus();
+
+  const [claims, setClaims] = useState<ClaimOption[]>([]);
+  const [claimId, setClaimId] = useState(params.get('claimId') || '');
+  const [result, setResult] = useState<VerifyResponse | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [loading, setLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [originalCost, setOriginalCost] = useState<number>(45000);
+  const [acting, setActing] = useState(false);
+  const [originalCost, setOriginalCost] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (searchParams) {
-      const qId = searchParams.get('claimId');
-      if (qId) {
-        setClaimId(qId);
-        runVerification(qId);
-      }
-    }
-  }, [searchParams]);
-
-  const runVerification = async (targetId: string) => {
-    if (!targetId) return;
+  const verify = async (id: string) => {
+    if (!id) return;
     setLoading(true);
+    setError(null);
     try {
-      const data = await apiFetch<any>(`/api/v1/admin/verify-claim/${encodeURIComponent(targetId)}`, { timeoutMs: 60000 });
-      setStatus(data);
-      if (data.original_cost) {
-        setOriginalCost(data.original_cost);
-      }
+      const [data] = await Promise.all([
+        apiFetch<VerifyResponse>(`/api/v1/admin/verify-claim/${encodeURIComponent(id)}`, { timeoutMs: 60000 }),
+        new Promise((r) => setTimeout(r, reduce ? 0 : 700)),
+      ]);
+      setResult(data);
+      if (data.original_cost && data.status === 'VERIFIED') setOriginalCost(data.original_cost);
     } catch (e) {
-      const { title, message } = describeApiError(e);
-      setStatus({ status: 'ERROR', message: `${title}. ${message}` });
+      setResult(null);
+      setError(e);
     } finally {
       setLoading(false);
     }
   };
 
-  const tamperClaim = async () => {
-    if (!claimId) return;
-    setActionLoading(true);
+  useEffect(() => {
+    apiFetch<ClaimOption[]>('/api/v1/claims')
+      .then((rows) => {
+        setClaims(rows);
+        const initial = params.get('claimId') || rows.find((r) => r.ledger?.sync_status === 'COMMITTED')?.id || rows[0]?.id;
+        if (initial) {
+          setClaimId(initial);
+          verify(initial);
+        }
+      })
+      .catch(setError);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const tamperDemoAllowed = role?.toLowerCase() === 'admin' && system?.environment !== 'production';
+
+  const simulate = async (kind: 'tamper' | 'restore') => {
+    setActing(true);
     try {
-      await apiFetch(`/api/v1/admin/tamper-claim/${encodeURIComponent(claimId)}`, { method: 'POST' });
-      // Re-verify immediately to demonstrate detection
-      await runVerification(claimId);
+      const path =
+        kind === 'tamper'
+          ? `/api/v1/admin/tamper-claim/${encodeURIComponent(claimId)}`
+          : `/api/v1/admin/restore-claim/${encodeURIComponent(claimId)}?original_cost=${originalCost ?? 0}`;
+      await apiFetch(path, { method: 'POST' });
+      await verify(claimId);
     } catch (e) {
-      toast.error('Tamper simulation unavailable', { description: describeApiError(e).message });
+      toast.error('Simulation unavailable', { description: describeApiError(e).message });
     } finally {
-      setActionLoading(false);
+      setActing(false);
     }
   };
 
-  const restoreClaim = async () => {
-    if (!claimId) return;
-    setActionLoading(true);
-    try {
-      await apiFetch(`/api/v1/admin/restore-claim/${encodeURIComponent(claimId)}?original_cost=${originalCost}`, { method: 'POST' });
-      // Re-verify immediately to demonstrate restoration to green verified state
-      await runVerification(claimId);
-    } catch (e) {
-      toast.error('Restore failed', { description: describeApiError(e).message });
-    } finally {
-      setActionLoading(false);
-    }
+  const label = (c: ClaimOption) => {
+    const v = vehicles.find((x) => x.id === c.vehicle_id);
+    return `${v ? `${v.make} ${v.model}` : 'Vehicle'} · ${c.claim_number || c.id.slice(0, 8)} · ${rupees(c.estimated_repair_cost)}`;
   };
 
-  const isTampered = status?.status === 'TAMPERED' || status?.status === 'INTEGRITY_VERIFICATION_FAILED';
-  const { status: system, error: systemError } = useSystemStatus();
-  const fabric = system?.components?.hyperledger_fabric as
-    | { status?: string; mode?: string; peer0_org1?: { status?: string }; peer0_org2?: { status?: string }; orderer?: { status?: string } }
-    | undefined;
-  const isVerified = status?.status === 'VERIFIED';
+  const fabric = system?.components?.hyperledger_fabric as { status?: string; mode?: string } | undefined;
 
   return (
-    <AppShell>
-      <PageHeader
-        title="Record Verification"
-        description="VeriSure cryptographically seals vehicle lifecycle records and insurance claims to verify they have not been altered after recording."
-        breadcrumbs={[
-          { label: 'Platform', href: '/decision' },
-          { label: 'Record Verification' },
-        ]}
-      />
-
-      {/* Network Health Grid: live values from /api/v1/system/status */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard
-          label="Fabric Peer 0 (Org1)"
-          value={fabric?.peer0_org1?.status || (fabric ? 'NOT CONNECTED' : '…')}
-          subtext="Org1MSP • Port 7051 • Channel mychannel"
-          icon={Network}
-        />
-        <StatCard
-          label="Fabric Peer 0 (Org2)"
-          value={fabric?.peer0_org2?.status || (fabric ? 'NOT CONNECTED' : '…')}
-          subtext="Org2MSP • Port 9051 • Endorsing"
-          icon={Network}
-        />
-        <StatCard
-          label="Orderer (Raft)"
-          value={fabric?.orderer?.status || (fabric ? 'NOT CONNECTED' : '…')}
-          subtext="OrdererMSP • Port 7050 • TLS"
-          icon={Cpu}
-        />
-        <StatCard
-          label="Ledger Connection"
-          value={fabric?.status || (systemError ? 'UNKNOWN' : '…')}
-          subtext={fabric?.mode ? `Mode: ${fabric.mode} • chaincode vehicle` : 'Status from the VeriSure API'}
-          icon={ShieldCheck}
-        />
-      </div>
-
-            {/* Truth Boundary & Test Consortium Notice */}
-      <div className="mb-6 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 text-xs text-zinc-600 dark:text-zinc-400 flex items-start gap-3">
-        <Lock className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
-        <p className="leading-relaxed">
-          <strong>Blockchain Truth Boundary:</strong> Hyperledger Fabric Raft consensus certifies the mathematical integrity of recorded claims against unauthorized database alteration after commitment. It does not independently verify physical real-world ground truth. Network operates in local dual-peer consortium test mode.
+    <div className="mx-auto max-w-3xl space-y-8">
+      <header className="space-y-2">
+        <span className="vs-chip"><ShieldCheck className="h-3.5 w-3.5 text-steel-600" /> Verify a record</span>
+        <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">Has this record been changed?</h1>
+        <p className="text-base text-navy-600">
+          When you save a claim check, VeriSure anchors its fingerprint on a ledger. Checking it again shows whether the record is still exactly as it was saved.
         </p>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Verification Query & Live Inspector */}
-        <div className="lg:col-span-8 space-y-6">
-          {/* Claim Selector Box */}
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
-                  Cryptographic State Proof Inspector
-                </h3>
-                <p className="text-[11px] text-zinc-500">
-                  Compares the current record’s fingerprint with the one anchored on Hyperledger Fabric
-                </p>
-              </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
-                REAL_FABRIC
-              </span>
-            </div>
+      <section className="vs-surface space-y-4 p-6">
+        <label htmlFor="claim" className="text-sm font-medium text-navy-800">Which record?</label>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {claims.length > 0 ? (
+            <select id="claim" value={claimId} onChange={(e) => setClaimId(e.target.value)} className="vs-input flex-1 py-3 text-sm">
+              {claims.map((c) => (
+                <option key={c.id} value={c.id}>{label(c)}{c.ledger?.sync_status === 'COMMITTED' ? '' : ' (not anchored yet)'}</option>
+              ))}
+            </select>
+          ) : (
+            <input id="claim" value={claimId} onChange={(e) => setClaimId(e.target.value.trim())} placeholder="Record ID" className="vs-input flex-1 py-3 text-sm" />
+          )}
+          <button type="button" onClick={() => verify(claimId)} disabled={!claimId || loading} className="vs-btn-primary">
+            {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Check now
+          </button>
+        </div>
+        <p className="flex items-center gap-2 text-xs text-navy-500">
+          <span className={`h-1.5 w-1.5 rounded-full ${fabric?.status === 'CONNECTED' ? 'bg-gain' : 'bg-amber-500'}`} />
+          Ledger {fabric?.status === 'CONNECTED' ? 'connected' : fabric ? 'not connected right now' : 'status loading'}
+          {fabric?.mode ? ` · ${fabric.mode}` : ''} ·{' '}
+          <Link href="/settings?tab=status" className="font-medium text-steel-700 hover:underline">details</Link>
+        </p>
+      </section>
 
-            <div className="space-y-3">
-              {/* Quick Select Buttons for 4 Seed Claims */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-semibold text-zinc-500">Seed Claims:</span>
-                {[
-                  { id: 'CLM-999', label: 'CLM-999 (Creta • Tamper Target)', badge: 'TAMPER TEST' },
-                  { id: 'CLM-101', label: 'CLM-101 (Swift • Settled)', badge: 'SETTLED' },
-                  { id: 'CLM-102', label: 'CLM-102 (Nexon EV • Under Review)', badge: 'REVIEW' },
-                  { id: 'CLM-103', label: 'CLM-103 (City ZX • Approved)', badge: 'APPROVED' },
-                ].map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => {
-                      setClaimId(c.id);
-                      runVerification(c.id);
-                    }}
-                    className={`px-2.5 py-1 text-[11px] rounded-lg border font-mono transition-colors ${
-                      claimId === c.id
-                        ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold'
-                        : 'border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100'
-                    }`}
-                  >
-                    {c.id} ({c.badge})
-                  </button>
-                ))}
-              </div>
+      {error != null && <ApiErrorNotice error={error} onRetry={() => verify(claimId)} />}
 
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={claimId}
-                  onChange={(e) => setClaimId(e.target.value)}
-                  placeholder="Enter Claim Identifier (e.g., CLM-999 or CLM-101)"
-                  className="flex-1 px-3.5 py-2 text-xs font-mono rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-900"
-                />
-                <button
-                  onClick={() => runVerification(claimId)}
-                  disabled={loading}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors flex items-center gap-1.5 shrink-0"
-                >
-                  {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
-                  <span>Verify State Hashes</span>
-                </button>
-              </div>
-            </div>
+      <AnimatePresence mode="wait">
+        {loading ? (
+          <motion.div key="checking" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="vs-surface flex flex-col items-center gap-4 p-12 text-center" role="status">
+            <motion.div animate={reduce ? undefined : { rotate: 360 }} transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }} className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-navy-100 border-t-navy-900" />
+            <p className="font-medium text-navy-800">Recomputing the fingerprint and asking the ledger…</p>
+          </motion.div>
+        ) : result ? (
+          <motion.div key={`${claimId}-${result.status}`} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="space-y-5">
+            <Verdict result={result} />
+            {(result.database_hash || result.hash) && <HashCompare current={result.database_hash || result.hash!} anchored={result.ledger_hash ?? null} />}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <section className="grid gap-4 sm:grid-cols-2">
+        <div className="vs-surface p-6">
+          <p className="flex items-center gap-2 font-semibold text-navy-900"><CheckCircle2 className="h-5 w-5 text-gain" /> What this proves</p>
+          <p className="mt-2 text-sm leading-relaxed text-navy-600">The saved record (repair cost, estimate, decision) is byte-for-byte the same as when its fingerprint was anchored.</p>
+        </div>
+        <div className="vs-surface p-6">
+          <p className="flex items-center gap-2 font-semibold text-navy-900"><X className="h-5 w-5 text-loss" /> What it doesn’t prove</p>
+          <p className="mt-2 text-sm leading-relaxed text-navy-600">That the accident or damage really happened, or what an insurer will pay. That is for your insurer and surveyor.</p>
+        </div>
+      </section>
+      <button type="button" onClick={() => open('What does blockchain verification mean?')} className="inline-flex items-center gap-2 text-sm font-medium text-steel-700 hover:underline">
+        <HelpCircle className="h-4 w-4" /> How does this work?
+      </button>
+
+      {tamperDemoAllowed && claimId && (
+        <section className="rounded-[28px] border border-dashed border-navy-200 p-6">
+          <p className="flex items-center gap-2 font-semibold text-navy-900"><FlaskConical className="h-5 w-5 text-steel-600" /> Tamper demonstration (development only)</p>
+          <p className="mt-1 text-sm text-navy-600">Changes the repair cost directly in the database, without updating the ledger, to show that verification catches it. Hidden in production.</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button type="button" onClick={() => simulate('tamper')} disabled={acting} className="vs-btn-secondary py-2.5 text-loss">Alter the record</button>
+            <button type="button" onClick={() => simulate('restore')} disabled={acting || originalCost === null} className="vs-btn-secondary py-2.5">Restore original</button>
           </div>
+        </section>
+      )}
+    </div>
+  );
+}
 
-          {/* Verification Results Panel */}
-          {status && (
-            <FadeIn className="space-y-4">
-              {/* Verdict Banner */}
-              <div
-                className={`rounded-xl border p-5 ${
-                  isVerified
-                    ? 'border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20'
-                    : isTampered
-                    ? 'border-red-500/40 bg-red-50/50 dark:bg-red-950/20'
-                    : 'border-zinc-200 bg-zinc-50 dark:bg-zinc-900'
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  {isVerified ? (
-                    <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                  ) : isTampered ? (
-                    <ShieldAlert className="w-6 h-6 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-                  ) : (
-                    <AlertTriangle className="w-6 h-6 text-amber-600 shrink-0 mt-0.5" />
-                  )}
+function Verdict({ result }: { result: VerifyResponse }) {
+  const reduce = useReducedMotion();
+  const s = result.status;
+  const conf =
+    s === 'VERIFIED' || s === 'MOCK_VERIFIED'
+      ? { Icon: ShieldCheck, tone: 'from-gain-soft to-white ring-gain/25', color: 'text-gain', title: s === 'MOCK_VERIFIED' ? 'Unchanged (development mock, no real ledger)' : 'Unchanged since it was saved', body: 'The record’s fingerprint matches the one anchored on Hyperledger Fabric.' }
+      : s === 'INTEGRITY_VERIFICATION_FAILED'
+        ? { Icon: ShieldAlert, tone: 'from-loss-soft to-white ring-loss/25', color: 'text-loss', title: 'This record was changed after it was saved', body: 'Its current fingerprint does not match the anchored one. Treat its figures with caution.' }
+        : s === 'PENDING' || s === 'FAILED' || s === 'NO_LEDGER_RECORD' || s === 'RETRY'
+          ? { Icon: Clock, tone: 'from-amber-50 to-white ring-amber-500/25', color: 'text-amber-700', title: 'Saved, but not anchored yet', body: 'This record has no fingerprint on the ledger yet, so it can’t be verified. Anchor it from the claim check when the ledger is connected.' }
+          : { Icon: ShieldQuestion, tone: 'from-navy-50 to-white ring-navy-200', color: 'text-navy-600', title: 'Can’t check right now', body: result.message || 'The ledger could not be reached, so integrity can’t be confirmed at the moment. This is not a sign of tampering.' };
+  return (
+    <div className={`relative overflow-hidden rounded-[28px] bg-gradient-to-br p-7 ring-1 ${conf.tone}`}>
+      <div className="flex items-start gap-4">
+        <motion.span initial={reduce ? false : { scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 16, delay: 0.1 }} className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm ${conf.color}`}>
+          <conf.Icon className="h-7 w-7" />
+        </motion.span>
+        <div className="space-y-1.5">
+          <h2 className="text-2xl font-semibold tracking-tight text-navy-900">{conf.title}</h2>
+          <p className="text-navy-600">{conf.body}</p>
+          {result.transaction_id && <p className="font-mono text-xs text-navy-500">Ledger transaction {result.transaction_id.slice(0, 12)}…{result.transaction_id.slice(-8)}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <h4
-                        className={`text-sm font-bold ${
-                          isVerified
-                            ? 'text-emerald-900 dark:text-emerald-200'
-                            : isTampered
-                            ? 'text-red-900 dark:text-red-200'
-                            : 'text-zinc-900 dark:text-zinc-100'
-                        }`}
-                      >
-                        {isVerified
-                          ? 'CRYPTOGRAPHIC INTEGRITY CONFIRMED'
-                          : isTampered
-                          ? 'INTEGRITY VIOLATION DETECTED'
-                          : status.status || 'STATUS AUDIT'}
-                      </h4>
-                      <span
-                        className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
-                          isVerified
-                            ? 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300'
-                            : isTampered
-                            ? 'bg-red-500/20 text-red-800 dark:text-red-300'
-                            : 'bg-zinc-200 text-zinc-800'
-                        }`}
-                      >
-                        {status.network_mode || '—'}
-                      </span>
-                    </div>
-
-                    <p
-                      className={`text-xs mt-1 leading-relaxed ${
-                        isVerified
-                          ? 'text-emerald-800 dark:text-emerald-300'
-                          : isTampered
-                          ? 'text-red-800 dark:text-red-300'
-                          : 'text-zinc-600 dark:text-zinc-400'
-                      }`}
-                    >
-                      {isVerified
-                        ? 'The current record’s SHA-256 fingerprint matches the one anchored on the Fabric ledger, so the record has not changed since it was anchored.'
-                        : isTampered
-                        ? 'The current record no longer matches the fingerprint anchored on the ledger: it was modified after anchoring.'
-                        : status.message || 'Audit complete.'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Hash Comparison Box */}
-              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5 shadow-xs space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                  Character-Level Hash Comparison
-                </h4>
-
-                <div className="space-y-3 font-mono text-xs">
-                  <div>
-                    <div className="text-[10px] text-zinc-500 uppercase mb-1">
-                      1. Current database record (SHA-256):
-                    </div>
-                    <div
-                      className={`p-3 rounded-lg border break-all select-all ${
-                        isTampered
-                          ? 'bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-800 text-red-700 dark:text-red-300 font-bold'
-                          : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200'
-                      }`}
-                    >
-                      {status.database_hash || status.hash || 'Not available'}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="text-[10px] text-zinc-500 uppercase mb-1">
-                      2. Fingerprint anchored on the ledger:
-                    </div>
-                    <div className="p-3 rounded-lg border bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 break-all select-all">
-                      {status.ledger_hash || 'Not available (ledger not queried)'}
-                    </div>
-                  </div>
-
-                  {(status.transaction_id || status.blockchain_tx_id) && (
-                    <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px]">
-                      <span className="text-zinc-500">Fabric Transaction ID:</span>
-                      <span className="text-zinc-800 dark:text-zinc-200">{status.transaction_id || status.blockchain_tx_id}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </FadeIn>
+/** Two fingerprints side by side; characters that differ are highlighted. */
+function HashCompare({ current, anchored }: { current: string; anchored: string | null }) {
+  const reduce = useReducedMotion();
+  return (
+    <div className="vs-surface space-y-4 p-6">
+      <p className="text-sm font-semibold text-navy-900">Fingerprints (SHA-256)</p>
+      {[
+        { label: 'Record as it is now', value: current },
+        { label: 'Anchored on the ledger', value: anchored },
+      ].map((row, r) => (
+        <div key={row.label}>
+          <p className="text-xs text-navy-500">{row.label}</p>
+          {row.value ? (
+            <p className="mt-1 break-all rounded-2xl bg-navy-50 p-3 font-mono text-[12px] leading-relaxed">
+              {row.value.split('').map((ch, i) => {
+                const differs = anchored && current[i] !== anchored[i];
+                return (
+                  <motion.span
+                    key={i}
+                    initial={reduce ? false : { opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: r * 0.25 + i * 0.006 }}
+                    className={differs ? 'rounded-sm bg-loss/15 text-loss' : 'text-navy-700'}
+                  >
+                    {ch}
+                  </motion.span>
+                );
+              })}
+            </p>
+          ) : (
+            <p className="mt-1 rounded-2xl bg-navy-50 p-3 text-sm text-navy-500">Not available: the ledger wasn’t queried.</p>
           )}
         </div>
-
-        {/* Right Column: Isolated Sandbox Tamper Demo */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="rounded-xl border border-amber-300 dark:border-amber-800/60 bg-amber-50/40 dark:bg-amber-950/20 p-5 space-y-4">
-            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-semibold text-xs uppercase tracking-wider">
-              <Terminal className="w-4 h-4" />
-              <span>Admin Security Sandbox</span>
-            </div>
-
-            <p className="text-xs text-amber-900/80 dark:text-amber-300/80 leading-relaxed">
-              Test VeriSure’s cryptographic tamper resistance. You can simulate an adversarial attack modifying the repair cost in PostgreSQL, then observe how the Fabric ledger flags the tampering immediately.
-            </p>
-
-            <div className="space-y-2 pt-2">
-              <button
-                onClick={tamperClaim}
-                disabled={actionLoading}
-                className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-rose-600 text-white hover:bg-rose-700 transition-colors flex items-center justify-center gap-1.5"
-              >
-                {actionLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldAlert className="w-3.5 h-3.5" />}
-                <span>Simulate Database Tamper</span>
-              </button>
-
-              <button
-                onClick={restoreClaim}
-                disabled={actionLoading}
-                className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 transition-colors flex items-center justify-center gap-1.5"
-              >
-                {actionLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
-                <span>Restore Database Integrity</span>
-              </button>
-            </div>
-
-            <div className="pt-2 text-[11px] text-zinc-500 border-t border-amber-200 dark:border-amber-900/40">
-              Target Test Record: <span className="font-mono text-zinc-800 dark:text-zinc-200">{claimId}</span>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 p-5 space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              Why Ledgers Matter
-            </h4>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Conventional databases have a single point of failure: an administrator or malicious query can alter claim payout amounts without leaving an indisputable external trace.
-            </p>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              By committing canonical SHA-256 hashes to a multi-peer Hyperledger Fabric ledger, later changes to a record can be detected, provided the ledger network itself has not been compromised.
-            </p>
-          </div>
-        </div>
-      </div>
-    </AppShell>
+      ))}
+    </div>
   );
 }

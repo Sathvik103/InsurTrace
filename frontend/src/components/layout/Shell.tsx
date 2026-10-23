@@ -146,7 +146,7 @@ export default function Shell({ children }: ShellProps) {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
-                  className={`relative rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${active ? 'text-white' : 'text-navy-600 hover:text-navy-900'}`}
+                  className={`relative whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition-colors xl:px-3.5 ${active ? 'text-white' : 'text-navy-600 hover:text-navy-900'}`}
                 >
                   {active && (
                     <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-full bg-navy-900" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />
@@ -255,7 +255,7 @@ function MoreMenu({ items, pathname }: { items: NavItem[]; pathname: string }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className={`flex items-center gap-1 rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${active ? 'bg-navy-100 text-navy-900' : 'text-navy-600 hover:text-navy-900'}`}
+        className={`flex items-center gap-1 whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition-colors ${active ? 'bg-navy-100 text-navy-900' : 'text-navy-600 hover:text-navy-900'}`}
       >
         More <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>

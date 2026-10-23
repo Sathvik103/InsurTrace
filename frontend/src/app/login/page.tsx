@@ -1,339 +1,219 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { PublicNavbar } from '@/components/public/PublicNavbar';
-import { PublicFooter } from '@/components/public/PublicFooter';
-import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
-import { setAuthToken, getAuthToken, supabase } from '@/lib/supabase';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { ArrowRight, Building2, Car, ChevronDown, ClipboardCheck, Eye, EyeOff, ShieldCheck, Wrench } from 'lucide-react';
+import { supabase, setAuthToken } from '@/lib/supabase';
 import { useAuth, DEMO_PERSONAS, Persona } from '@/context/AuthContext';
-import { API_BASE_URL } from '@/lib/api';
+import { apiFetch, describeApiError } from '@/lib/api';
 import { VeriSureLogo } from '@/components/brand/VeriSureLogo';
-import {
-  Shield,
-  User,
-  Building,
-  Wrench,
-  FileSearch,
-  Lock,
-  ArrowRight,
-  RefreshCw,
-  AlertCircle,
-  Terminal,
-} from 'lucide-react';
 
-interface Profile {
-  id: string;
-  email: string;
-  full_name: string;
-  role: string;
-  organization_id?: string;
-  organization?: {
-    name: string;
-    type: string;
-  };
-}
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 const ROLE_ROUTES: Record<string, string> = {
-  POLICYHOLDER: '/decision',
+  POLICYHOLDER: '/vehicles',
   INSURER: '/dashboards/insurer',
   SURVEYOR: '/dashboards/surveyor',
   GARAGE: '/dashboards/garage',
   ADMIN: '/verification',
 };
 
-function LoginContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const nextParam = searchParams.get('next');
-  const { user, role, setDemoPersona, status, initialized } = useAuth();
-  const [activeProfile, setActiveProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [switching, setSwitching] = useState<string | null>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [authError, setAuthError] = useState<string | null>(null);
-
-  const isDemoEnabled =
-    process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN !== 'false' &&
-    process.env.NEXT_PUBLIC_ENVIRONMENT !== 'production';
-
-  // Helper for safe internal redirects (prevent open redirect vulnerabilities)
-  const getSafeRedirect = (defaultRoute: string) => {
-    if (nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')) {
-      return decodeURIComponent(nextParam);
-    }
-    return defaultRoute;
-  };
-
-  // If already authenticated, redirect to destination
-  useEffect(() => {
-    if (initialized && status === 'authenticated' && user) {
-      const defaultRoute = ROLE_ROUTES[role?.toUpperCase() || ''] || '/decision';
-      router.replace(getSafeRedirect(defaultRoute));
-    }
-  }, [initialized, status, user, role, router, nextParam]);
-
-  const fetchCurrentProfile = async () => {
-    try {
-      setLoading(true);
-      const token = getAuthToken();
-      if (!token) {
-        setActiveProfile(null);
-        return;
-      }
-      const res = await fetch(`${API_BASE_URL}/api/v1/profiles/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setActiveProfile(data);
-      } else {
-        setActiveProfile(null);
-      }
-    } catch (err) {
-      console.warn('Profile fetch error:', err);
-      setActiveProfile(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCurrentProfile();
-  }, []);
-
-  const handleProductionLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthError(null);
-    setLoading(true);
-
-    try {
-      const normalizedEmail = email.trim().toLowerCase().replace('@insuretrace.in', '@verisure.in');
-
-      // 1. Authenticate with Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: normalizedEmail,
-        password,
-      });
-
-      if (error) {
-        setAuthError(error.message);
-        return;
-      }
-
-      const accessToken = data?.session?.access_token;
-      if (!accessToken) {
-        setAuthError('No access token returned by authentication provider.');
-        return;
-      }
-
-      // 2. Pass JWT to backend for cryptographic verification & authoritative profile lookup
-      setAuthToken(accessToken);
-      const profileRes = await fetch(`${API_BASE_URL}/api/v1/profiles/me`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-
-      if (!profileRes.ok) {
-        const errDetail = await profileRes.json().catch(() => ({}));
-        setAuthError(`Backend authentication rejected: ${errDetail.detail || 'Unauthorized'}`);
-        return;
-      }
-
-      const profile: Profile = await profileRes.json();
-      setActiveProfile(profile);
-
-      // 3. Route according to authoritative backend role or preserved next param
-      const targetRoute = getSafeRedirect(ROLE_ROUTES[profile.role] || '/decision');
-      router.push(targetRoute);
-    } catch (err: any) {
-      console.error('Login error:', err);
-      setAuthError(err.message || 'Authentication failed. Please verify credentials.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSelectDemoPersona = async (persona: Persona) => {
-    setSwitching(persona.role);
-    setAuthError(null);
-    try {
-      setDemoPersona(persona);
-      setAuthToken(persona.token);
-
-      // Verify persona profile from backend
-      const res = await fetch(`${API_BASE_URL}/api/v1/profiles/me`, {
-        headers: { Authorization: `Bearer ${persona.token}` },
-      });
-      if (res.ok) {
-        const profile = await res.json();
-        setActiveProfile(profile);
-      }
-      const targetRoute = getSafeRedirect(persona.targetRoute);
-      router.push(targetRoute);
-    } catch (e: any) {
-      console.error('Demo switch error:', e);
-      setAuthError('Failed to activate demo persona.');
-    } finally {
-      setSwitching(null);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col">
-      <PublicNavbar />
-
-      <main className="flex-1 pt-24 pb-16">
-        <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16">
-          <FadeIn>
-            <div className="text-center max-w-xl mx-auto mb-10">
-              <div className="flex justify-center mb-5">
-                <VeriSureLogo size="lg" />
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
-                Sign In to Your Workspace
-              </h1>
-              <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                Access your vehicles, verified records, and insurance analytics
-              </p>
-            </div>
-          </FadeIn>
-
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start max-w-3xl mx-auto">
-            {/* Supabase Production Login */}
-            <div className="md:col-span-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-6 shadow-xs space-y-4">
-              <div>
-                <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                  Account Sign In
-                </h3>
-                <p className="text-[11px] text-zinc-500 mt-0.5">
-                  Secure Supabase Auth with authoritative role resolution
-                </p>
-              </div>
-
-              {authError && (
-                <div className="p-3 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 text-xs rounded-lg flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{authError}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleProductionLogin} className="space-y-3">
-                <div>
-                  <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="user@example.com"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-medium text-zinc-600 dark:text-zinc-400 mb-1">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-zinc-900"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-2 px-4 rounded-lg text-xs font-semibold bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 transition-colors flex items-center justify-center gap-2 mt-2"
-                >
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>Sign In</span>
-                </button>
-
-                <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 text-[11px] text-zinc-500 space-y-1">
-                  <p className="font-semibold text-zinc-700 dark:text-zinc-300">Default Demo Credentials:</p>
-                  <p className="font-mono text-[10px] text-zinc-600 dark:text-zinc-400">
-                    Email: <span className="text-zinc-900 dark:text-zinc-200">demo-policyholder@verisure.in</span>
-                  </p>
-                  <p className="font-mono text-[10px] text-zinc-600 dark:text-zinc-400">
-                    Password: <span className="text-zinc-900 dark:text-zinc-200">VeriSure@2026</span>
-                  </p>
-                  <p className="text-[10px] text-zinc-400 pt-0.5">
-                    Tip: You can also use the one-click persona switcher on the right for instant access without entering a password.
-                  </p>
-                </div>
-              </form>
-            </div>
-
-            {/* Quarantined Sandbox Demo Switcher */}
-            {isDemoEnabled && (
-              <div className="md:col-span-6 rounded-xl border border-amber-300 dark:border-amber-800/60 bg-amber-50/40 dark:bg-amber-950/20 p-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-amber-200 dark:border-amber-900/50 pb-3">
-                  <div className="flex items-center gap-1.5 text-amber-800 dark:text-amber-400 font-semibold text-xs uppercase tracking-wider">
-                    <Terminal className="w-3.5 h-3.5" />
-                    <span>Demo Sandbox Personas</span>
-                  </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold">
-                    DEV ONLY
-                  </span>
-                </div>
-
-                <p className="text-[11px] text-amber-900/80 dark:text-amber-300/80 leading-relaxed">
-                  Quickly switch between pre-seeded role personas to evaluate multi-party workflows. Role switching is isolated and locked out in production.
-                </p>
-
-                <div className="space-y-2">
-                  {DEMO_PERSONAS.map((persona) => (
-                    <button
-                      key={persona.role}
-                      onClick={() => handleSelectDemoPersona(persona)}
-                      disabled={switching !== null}
-                      className="w-full text-left p-3 rounded-lg border border-amber-200 dark:border-amber-900/40 bg-white dark:bg-zinc-900 hover:border-amber-400 dark:hover:border-amber-700 transition-colors flex items-center justify-between group"
-                    >
-                      <div>
-                        <div className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                          <span>{persona.label}</span>
-                          <span className="text-[10px] font-mono text-zinc-400 font-normal">
-                            ({persona.role})
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-zinc-500 truncate max-w-[200px]">
-                          {persona.desc}
-                        </div>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100 shrink-0" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-      </main>
-
-      <PublicFooter />
-    </div>
-  );
-}
+const PERSONA_ICON: Record<string, typeof Car> = { POLICYHOLDER: Car, INSURER: Building2, SURVEYOR: ClipboardCheck, GARAGE: Wrench, ADMIN: ShieldCheck };
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6">
-          <VeriSureLogo size="md" />
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
       <LoginContent />
     </Suspense>
   );
 }
 
+function LoginContent() {
+  const router = useRouter();
+  const reduce = useReducedMotion();
+  const params = useSearchParams();
+  const next = params.get('next');
+  const { user, role, setDemoPersona, status, initialized } = useAuth();
+
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [showPro, setShowPro] = useState(false);
+
+  // Only allow same-site relative redirects.
+  const safeNext = (fallback: string) => (next && next.startsWith('/') && !next.startsWith('//') ? next : fallback);
+
+  useEffect(() => {
+    if (initialized && status === 'authenticated' && user) {
+      router.replace(safeNext(ROLE_ROUTES[role?.toUpperCase() || ''] || '/vehicles'));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialized, status, user, role]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      if (mode === 'signup') {
+        const { data, error: err } = await supabase.auth.signUp({ email: cleanEmail, password, options: { data: { full_name: name.trim() } } });
+        if (err) throw err;
+        if (!data.session) {
+          setNotice('Check your email to confirm your account, then sign in.');
+          setMode('signin');
+          return;
+        }
+        setAuthToken(data.session.access_token);
+        router.push(safeNext('/onboarding'));
+        return;
+      }
+      const { data, error: err } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+      if (err) throw err;
+      if (!data.session) throw new Error('Sign-in did not return a session.');
+      setAuthToken(data.session.access_token);
+      const profile = await apiFetch<{ role: string }>('/api/v1/profiles/me');
+      router.push(safeNext(ROLE_ROUTES[profile.role] || '/vehicles'));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      setError(
+        /fetch|network|Failed/i.test(msg)
+          ? 'We couldn’t reach the sign-in service. Please try again, or explore with sample data below.'
+          : msg && !/HTTP \d/.test(msg)
+            ? msg
+            : describeApiError(err).message
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const choosePersona = (p: Persona) => {
+    setDemoPersona(p);
+    setAuthToken(p.token);
+    router.push(safeNext(p.role === 'POLICYHOLDER' ? '/vehicles' : p.targetRoute));
+  };
+
+  const owner = DEMO_PERSONAS.find((p) => p.role === 'POLICYHOLDER');
+  const pros = DEMO_PERSONAS.filter((p) => p.role !== 'POLICYHOLDER');
+
+  return (
+    <div className="grid min-h-screen bg-background lg:grid-cols-[1fr_1.05fr]">
+      {/* Brand panel */}
+      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-navy-950 via-navy-900 to-steel-800 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="vs-grid-bg pointer-events-none absolute inset-0 opacity-25" aria-hidden="true" />
+        <motion.div aria-hidden="true" className="absolute -bottom-40 -left-20 h-[460px] w-[460px] rounded-full bg-steel-500/30 blur-3xl" animate={reduce ? undefined : { scale: [1, 1.12, 1] }} transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }} />
+        <Link href="/" className="relative w-fit rounded-2xl bg-white px-3 py-2"><VeriSureLogo size="sm" /></Link>
+        <div className="relative space-y-6">
+          <h2 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">Understand your car insurance before you make a call.</h2>
+          <ul className="space-y-3 text-navy-100">
+            {['See what your insurer might pay', 'Know if claiming costs you more than it saves', 'Keep a tamper-evident history of your car'].map((t, i) => (
+              <motion.li key={t} initial={reduce ? false : { opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + i * 0.1, ease: EASE, duration: 0.6 }} className="flex items-center gap-3">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10"><ShieldCheck className="h-3.5 w-3.5 text-steel-300" /></span>
+                {t}
+              </motion.li>
+            ))}
+          </ul>
+        </div>
+        <p className="relative text-xs text-navy-300">VeriSure is independent. It is not an insurer and never files or decides claims.</p>
+      </aside>
+
+      {/* Form */}
+      <main className="flex items-center justify-center px-4 py-12 sm:px-8">
+        <motion.div initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }} className="w-full max-w-md space-y-8">
+          <div className="space-y-3 lg:hidden"><Link href="/"><VeriSureLogo size="md" /></Link></div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-semibold tracking-tight text-navy-900">{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h1>
+            <p className="text-navy-600">{mode === 'signin' ? 'Sign in to see your cars and saved checks.' : 'Free. Takes less than a minute.'}</p>
+          </div>
+
+          <div className="inline-flex w-full rounded-2xl bg-navy-50 p-1">
+            {(['signin', 'signup'] as const).map((m) => (
+              <button key={m} type="button" onClick={() => { setMode(m); setError(null); }} className="relative flex-1 rounded-xl py-2.5 text-sm font-semibold text-navy-700">
+                {mode === m && <motion.span layoutId="auth-tab" className="absolute inset-0 rounded-xl bg-white shadow-sm" transition={{ type: 'spring', stiffness: 500, damping: 35 }} />}
+                <span className="relative">{m === 'signin' ? 'Sign in' : 'Create account'}</span>
+              </button>
+            ))}
+          </div>
+
+          <form onSubmit={submit} className="space-y-4">
+            <AnimatePresence initial={false}>
+              {mode === 'signup' && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                  <label htmlFor="name" className="text-sm font-medium text-navy-800">Your name</label>
+                  <input id="name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required={mode === 'signup'} className="vs-input mt-1.5" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <div>
+              <label htmlFor="email" className="text-sm font-medium text-navy-800">Email</label>
+              <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required className="vs-input mt-1.5" placeholder="you@example.com" />
+            </div>
+            <div>
+              <label htmlFor="password" className="text-sm font-medium text-navy-800">Password</label>
+              <div className="relative mt-1.5">
+                <input id="password" type={showPw ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} minLength={mode === 'signup' ? 8 : undefined} required className="vs-input pr-12" />
+                <button type="button" onClick={() => setShowPw((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-navy-400 hover:text-navy-700" aria-label={showPw ? 'Hide password' : 'Show password'}>
+                  {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {mode === 'signup' && <p className="mt-1 text-xs text-navy-500">At least 8 characters.</p>}
+            </div>
+            {error && <p role="alert" className="rounded-2xl bg-loss-soft px-4 py-3 text-sm text-loss">{error}</p>}
+            {notice && <p role="status" className="rounded-2xl bg-gain-soft px-4 py-3 text-sm text-gain">{notice}</p>}
+            <button type="submit" disabled={busy} className="vs-btn-primary w-full py-3.5">
+              {busy ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'} {!busy && <ArrowRight className="h-4 w-4" />}
+            </button>
+          </form>
+
+          <div className="relative text-center text-xs text-navy-400">
+            <span className="relative z-10 bg-background px-3">or</span>
+            <span className="absolute inset-x-0 top-1/2 h-px bg-navy-100" />
+          </div>
+
+          <div className="space-y-3">
+            {owner && (
+              <button type="button" onClick={() => choosePersona(owner)} className="vs-surface group flex w-full items-center gap-4 p-4 text-left transition hover:-translate-y-0.5">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-steel-50 text-steel-700"><Car className="h-5 w-5" /></span>
+                <span className="flex-1">
+                  <span className="block font-semibold text-navy-900">Explore with sample data</span>
+                  <span className="block text-sm text-navy-500">Try VeriSure as a car owner with fictional cars and policies</span>
+                </span>
+                <ArrowRight className="h-4 w-4 text-navy-300 transition group-hover:translate-x-0.5 group-hover:text-navy-700" />
+              </button>
+            )}
+            <button type="button" onClick={() => setShowPro((v) => !v)} aria-expanded={showPro} className="flex w-full items-center justify-center gap-1 text-sm font-medium text-navy-500 hover:text-navy-800">
+              Professional demo roles <ChevronDown className={`h-4 w-4 transition ${showPro ? 'rotate-180' : ''}`} />
+            </button>
+            <AnimatePresence initial={false}>
+              {showPro && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="grid gap-2 overflow-hidden sm:grid-cols-2">
+                  {pros.map((p) => {
+                    const Icon = PERSONA_ICON[p.role] || ShieldCheck;
+                    return (
+                      <button key={p.role} type="button" onClick={() => choosePersona(p)} className="flex items-center gap-3 rounded-2xl border border-navy-100 bg-white p-3 text-left text-sm transition hover:border-navy-300">
+                        <Icon className="h-4 w-4 text-steel-600" />
+                        <span className="font-medium text-navy-800">{p.label}</span>
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          <p className="text-center text-xs text-navy-400">
+            By continuing you agree to the <Link href="/terms" className="underline">terms</Link> and <Link href="/privacy" className="underline">privacy notice</Link>.
+          </p>
+        </motion.div>
+      </main>
+    </div>
+  );
+}

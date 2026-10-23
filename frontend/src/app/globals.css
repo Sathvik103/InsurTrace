@@ -74,6 +74,45 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Legacy palette remap: older screens use Tailwind's stock zinc/sky/indigo/blue.
+   Pointing them at the brand scales keeps every page visually consistent. */
+@theme {
+  --color-zinc-50: #f6f8fc;
+  --color-zinc-100: #eef2f8;
+  --color-zinc-200: #e3e9f3;
+  --color-zinc-300: #c4d0e4;
+  --color-zinc-400: #95a8c9;
+  --color-zinc-500: #637ca6;
+  --color-zinc-600: #43598a;
+  --color-zinc-700: #324571;
+  --color-zinc-800: #1a2644;
+  --color-zinc-900: #111a31;
+  --color-zinc-950: #0a1022;
+  --color-sky-50: #eff7fc;
+  --color-sky-100: #daedf8;
+  --color-sky-200: #b5dbf1;
+  --color-sky-300: #7fc0e6;
+  --color-sky-400: #45a0d6;
+  --color-sky-500: #2283c1;
+  --color-sky-600: #1468a3;
+  --color-sky-700: #135485;
+  --color-sky-800: #15476e;
+  --color-sky-900: #163c5c;
+  --color-indigo-50: #eff7fc;
+  --color-indigo-100: #daedf8;
+  --color-indigo-200: #b5dbf1;
+  --color-indigo-400: #45a0d6;
+  --color-indigo-500: #2283c1;
+  --color-indigo-600: #1468a3;
+  --color-indigo-700: #135485;
+  --color-blue-50: #eff7fc;
+  --color-blue-100: #daedf8;
+  --color-blue-200: #b5dbf1;
+  --color-blue-500: #2283c1;
+  --color-blue-600: #1468a3;
+  --color-blue-700: #135485;
+}
+
 :root {
   --background: oklch(0.992 0.003 250);
   --foreground: oklch(0.2 0.04 265);

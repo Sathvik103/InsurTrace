@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase, getAuthToken, setAuthToken, clearAuthTokens } from '@/lib/supabase';
+import { apiFetch } from '@/lib/api';
 
 export type AuthStatus = 'hydrating' | 'authenticated' | 'unauthenticated';
 
@@ -130,7 +131,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(sess);
     setTokenState(sess.access_token);
     setAuthToken(sess.access_token);
-    const userRole = (sess.user.user_metadata?.role || 'policyholder').toLowerCase();
+    // user_metadata is editable by the user, so it is never trusted for the role;
+    // start as policyholder and take the authoritative role from the backend.
+    const userRole = 'policyholder';
+    apiFetch<{ role: string }>('/api/v1/profiles/me')
+      .then((p) => p?.role && setRole(p.role.toLowerCase()))
+      .catch(() => {});
     setUser({
       id: sess.user.id,
       email: sess.user.email,

@@ -1,422 +1,228 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { toast } from 'sonner';
+import { Building2, Car, Check, ClipboardCheck, Eye, EyeOff, Lock, ShieldCheck, Wrench } from 'lucide-react';
 import { AppShell } from '@/components/layout/Shell';
-import { PageHeader } from '@/components/common/PageHeader';
-import { StatCard } from '@/components/common/StatCard';
-import { EmptyState } from '@/components/common/EmptyState';
-import { FadeIn } from '@/components/motion/MotionPrimitives';
-import { formatDate } from '@/lib/formatters';
 import { useVehicle } from '@/context/VehicleContext';
 import { apiFetch, describeApiError } from '@/lib/api';
 import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
-import { toast } from 'sonner';
-import {
-  ShieldCheck,
-  ShieldAlert,
-  Key,
-  RefreshCw,
-  Trash2,
-  Plus,
-  Info,
-  CheckCircle2,
-  AlertCircle,
-  Building,
-  Lock,
-  Car,
-  Clock,
-} from 'lucide-react';
 
-type ConsentItem = {
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+interface ConsentItem {
   id: string;
   vehicle_id: string;
   requesting_org_id: string;
   valid_until: string;
   created_at: string;
   organizations?: { name: string };
-};
+}
 
-const PARTNER_ORGANIZATIONS = [
-  {
-    id: '00000000-0000-0000-0000-000000000003',
-    name: 'Quality Auto Care Workshop',
-    type: 'Authorized Workshop',
-    purpose: 'Repair estimation & parts inspection',
-  },
-  {
-    id: '00000000-0000-0000-0000-000000000004',
-    name: 'Demo General Insurance Ltd',
-    type: 'Insurer Claims Desk',
-    purpose: 'Coverage evaluation & claim settlement',
-  },
-  {
-    id: '00000000-0000-0000-0000-000000000005',
-    name: 'Demo Independent Assessors Guild',
-    type: 'Motor Loss Assessor',
-    purpose: 'Damage assessment & salvage verification',
-  },
+// Fictional demo organisations seeded in the demo sandbox.
+const PARTNERS = [
+  { id: '00000000-0000-0000-0000-000000000003', name: 'Quality Auto Care Workshop', kind: 'Workshop', purpose: 'To prepare a repair estimate', Icon: Wrench },
+  { id: '00000000-0000-0000-0000-000000000004', name: 'Demo General Insurance Ltd', kind: 'Insurer', purpose: 'To assess a claim', Icon: Building2 },
+  { id: '00000000-0000-0000-0000-000000000005', name: 'Demo Independent Assessors Guild', kind: 'Surveyor', purpose: 'To inspect the damage', Icon: ClipboardCheck },
 ];
 
-export default function ConsentDashboard() {
-  const { vehicles, selectedVehicleId } = useVehicle();
-  const [consents, setConsents] = useState<ConsentItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [grantSuccess, setGrantSuccess] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState<unknown>(null);
+const DURATIONS = [30, 60, 90];
+const fmtDate = (d: Date | string) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
-  // Form state
-  const [targetVehicleId, setTargetVehicleId] = useState<string>(selectedVehicleId || 'V-REAL-101');
-  const [selectedOrgId, setSelectedOrgId] = useState<string>(PARTNER_ORGANIZATIONS[0].id);
-  const [validityDays, setValidityDays] = useState<number>(30);
-  const [vehicleFilter, setVehicleFilter] = useState<string>('ALL');
+export default function DataPrivacyPage() {
+  const reduce = useReducedMotion();
+  const { vehicles, selectedVehicleId } = useVehicle();
+  const [consents, setConsents] = useState<ConsentItem[] | null>(null);
+  const [loadError, setLoadError] = useState<unknown>(null);
+  const [pickedCar, setCarId] = useState('');
+  const carId = pickedCar || selectedVehicleId || vehicles[0]?.id || '';
+  const [orgId, setOrgId] = useState(PARTNERS[0].id);
+  const [days, setDays] = useState(30);
+  const [now] = useState(() => Date.now());
+  const [granting, setGranting] = useState(false);
+  const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState<string | null>(null);
+
+  const load = () =>
+    apiFetch<ConsentItem[]>('/api/v1/consents')
+      .then((rows) => {
+        setConsents(rows);
+        setLoadError(null);
+      })
+      .catch((e) => {
+        setConsents([]);
+        setLoadError(e);
+      });
 
   useEffect(() => {
-    if (selectedVehicleId) {
-      setTargetVehicleId(selectedVehicleId);
-    }
-  }, [selectedVehicleId]);
+    load();
+  }, []);
 
-  const fetchConsents = async () => {
-    setLoading(true);
-    setLoadError(null);
+  const car = vehicles.find((v) => v.id === carId);
+  const org = PARTNERS.find((p) => p.id === orgId)!;
+  const until = new Date(now + days * 86400000);
+
+  const grant = async () => {
+    setGranting(true);
     try {
-      const data = await apiFetch<ConsentItem[]>('/api/v1/consents');
-      setConsents(data || []);
+      await apiFetch('/api/v1/consents', { method: 'POST', body: { vehicle_id: carId, requesting_org_id: orgId, valid_until: until.toISOString() } });
+      toast.success(`${org.name} can now view this car’s records until ${fmtDate(until)}.`);
+      await load();
     } catch (e) {
-      setConsents([]);
-      setLoadError(e);
+      const { title, message } = describeApiError(e);
+      toast.error(`Access was not granted: ${title}`, { description: message });
     } finally {
-      setLoading(false);
+      setGranting(false);
     }
   };
 
-  useEffect(() => {
-    fetchConsents();
-  }, []);
-
-  // Only report a change after the server confirms it: a revocation that did
-  // not happen must never be shown as done.
+  // Only remove from the list after the server confirms the revocation.
   const revoke = async (id: string) => {
-    setActionLoading(true);
-    setGrantSuccess(null);
+    setRevoking(id);
     try {
-      await apiFetch(`/api/v1/consents/${id}`, { method: 'DELETE' });
-      setConsents((prev) => prev.filter((c) => c.id !== id));
-      setGrantSuccess('Data sharing permission revoked.');
+      await apiFetch(`/api/v1/consents/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      setConsents((c) => (c || []).filter((x) => x.id !== id));
       toast.success('Access revoked.');
     } catch (e) {
       const { title, message } = describeApiError(e);
       toast.error(`Access was NOT revoked: ${title}`, { description: message });
     } finally {
-      setActionLoading(false);
+      setRevoking(null);
+      setConfirmRevoke(null);
     }
   };
 
-  const grantAccess = async () => {
-    setActionLoading(true);
-    setGrantSuccess(null);
-    const targetOrg = PARTNER_ORGANIZATIONS.find((o) => o.id === selectedOrgId) || PARTNER_ORGANIZATIONS[0];
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + validityDays);
-
-    try {
-      await apiFetch('/api/v1/consents', {
-        method: 'POST',
-        body: {
-          vehicle_id: targetVehicleId,
-          requesting_org_id: selectedOrgId,
-          valid_until: expiryDate.toISOString(),
-        },
-      });
-      await fetchConsents();
-      setGrantSuccess(`Data sharing permission granted to ${targetOrg.name} for ${validityDays} days.`);
-      toast.success('Access granted.');
-    } catch (e) {
-      const { title, message } = describeApiError(e);
-      toast.error(`Access was not granted: ${title}`, { description: message });
-    } finally {
-      setActionLoading(false);
-    }
+  const vehicleName = (id: string) => {
+    const v = vehicles.find((x) => x.id === id);
+    return v ? `${v.make} ${v.model} (${v.registration_number})` : id;
   };
 
-  const getVehicleLabel = (vId: string) => {
-    const v = vehicles.find((item) => item.id === vId);
-    if (v) return `${v.make} ${v.model} (${v.registration_number})`;
-    return vId;
-  };
-
-  const filteredConsents = vehicleFilter === 'ALL'
-    ? consents
-    : consents.filter((c) => c.vehicle_id === vehicleFilter);
   return (
     <AppShell>
-      <PageHeader
-        title="Data & Privacy Sharing"
-        subtitle="Manage which authorized workshops, loss assessors, and insurers have permission to view your vehicle's recorded history."
-        breadcrumbs={[
-          { label: 'Platform', href: '/' },
-          { label: 'My Vehicles', href: '/vehicles' },
-          { label: 'Data & Privacy' },
-        ]}
-        actions={
-          <button
-            onClick={fetchConsents}
-            disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </button>
-        }
-      />
+      <div className="mx-auto max-w-4xl space-y-8">
+        <header className="space-y-2">
+          <span className="vs-chip"><Lock className="h-3.5 w-3.5 text-steel-600" /> Data & privacy</span>
+          <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">Who can see your car’s records</h1>
+          <p className="text-base text-navy-600">Nobody sees your records unless you allow it. Access is time-limited and you can take it back at any moment.</p>
+        </header>
 
-      {/* KPI Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard
-          label="Active Grants"
-          value={consents.length}
-          subtext="Organizations with read access"
-          icon={ShieldCheck}
-        />
-        <StatCard
-          label="Privacy Standard"
-          value="DPDP ALIGNED"
-          subtext="Consent & Revocation Architecture"
-          icon={Lock}
-        />
-        <StatCard
-          label="Revocation Rights"
-          value="INSTANT"
-          subtext="Zero Lock-in Control"
-          icon={Key}
-        />
-        <StatCard
-          label="Audit Log"
-          value="SEALED"
-          subtext="Cryptographic Timestamp"
-          icon={ShieldAlert}
-          trend={{ value: 'TAMPER-EVIDENT', isPositive: true }}
-        />
-      </div>
+        {/* Grant */}
+        <section className="vs-surface space-y-7 p-6 sm:p-8">
+          <h2 className="text-lg font-semibold text-navy-900">Give someone access</h2>
 
-      {grantSuccess && (
-        <FadeIn className="mb-6">
-          <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-800 dark:text-emerald-300 text-xs flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{grantSuccess}</span>
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-navy-800">1. Which car?</p>
+            <div className="flex flex-wrap gap-2">
+              {vehicles.map((v) => (
+                <button key={v.id} type="button" onClick={() => setCarId(v.id)} aria-pressed={carId === v.id} className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium transition ${carId === v.id ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-navy-700 hover:border-navy-300'}`}>
+                  <Car className="h-4 w-4" /> {v.make} {v.model}
+                </button>
+              ))}
             </div>
-            <button
-              onClick={() => setGrantSuccess(null)}
-              className="text-xs font-semibold hover:underline"
-            >
-              Dismiss
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-navy-800">2. Who should see it?</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {PARTNERS.map((p) => (
+                <button key={p.id} type="button" onClick={() => setOrgId(p.id)} aria-pressed={orgId === p.id} className={`rounded-2xl border p-4 text-left transition ${orgId === p.id ? 'border-navy-900 bg-navy-900 text-white shadow-lg' : 'border-navy-100 bg-white hover:border-navy-300'}`}>
+                  <p.Icon className={`h-5 w-5 ${orgId === p.id ? 'text-steel-300' : 'text-steel-600'}`} />
+                  <p className="mt-3 text-sm font-semibold">{p.name}</p>
+                  <p className={`text-xs ${orgId === p.id ? 'text-navy-200' : 'text-navy-500'}`}>{p.kind} · {p.purpose}</p>
+                  <p className={`mt-2 text-[10px] font-semibold uppercase tracking-wider ${orgId === p.id ? 'text-amber-200' : 'text-amber-700'}`}>Demo organisation</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-navy-800">3. For how long?</p>
+            <div className="inline-flex rounded-2xl bg-navy-50 p-1">
+              {DURATIONS.map((d) => (
+                <button key={d} type="button" onClick={() => setDays(d)} aria-pressed={days === d} className="relative rounded-xl px-5 py-2 text-sm font-semibold text-navy-700">
+                  {days === d && <motion.span layoutId="duration" className="absolute inset-0 rounded-xl bg-white shadow-sm" transition={{ type: 'spring', stiffness: 500, damping: 35 }} />}
+                  <span className="relative">{d} days</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4 rounded-3xl bg-steel-50/60 p-5 ring-1 ring-steel-100 sm:flex-row sm:items-center">
+            <p className="flex-1 text-sm leading-relaxed text-navy-700">
+              <strong>{org.name}</strong> will be able to view the history of your <strong>{car ? `${car.make} ${car.model}` : 'car'}</strong> until{' '}
+              <strong>{fmtDate(until)}</strong>. They can’t change anything, and you can revoke this at any time.
+            </p>
+            <button type="button" onClick={grant} disabled={!carId || granting} className="vs-btn-primary shrink-0">
+              {granting ? 'Granting…' : 'Give access'}
             </button>
           </div>
-        </FadeIn>
-      )}
+        </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Active Consents List */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
-                  Active Data Sharing Permissions
-                </h3>
-                <p className="text-[11px] text-zinc-500 mt-0.5">
-                  Organizations currently authorized to query recorded vehicle logs.
-                </p>
-              </div>
-
-              {/* Filter by Vehicle */}
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] text-zinc-400">Filter:</span>
-                <select
-                  value={vehicleFilter}
-                  onChange={(e) => setVehicleFilter(e.target.value)}
-                  aria-label="Filter permissions by vehicle"
-                  className="px-2.5 py-1 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 font-medium focus:outline-none focus:ring-2 focus:ring-sky-500"
-                >
-                  <option value="ALL">All Vehicles ({consents.length})</option>
-                  {vehicles.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.make} {v.model} ({v.registration_number})
-                    </option>
-                  ))}
-                </select>
-              </div>
+        {/* Active */}
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-navy-900">Current access</h2>
+          {loadError != null && <ApiErrorNotice error={loadError} onRetry={load} />}
+          {consents === null ? (
+            <div className="vs-shimmer h-24 rounded-3xl" />
+          ) : consents.length === 0 && loadError == null ? (
+            <div className="vs-surface flex flex-col items-center gap-2 p-10 text-center">
+              <EyeOff className="h-8 w-8 text-navy-300" />
+              <p className="font-semibold text-navy-900">No one has access</p>
+              <p className="text-sm text-navy-500">Your records are private.</p>
             </div>
-
-            {loading ? (
-              <div className="p-8 text-center text-xs text-zinc-400">Loading data sharing permissions...</div>
-            ) : loadError != null ? (
-              <ApiErrorNotice error={loadError} onRetry={fetchConsents} />
-            ) : filteredConsents.length === 0 ? (
-              <EmptyState
-                icon={ShieldCheck}
-                title="No Active Data Sharing Permissions"
-                description={
-                  vehicleFilter === 'ALL'
-                    ? "No external workshops, loss assessors, or insurers currently have permission to access your vehicle records."
-                    : "No active permissions found for this specific vehicle."
-                }
-              />
-            ) : (
-              <div className="space-y-3">
-                {filteredConsents.map((c) => (
-                  <div
-                    key={c.id}
-                    className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Building className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
-                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                          {c.organizations?.name || 'Authorized Partner Organization'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-[11px] text-zinc-500">
-                        <Car className="w-3 h-3 text-zinc-400" />
-                        <span>Vehicle: <strong className="text-zinc-700 dark:text-zinc-300">{getVehicleLabel(c.vehicle_id)}</strong></span>
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] text-zinc-400">
-                        <Clock className="w-3 h-3 text-zinc-400" />
-                        <span>Valid Until: {c.valid_until ? formatDate(c.valid_until) : '30 Days'}</span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => revoke(c.id)}
-                      disabled={actionLoading}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/30 dark:text-rose-300 dark:hover:bg-rose-950/50 transition-colors flex items-center justify-center gap-1.5 shrink-0 self-end sm:self-center"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Revoke Access</span>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Grant New Permission Panel */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-5 shadow-xs space-y-5">
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 border-b border-zinc-100 dark:border-zinc-800 pb-3">
-                Grant Partner Permission
-              </h3>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed mt-2">
-                Authorize an official workshop, surveyor, or insurer to inspect your vehicle's recorded history for a limited time window:
-              </p>
-            </div>
-
-            {/* Vehicle Selection */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Select Vehicle
-              </label>
-              <select
-                value={targetVehicleId}
-                onChange={(e) => setTargetVehicleId(e.target.value)}
-                aria-label="Select vehicle for data sharing"
-                className="w-full px-3 py-2 text-xs rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium focus:outline-none focus:ring-2 focus:ring-sky-500"
-              >
-                {vehicles.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.make} {v.model} ({v.registration_number})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Partner Organization Selection */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Authorized Partner
-              </label>
-              <div className="space-y-2">
-                {PARTNER_ORGANIZATIONS.map((org) => {
-                  const isSelected = selectedOrgId === org.id;
+          ) : (
+            <ul className="space-y-3">
+              <AnimatePresence initial={false}>
+                {consents.map((c, i) => {
+                  const total = Math.max(1, (new Date(c.valid_until).getTime() - new Date(c.created_at).getTime()) / 86400000);
+                  const left = Math.max(0, Math.ceil((new Date(c.valid_until).getTime() - now) / 86400000));
+                  const expired = left === 0;
                   return (
-                    <div
-                      key={org.id}
-                      onClick={() => setSelectedOrgId(org.id)}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                        isSelected
-                          ? 'border-sky-500 bg-sky-50/50 dark:bg-sky-950/20'
-                          : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-                          {org.name}
-                        </span>
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                          {org.type}
-                        </span>
+                    <motion.li key={c.id} layout initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 40, height: 0 }} transition={{ duration: 0.35, ease: EASE, delay: i * 0.04 }} className="vs-surface p-5">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-steel-50 text-steel-700"><Eye className="h-5 w-5" /></span>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-navy-900">{c.organizations?.name || 'Organisation'}</p>
+                          <p className="truncate text-sm text-navy-500">Can view {vehicleName(c.vehicle_id)}</p>
+                          <div className="mt-2 flex items-center gap-3">
+                            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-navy-100">
+                              <motion.div className={`h-full rounded-full ${expired ? 'bg-navy-300' : left < 7 ? 'bg-loss' : 'bg-steel-500'}`} initial={{ width: 0 }} animate={{ width: `${Math.min(100, (left / total) * 100)}%` }} transition={{ duration: 0.9, ease: EASE }} />
+                            </div>
+                            <span className="shrink-0 text-xs text-navy-500">{expired ? 'Expired' : `${left} days left · until ${fmtDate(c.valid_until)}`}</span>
+                          </div>
+                        </div>
+                        {confirmRevoke === c.id ? (
+                          <div className="flex shrink-0 items-center gap-2">
+                            <span className="text-sm text-navy-600">Revoke access?</span>
+                            <button type="button" onClick={() => revoke(c.id)} disabled={revoking === c.id} className="rounded-xl bg-loss px-3 py-2 text-sm font-semibold text-white">{revoking === c.id ? 'Revoking…' : 'Yes, revoke'}</button>
+                            <button type="button" onClick={() => setConfirmRevoke(null)} className="rounded-xl px-3 py-2 text-sm font-semibold text-navy-600 hover:bg-navy-50">Cancel</button>
+                          </div>
+                        ) : (
+                          <button type="button" onClick={() => setConfirmRevoke(c.id)} className="vs-btn-secondary shrink-0 py-2 text-loss">Revoke</button>
+                        )}
                       </div>
-                      <p className="text-[11px] text-zinc-500 mt-1">{org.purpose}</p>
-                    </div>
+                    </motion.li>
                   );
                 })}
-              </div>
-            </div>
+              </AnimatePresence>
+            </ul>
+          )}
+        </section>
 
-            {/* Validity Duration */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Permission Duration
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { days: 30, label: '30 Days', desc: 'Repair Window' },
-                  { days: 60, label: '60 Days', desc: 'Assessment' },
-                  { days: 90, label: '90 Days', desc: 'Extended' },
-                ].map((opt) => (
-                  <button
-                    key={opt.days}
-                    type="button"
-                    onClick={() => setValidityDays(opt.days)}
-                    className={`p-2.5 rounded-lg border text-center transition-all ${
-                      validityDays === opt.days
-                        ? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 font-bold'
-                        : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300'
-                    }`}
-                  >
-                    <div className="text-xs">{opt.label}</div>
-                    <div className="text-[9px] opacity-75">{opt.desc}</div>
-                  </button>
-                ))}
-              </div>
+        <section className="vs-surface grid gap-5 p-6 sm:grid-cols-3">
+          {[
+            { Icon: Eye, title: 'What they see', body: 'The car’s VeriSure history: policy details on file, saved claim checks and their ledger status.' },
+            { Icon: ShieldCheck, title: 'What they can’t do', body: 'Change your records, see your other cars, or keep access after it expires or you revoke it.' },
+            { Icon: Check, title: 'Every change is logged', body: 'Granting and revoking are recorded in an audit log, following DPDP-aligned consent principles.' },
+          ].map((x) => (
+            <div key={x.title}>
+              <x.Icon className="h-5 w-5 text-steel-600" />
+              <p className="mt-2 font-semibold text-navy-900">{x.title}</p>
+              <p className="mt-1 text-sm leading-relaxed text-navy-600">{x.body}</p>
             </div>
-
-            {/* Grant Button */}
-            <button
-              onClick={grantAccess}
-              disabled={actionLoading}
-              className="w-full py-2.5 px-4 rounded-lg text-xs font-semibold bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Grant Time-Bounded Access</span>
-            </button>
-
-            {/* DPDP Notice Box */}
-            <div className="p-3.5 bg-zinc-50 dark:bg-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-800 text-[11px] text-zinc-500 space-y-1">
-              <div className="font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-                <Lock className="w-3 h-3 text-sky-500" />
-                <span>DPDP-Aligned Consent Principles:</span>
-              </div>
-              <p className="leading-relaxed">
-                Tokens grant read-only access strictly for claim estimation and vehicle history review. All accesses are time-bounded and logged with cryptographic integrity. You may revoke access at any time.
-              </p>
-            </div>
-          </div>
-        </div>
+          ))}
+        </section>
       </div>
     </AppShell>
   );

@@ -266,14 +266,22 @@ class DocumentExtractor:
                                 is_labour = any(kw in desc.upper() for kw in ["LABOUR", "PAINT", "REPAIR", "CHARGES", "SERVICE", "ALIGNMENT"])
                                 if is_labour:
                                     total_labour += price
+                                    line_items.append({
+                                        "part_name": desc,
+                                        "category": "labour",
+                                        "quantity": 1,
+                                        "estimated_cost": price,
+                                        "source_page": page_num,
+                                        "confidence": 0.85
+                                    })
                                 else:
                                     total_parts += price
                                     # Categorize part for depreciation rules
                                     category = "metal"
                                     d_up = desc.upper()
-                                    if any(k in d_up for k in ["BUMPER", "PLASTIC", "FENDER LINER", "GRILL", "CLADDING"]):
+                                    if any(k in d_up for k in ["BUMPER", "PLASTIC", "FENDER LINER", "GRILL", "CLADDING", "HEADLAMP", "HEADLIGHT", "TAIL LAMP", "TAILLIGHT", "LAMP", "RUBBER", "MIRROR"]):
                                         category = "plastic"
-                                    elif any(k in d_up for k in ["GLASS", "WINDSHIELD", "MIRROR", "WINDOW"]):
+                                    elif any(k in d_up for k in ["GLASS", "WINDSHIELD", "WINDOW"]):
                                         category = "glass"
                                     elif any(k in d_up for k in ["FIBRE", "FIBERGLASS"]):
                                         category = "fiberglass"
@@ -291,34 +299,26 @@ class DocumentExtractor:
                             continue
 
         full_text = text_extraction_result.get("full_text", "").upper()
+        gst_amount = None
         gst_match = re.search(r'(?:GST|TAX)[^0-9]*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{2})?)', full_text)
         if gst_match:
             try:
                 gst_amount = float(gst_match.group(1).replace(",", ""))
             except ValueError:
-                pass
+                gst_amount = None
 
-        if total_parts == 0 and total_labour == 0:
-            cost_match = re.search(r'(?:TOTAL|ESTIMATE|NET\s*AMOUNT)[^0-9]*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{2})?)', full_text)
-            if cost_match:
-                try:
-                    grand_total = float(cost_match.group(1).replace(",", ""))
-                    total_parts = round(grand_total * 0.7, 2)
-                    total_labour = round(grand_total * 0.3, 2)
-                    line_items.append({
-                        "part_name": "General Body/Panel Repair",
-                        "category": "metal",
-                        "quantity": 1,
-                        "estimated_cost": total_parts,
-                        "source_page": 1,
-                        "confidence": 0.60
-                    })
-                except ValueError:
-                    pass
+        # A total printed on the document, reported as-is. It is never split
+        # into invented parts/labour amounts.
+        document_total = None
+        total_match = re.search(r'(?:GRAND\s*TOTAL|NET\s*AMOUNT|TOTAL\s*ESTIMATE|TOTAL)[^0-9]*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{2})?)', full_text)
+        if total_match:
+            try:
+                document_total = float(total_match.group(1).replace(",", ""))
+            except ValueError:
+                document_total = None
 
-        consumables = round(total_parts * 0.05, 2)
-        calc_gst = gst_amount or round((total_parts + total_labour + consumables) * 0.18, 2)
-        grand_total = round(total_parts + total_labour + consumables + calc_gst, 2)
+        itemised_total = round(total_parts + total_labour, 2)
+        grand_total = round(itemised_total + (gst_amount or 0.0), 2) if line_items else document_total
 
         return {
             "status": "PARSED",
@@ -326,10 +326,10 @@ class DocumentExtractor:
             "is_scanned_notice": text_extraction_result.get("status") == "SCANNED_PDF_NO_TEXT",
             "normalized_estimate": {
                 "line_items": line_items,
-                "consumables": consumables,
                 "total_parts": total_parts,
                 "total_labour": total_labour,
-                "gst": calc_gst,
+                "gst": gst_amount,
+                "document_total": document_total,
                 "grand_total": grand_total
             }
         }

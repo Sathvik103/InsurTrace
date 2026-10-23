@@ -17,7 +17,7 @@ export default function AboutPage() {
     {
       icon: Lock,
       title: 'Cryptographic State Integrity',
-      description: 'Trust in multi-party insurance workflows cannot rely on database honor systems. Every milestone—from workshop estimate upload to surveyor assessment and claim settlement—is canonically hashed using SHA-256 and committed to a Hyperledger Fabric ledger (consortium test network).'
+      description: 'Trust in multi-party insurance workflows cannot rely on database honor systems. Saved claim records are canonically hashed using SHA-256 and their fingerprints anchored on a Hyperledger Fabric ledger (development test network), so later changes can be detected.'
     },
     {
       icon: Shield,

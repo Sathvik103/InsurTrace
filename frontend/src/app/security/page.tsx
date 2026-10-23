@@ -89,7 +89,7 @@ export default function SecurityPage() {
             </div>
             <div className="md:col-span-8 space-y-4 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
               <p>
-                To guarantee that database records cannot be silently modified by rogue administrators or compromised servers, VeriSure calculates a canonical SHA-256 hash of every critical transaction state:
+                To detect whether database records have been silently modified by rogue administrators or compromised servers, VeriSure calculates a canonical SHA-256 hash of every critical transaction state:
               </p>
               <div className="bg-zinc-900 text-zinc-200 p-4 rounded-xl font-mono text-[11px] leading-relaxed border border-zinc-800">
                 SHA-256(canonical_json(claim_id, policy_number, vehicle_vin, parts_estimate, net_payable, timestamp))

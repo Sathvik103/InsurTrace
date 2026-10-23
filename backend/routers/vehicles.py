@@ -26,6 +26,12 @@ class VehicleBase(BaseModel):
     fitness_valid_until: Optional[str] = None
     downtime_cost_per_day: Optional[float] = Field(default=None, ge=0)
     is_demo: Optional[bool] = False
+    # Owner-entered policy summary (shown as "Entered by owner"; not insurer data).
+    idv: Optional[float] = Field(default=None, ge=0, le=100_000_000)
+    ncb_percentage: Optional[int] = Field(default=None, ge=0, le=50)
+    has_zero_dep: Optional[bool] = None
+    policy_number: Optional[str] = Field(default=None, max_length=100)
+    policy_expiry: Optional[str] = Field(default=None, max_length=20)
 
     @field_validator("registration_number")
     @classmethod
@@ -81,6 +87,17 @@ async def create_vehicle(vehicle: VehicleBase, profile: dict = Depends(get_curre
         "start_date": datetime.date.today().isoformat(),
     }).execute()
     return v_data
+
+
+STATUS_WORDS = {
+    "DRAFT": "saved check",
+    "SUBMITTED": "submitted",
+    "PENDING_SURVEY": "awaiting survey",
+    "UNDER_REVIEW": "under review",
+    "APPROVED": "approved by insurer",
+    "REJECTED": "rejected by insurer",
+    "SETTLED": "settled",
+}
 
 
 def _day(value: Any, default: str = "") -> str:
@@ -150,7 +167,7 @@ async def get_vehicle_timeline(vehicle_id: str, profile: dict = Depends(get_curr
         events.append({
             "date": _day(c.get("created_at")),
             "event_type": "CLAIM_FILED",
-            "title": f"Claim recorded ({c.get('status', 'DRAFT')})",
+            "title": f"Claim recorded ({STATUS_WORDS.get(c.get('status', 'DRAFT'), str(c.get('status', '')).lower())})",
             "description": f"Claim {c.get('claim_number') or c['id'][:8]} · estimated repair ₹{float(c.get('estimated_repair_cost') or 0):,.0f}",
             "provenance_type": "DEMO_RECORD" if demo else "USER_PROVIDED_RECORD",
             "actor": "Policyholder",

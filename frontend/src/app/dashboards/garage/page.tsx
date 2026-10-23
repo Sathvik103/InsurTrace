@@ -105,7 +105,7 @@ export default function GarageDashboard() {
     <AppShell>
       <PageHeader
         title="Garage Workshop Portal"
-        description="Authorized network bodyworks: build itemized parts & labour repair estimates, apply standard IRDAI material schedules, and sync estimates with insurer claims desks."
+        description="Build itemised parts and labour estimates using the standard material-depreciation schedule. Sending estimates to insurers is not available yet."
         breadcrumbs={[
           { label: 'Platform', href: '/' },
           { label: 'Enterprise Roles' },
@@ -139,16 +139,15 @@ export default function GarageDashboard() {
         />
         <StatCard
           label="Parts Admissibility"
-          value="IRDAI V1"
-          subtext="Auto Depreciation Split"
+          value="GR.8 schedule"
+          subtext="Standard material depreciation"
           icon={FileText}
         />
         <StatCard
-          label="Ledger Integration"
-          value="ACTIVE"
-          subtext="Hyperledger Fabric Channel"
+          label="Estimate submission"
+          value="Not available yet"
+          subtext="Coming with the repairs workflow"
           icon={Lock}
-          trend={{ value: 'SYNCED', isPositive: true }}
         />
       </div>
 
@@ -212,7 +211,7 @@ export default function GarageDashboard() {
                   Itemized Estimate Builder
                 </h3>
                 <p className="text-[11px] text-zinc-500">
-                  Categorize parts by material for automated IRDAI depreciation computation
+                  Categorise parts by material so the standard depreciation can be applied
                 </p>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">

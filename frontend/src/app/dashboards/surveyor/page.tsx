@@ -96,7 +96,7 @@ export default function SurveyorDashboard() {
     <AppShell>
       <PageHeader
         title="Surveyor Assessment Workspace"
-        description="Licensed motor loss assessor portal: inspect assigned claims, evaluate physical parts admissibility per IRDAI schedules, and record damage photo SHA-256 hashes."
+        description="Licensed motor loss assessor portal: inspect assigned claims, review parts against the standard depreciation schedule, and record damage photo SHA-256 hashes."
         breadcrumbs={[
           { label: 'Platform', href: '/' },
           { label: 'Enterprise Roles' },
@@ -129,8 +129,8 @@ export default function SurveyorDashboard() {
           icon={ShieldCheck}
         />
         <StatCard
-          label="Tariff Standard"
-          value="IRDAI 2026"
+          label="Depreciation schedule"
+          value="GR.8 (standard)"
           subtext="Metal / Plastic / Glass Norms"
           icon={Scale}
         />

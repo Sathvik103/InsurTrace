@@ -11,6 +11,7 @@ import { analyzeClaim, DAMAGE_PARTS, EngineResult, NCB_STEPS, PartCategory, Poli
 import { CarDiagram } from './CarDiagram';
 import { ResultView } from './ResultView';
 import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
+import { takeHandoff } from '@/lib/extractHandoff';
 import { LedgerCommitPanel } from '@/components/common/LedgerCommitPanel';
 
 const STEPS = ['Your car', 'What’s damaged', 'Your policy', 'Your answer'] as const;
@@ -43,6 +44,8 @@ export function ClaimCheckFlow() {
   const [costs, setCosts] = useState<Record<string, string>>({});
   const [total, setTotal] = useState('');
   const [material, setMaterial] = useState<TotalMaterial>('mixed');
+  const [docItems, setDocItems] = useState<{ label: string; category: PartCategory; cost: string }[]>([]);
+  const [fromDocument, setFromDocument] = useState(false);
 
   // Step 3: policy
   const [ncb, setNcb] = useState<number | null>(null);
@@ -73,7 +76,25 @@ export function ClaimCheckFlow() {
     if (params.get('deductible')) setDeductible(params.get('deductible')!);
     const qNcb = params.get('ncb');
     if (qNcb && (NCB_STEPS as readonly number[]).includes(Number(qNcb))) setNcb(Number(qNcb));
-    if (params.get('repair_cost')) {
+    const handoff = params.get('from_extract') ? takeHandoff() : null;
+    if (handoff) {
+      setFromDocument(true);
+      const hp = handoff.policy || {};
+      if (hp.registrationNumber) {
+        const match = vehicles.find((v) => v.registration_number.replace(/[\s-]/g, '') === hp.registrationNumber);
+        if (match) setCarId(match.id);
+      }
+      if (hp.idv) setIdv(String(hp.idv));
+      if (hp.deductible) setDeductible(String(hp.deductible));
+      if (hp.ncb !== undefined && (NCB_STEPS as readonly number[]).includes(hp.ncb)) setNcb(hp.ncb);
+      if (handoff.items?.length) {
+        setMode('parts');
+        setDocItems(handoff.items.map((i) => ({ ...i, cost: String(Math.round(i.cost)) })));
+      } else if (handoff.total) {
+        setMode('total');
+        setTotal(String(Math.round(handoff.total)));
+      }
+    } else if (params.get('repair_cost')) {
       setMode('total');
       setTotal(params.get('repair_cost')!);
       const cat = params.get('part_category');
@@ -94,8 +115,11 @@ export function ClaimCheckFlow() {
       if (material === 'mixed') return [{ category: 'metal', cost: t / 2 }, { category: 'plastic', cost: t / 2 }];
       return [{ category: material, cost: t }];
     }
-    return DAMAGE_PARTS.filter((p) => costs[p.id] !== undefined).map((p) => ({ category: p.category as PartCategory, cost: toNum(costs[p.id]) }));
-  }, [mode, total, material, costs]);
+    return [
+      ...docItems.map((d) => ({ category: d.category, cost: toNum(d.cost) })),
+      ...DAMAGE_PARTS.filter((p) => costs[p.id] !== undefined).map((p) => ({ category: p.category as PartCategory, cost: toNum(costs[p.id]) })),
+    ];
+  }, [mode, total, material, costs, docItems]);
 
   const repairTotal = items.reduce((s, i) => s + i.cost, 0);
   const selectedParts = useMemo(() => new Set(Object.keys(costs)), [costs]);
@@ -119,7 +143,7 @@ export function ClaimCheckFlow() {
       if (toNum(idv) <= 0) return 'Enter your IDV (it’s on the first page of your policy).';
     }
     if (step === 1) {
-      if (mode === 'parts' && selectedParts.size === 0) return 'Tap the parts that were damaged.';
+      if (mode === 'parts' && selectedParts.size === 0 && docItems.length === 0) return 'Tap the parts that were damaged.';
       if (repairTotal <= 0) return 'Enter what the workshop quoted.';
       if (mode === 'parts' && items.some((i) => i.cost <= 0)) return 'Add a cost for each selected part (or remove it).';
     }
@@ -170,7 +194,7 @@ export function ClaimCheckFlow() {
       {/* Header + progress */}
       <div className="mb-8 space-y-5">
         <div className="space-y-2">
-          <span className="vs-chip"><Sparkles className="h-3.5 w-3.5 text-steel-600" /> About 2 minutes</span>
+          <span className="vs-chip"><Sparkles className="h-3.5 w-3.5 text-steel-600" /> {fromDocument ? 'Filled in from your document. Please check each value' : 'About 2 minutes'}</span>
           <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">Should you claim, or pay yourself?</h1>
           <p className="text-base text-navy-600">Answer a few simple questions. We’ll show what your insurer might pay, what you’d pay, and which option costs you less.</p>
         </div>
@@ -301,6 +325,18 @@ export function ClaimCheckFlow() {
                     }
                   />
                   <div className="space-y-3">
+                    {docItems.map((d, idx) => (
+                      <div key={`doc-${idx}`} className="flex items-center gap-3 rounded-2xl border border-steel-200 bg-steel-50/50 p-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-navy-900">{d.label}</p>
+                          <p className="text-xs text-steel-700">From your document · {d.category === 'labour' ? 'labour' : `${d.category} part`}</p>
+                        </div>
+                        <div className="w-36"><RupeeInput value={d.cost} onChange={(v) => setDocItems((all) => all.map((x, k) => (k === idx ? { ...x, cost: v } : x)))} placeholder="Cost" compact /></div>
+                        <button type="button" onClick={() => setDocItems((all) => all.filter((_, k) => k !== idx))} className="rounded-full p-1.5 text-navy-300 hover:bg-navy-50 hover:text-navy-700" aria-label={`Remove ${d.label}`}>
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
                     <AnimatePresence initial={false}>
                       {DAMAGE_PARTS.filter((p) => selectedParts.has(p.id)).map((p) => (
                         <motion.div
@@ -325,7 +361,7 @@ export function ClaimCheckFlow() {
                         </motion.div>
                       ))}
                     </AnimatePresence>
-                    {selectedParts.size === 0 && (
+                    {selectedParts.size === 0 && docItems.length === 0 && (
                       <div className="flex h-full min-h-40 flex-col items-center justify-center rounded-2xl border border-dashed border-navy-200 p-6 text-center text-sm text-navy-500">
                         <Wrench className="mb-2 h-6 w-6 text-navy-300" />
                         Tap the dots on the car to add damaged parts.

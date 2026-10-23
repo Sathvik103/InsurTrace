@@ -290,6 +290,11 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
           permit_info: newVehicle.permit_info,
           fitness_valid_until: newVehicle.fitness_valid_until,
           downtime_cost_per_day: newVehicle.downtime_cost_per_day,
+          idv: newVehicle.idv,
+          ncb_percentage: newVehicle.ncb_percentage,
+          has_zero_dep: newVehicle.has_zero_dep,
+          policy_number: newVehicle.policy_number,
+          policy_expiry: newVehicle.policy_expiry,
           is_demo: false,
         },
       });

@@ -394,13 +394,13 @@ export default function InsurerDashboard() {
                     <div className="flex justify-between">
                       <span className="text-zinc-500">Insured Value (IDV):</span>
                       <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">
-                        {formatINR(dossier.policy?.idv || 650000)}
+                        {dossier.policy?.idv ? formatINR(dossier.policy.idv) : 'Not on file'}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-zinc-500">Compulsory Excess:</span>
                       <span className="font-mono text-zinc-900 dark:text-zinc-100">
-                        {formatINR(dossier.policy?.compulsory_deductible || 1000)}
+                        {dossier.policy?.compulsory_deductible ? formatINR(dossier.policy.compulsory_deductible) : 'Not on file'}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -451,7 +451,7 @@ export default function InsurerDashboard() {
                   </p>
                   <div className="pt-2 border-t border-amber-200 dark:border-amber-900/40 text-[11px] text-amber-700 dark:text-amber-400 space-y-0.5">
                     <div>
-                      <strong>Compliance:</strong> {dossier.ml_intelligence_disclosure?.regulatory_framework || 'IRDAI & DPDP Guidelines'}
+                      <strong>Integrity:</strong> {dossier.ml_intelligence_disclosure?.integrity_commitment || 'Deterministic rules only; no ML scores.'}
                     </div>
                     <div>
                       <strong>Integrity:</strong> {dossier.ml_intelligence_disclosure?.integrity_commitment || 'Deterministic rules executed.'}

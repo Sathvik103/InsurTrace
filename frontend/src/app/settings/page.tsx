@@ -94,7 +94,7 @@ export default function SettingsPage() {
         registration: v.registration_number,
         usage_type: v.usage_type,
       })),
-      ledger: 'Hyperledger Fabric mychannel (Dual-Peer Raft Consortium)',
+      ledger: 'Hyperledger Fabric mychannel (private development network)',
       privacy_standard: 'DPDP-Aligned Consent & Data Minimization Architecture',
       exported_at: new Date().toISOString(),
     };
@@ -300,7 +300,7 @@ export default function SettingsPage() {
         <FadeIn className="space-y-6 max-w-2xl">
           <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-6 space-y-4 shadow-xs">
             <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              Hyperledger Fabric Consortium Configuration
+              Ledger configuration
             </h3>
 
             <div className="space-y-3 text-xs font-mono">
@@ -376,12 +376,12 @@ export default function SettingsPage() {
 
                   <div className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950 flex items-center justify-between">
                     <div>
-                      <p className="font-bold text-zinc-900 dark:text-zinc-100">{systemStatus.components.hyperledger_fabric?.name || 'Hyperledger Fabric Consortium'}</p>
+                      <p className="font-bold text-zinc-900 dark:text-zinc-100">{systemStatus.components.hyperledger_fabric?.name || 'Record Integrity Ledger'}</p>
                       <p className="text-[11px] text-zinc-500">{systemStatus.components.hyperledger_fabric?.details}</p>
                     </div>
                     <TrustBadge
                       source="BLOCKCHAIN_RECORD"
-                      label={systemStatus.components.hyperledger_fabric?.status === 'CONNECTED' ? 'CONSORTIUM ACTIVE' : 'FABRIC ADAPTER ACTIVE'}
+                      label={systemStatus.components.hyperledger_fabric?.status === 'CONNECTED' ? 'LEDGER CONNECTED' : 'LEDGER NOT CONNECTED'}
                     />
                   </div>
 

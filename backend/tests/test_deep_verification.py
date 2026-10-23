@@ -76,9 +76,24 @@ def test_estimate_document_extraction():
 
     assert est["total_parts"] == 18500.0
     assert est["total_labour"] == 5000.0
-    assert est["consumables"] == 925.0
-    assert est["gst"] == 4396.5
-    assert est["grand_total"] == 28821.5
+    # Nothing is invented: no GST or consumables appear unless the document lists them.
+    assert est["gst"] is None
+    assert "consumables" not in est
+    assert est["grand_total"] == 23500.0
+    cats = {i["part_name"]: i["category"] for i in est["line_items"]}
+    assert cats == {"Front Bumper Plastic": "plastic", "Windshield Glass": "glass", "Labour Charges Paint": "labour"}
+
+
+def test_estimate_total_only_is_not_split():
+    extractor = DocumentExtractor()
+    parsed = extractor.parse_estimate_document({
+        "status": "SUCCESS", "total_pages": 1, "full_text": "Workshop quote. Grand Total: 42,500.00",
+        "pages": [{"page_number": 1, "raw_text": "", "extracted_tables": []}],
+    })
+    est = parsed["normalized_estimate"]
+    assert est["line_items"] == []
+    assert est["document_total"] == 42500.0
+    assert est["grand_total"] == 42500.0
 
 # ---------------------------------------------------------
 # 2. Financial Engine Integration with Extracted Values

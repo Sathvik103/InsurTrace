@@ -334,31 +334,23 @@ CREATE INDEX IF NOT EXISTS idx_documents_entity ON documents(entity_type, entity
 -- 13. AUTH TRIGGER FOR AUTOMATIC PROFILE CREATION
 -- ============================================================================
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER 
+RETURNS TRIGGER
 SECURITY DEFINER
 SET search_path = public, auth
 AS $$
-DECLARE
-  parsed_role public.user_role := 'POLICYHOLDER'::public.user_role;
-  raw_role text;
 BEGIN
-  raw_role := UPPER(COALESCE(NEW.raw_user_meta_data->>'role', 'POLICYHOLDER'));
-  BEGIN
-    parsed_role := raw_role::public.user_role;
-  EXCEPTION WHEN OTHERS THEN
-    parsed_role := 'POLICYHOLDER'::public.user_role;
-  END;
-
+  -- Self-service sign-ups are always policyholders. The role is never taken
+  -- from client-supplied metadata (that would let anyone sign up as ADMIN);
+  -- staff roles are assigned by an administrator.
   INSERT INTO public.profiles (id, email, full_name, role)
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-    parsed_role
+    COALESCE(NULLIF(NEW.raw_user_meta_data->>'full_name', ''), split_part(NEW.email, '@', 1)),
+    'POLICYHOLDER'::public.user_role
   )
   ON CONFLICT (id) DO UPDATE
-  SET email = EXCLUDED.email,
-      full_name = EXCLUDED.full_name;
+  SET email = EXCLUDED.email;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
