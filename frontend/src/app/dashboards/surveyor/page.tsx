@@ -8,7 +8,7 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { EmptyState, SkeletonCard } from '@/components/common/EmptyState';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR, formatDate } from '@/lib/formatters';
-import { API_BASE_URL } from '@/lib/api';
+import { apiFetch, describeApiError } from '@/lib/api';
 import {
   ClipboardList,
   Camera,
@@ -52,15 +52,11 @@ export default function SurveyorDashboard() {
   const fetchAssignments = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/claims`, {
-        headers: { Authorization: 'Bearer dev-surveyor' },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setAssignments(data || []);
-      }
+      const data = await apiFetch<ClaimAssignment[]>('/api/v1/claims');
+      setAssignments(data || []);
     } catch (e) {
-      console.error('Failed to fetch surveyor assignments:', e);
+      const { title, message } = describeApiError(e);
+      setErrorMessage(`${title}. ${message}`);
     } finally {
       setLoading(false);
     }
@@ -85,23 +81,12 @@ export default function SurveyorDashboard() {
     try {
       const fd = new FormData();
       fd.append('file', surveyPhoto);
-
-      const res = await fetch(
-        `${API_BASE_URL}/api/v1/surveyor/inspect-damage?claim_id=${selectedClaim}`,
-        {
-          method: 'POST',
-          headers: { Authorization: 'Bearer dev-surveyor' },
-          body: fd,
-        }
-      );
-      if (!res.ok) {
-        throw new Error(`Assessment service returned status ${res.status}`);
-      }
-      const data = await res.json();
-      setVisionResult(data);
-    } catch (err: any) {
-      console.error('Vision analysis error:', err);
-      setErrorMessage(err.message || 'Damage vision service encountered an issue.');
+      fd.append('claim_id', selectedClaim);
+      const data = await apiFetch<{ analysis: VisionResult }>('/api/v1/vision/analyze-damage', { method: 'POST', body: fd, timeoutMs: 60000 });
+      setVisionResult(data.analysis);
+    } catch (err) {
+      const { title, message } = describeApiError(err);
+      setErrorMessage(`${title}. ${message}`);
     } finally {
       setUploading(false);
     }

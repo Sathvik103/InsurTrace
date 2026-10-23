@@ -1,10 +1,12 @@
-﻿import pytest
+import pytest
 import re
 from fastapi.testclient import TestClient
 from main import app
 from dependencies import DEV_TOKENS
 
 client = TestClient(app)
+
+pytestmark = pytest.mark.fabric
 
 def test_full_application_fabric_lifecycle():
     """
@@ -32,10 +34,10 @@ def test_full_application_fabric_lifecycle():
     assert created_claim.get("network_mode") == "REAL_FABRIC"
     assert created_claim.get("sync_status") == "COMMITTED"
     # Ensure tx_id is a genuine 64-character hex Fabric transaction ID
-    assert re.match(r'^[a-f0-9]{64}$', tx_id) or "fabric_tx_" in tx_id, f"Invalid Fabric tx_id format: {tx_id}"
+    assert re.match(r'^[a-f0-9]{64}$', tx_id), f"Invalid Fabric tx_id format: {tx_id}"
 
     # 2. Verify blockchain ledger state through the application API
-    verify_res = client.get(f"/api/v1/admin/verify-claim/{claim_id}")
+    verify_res = client.get(f"/api/v1/admin/verify-claim/{claim_id}", headers=auth_headers)
     assert verify_res.status_code == 200
     verify_data = verify_res.json()
     assert verify_data["status"] == "VERIFIED"
@@ -49,7 +51,7 @@ def test_full_application_fabric_lifecycle():
     assert tamper_res.json()["status"] == "TAMPERED"
 
     # 4. Verify that the application detects the cryptographic mismatch
-    tampered_verify_res = client.get(f"/api/v1/admin/verify-claim/{claim_id}")
+    tampered_verify_res = client.get(f"/api/v1/admin/verify-claim/{claim_id}", headers=auth_headers)
     assert tampered_verify_res.status_code == 200
     tampered_data = tampered_verify_res.json()
     assert tampered_data["status"] == "INTEGRITY_VERIFICATION_FAILED"
@@ -64,7 +66,7 @@ def test_full_application_fabric_lifecycle():
     assert restore_res.json()["status"] == "RESTORED"
 
     # 6. Verify that verification returns to VERIFIED
-    restored_verify_res = client.get(f"/api/v1/admin/verify-claim/{claim_id}")
+    restored_verify_res = client.get(f"/api/v1/admin/verify-claim/{claim_id}", headers=auth_headers)
     assert restored_verify_res.status_code == 200
     assert restored_verify_res.json()["status"] == "VERIFIED"
 

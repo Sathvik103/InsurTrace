@@ -8,7 +8,8 @@ import { TrustBadge } from '@/components/common/TrustBadge';
 import { FadeIn } from '@/components/motion/MotionPrimitives';
 import { useAuth } from '@/context/AuthContext';
 import { useVehicle } from '@/context/VehicleContext';
-import { API_BASE_URL } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
+import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
 import {
   User,
   Building,
@@ -50,18 +51,16 @@ export default function SettingsPage() {
   const [downloaded, setDownloaded] = useState(false);
   const [systemStatus, setSystemStatus] = useState<SystemStatusResponse | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(false);
+  const [statusError, setStatusError] = useState<unknown>(null);
 
   useEffect(() => {
     async function fetchSystemStatus() {
       setLoadingStatus(true);
+      setStatusError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/system/status`);
-        if (res.ok) {
-          const json = await res.json();
-          setSystemStatus(json);
-        }
+        setSystemStatus(await apiFetch<SystemStatusResponse>('/api/v1/system/status', { anonymous: true, timeoutMs: 60000 }));
       } catch (e) {
-        console.warn('System status fetch failed:', e);
+        setStatusError(e);
       } finally {
         setLoadingStatus(false);
       }
@@ -428,7 +427,7 @@ export default function SettingsPage() {
               </div>
             ) : (
               <div className="p-6 text-center text-zinc-500 text-xs">
-                {loadingStatus ? 'Connecting to system diagnostics...' : 'Unable to query live system status. Backend is initializing.'}
+                {loadingStatus ? 'Connecting to system diagnostics…' : statusError != null ? <ApiErrorNotice error={statusError} className="text-left" /> : 'No status available.'}
               </div>
             )}
           </div>

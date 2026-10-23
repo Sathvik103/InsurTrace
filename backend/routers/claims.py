@@ -1,199 +1,277 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Optional
-from pydantic import BaseModel
 import datetime
 import hashlib
 import json
+import uuid
+from typing import List, Literal, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
+
 from dependencies import get_current_profile, supabase
+from services.access import accessible_vehicle_ids, claim_vehicle_id, require_claim_access, require_vehicle_access
+from services.rate_limit import limiter, sensitive_limit
 
 router = APIRouter(prefix="/claims", tags=["Claims"])
 
-class ClaimBase(BaseModel):
-    policy_id: str
-    accident_id: Optional[str]
-    estimated_repair_cost: Optional[float]
-    status: str = "DRAFT"
+ClaimStatus = Literal["DRAFT", "SUBMITTED", "PENDING_SURVEY", "UNDER_REVIEW", "APPROVED", "REJECTED", "SETTLED"]
+CLAIM_CREATOR_ROLES = {"POLICYHOLDER", "FLEET_OPERATOR", "ADMIN"}
+
+
+class ClaimCreate(BaseModel):
+    vehicle_id: Optional[str] = Field(default=None, max_length=100)
+    # Accepts either the policy record ID or the printed policy number.
+    policy_id: Optional[str] = Field(default=None, max_length=100)
+    estimated_repair_cost: float = Field(ge=0, le=100_000_000)
+    status: Literal["DRAFT", "SUBMITTED"] = "DRAFT"
+    accident_date: Optional[datetime.date] = None
+    accident_description: Optional[str] = Field(default=None, max_length=2000)
+    # Snapshot of the deterministic financial analysis the user reviewed (optional).
+    calculated_payout: Optional[float] = Field(default=None, ge=0)
+    immediate_out_of_pocket: Optional[float] = Field(default=None, ge=0)
+    future_ncb_impact: Optional[float] = None
+    recommendation: Optional[Literal["CLAIM", "SELF-PAY", "BORDERLINE"]] = None
+    calculation_rule_version: Optional[str] = Field(default=None, max_length=50)
+
 
 def get_canonical_hash(data: dict) -> str:
     """
-    Generates a cryptographically stable hash for the data.
-    Ensures keys are sorted and spaces are removed to guarantee
-    the same JSON serialization across different languages/platforms.
+    Cryptographically stable SHA-256 of a record: sorted keys, no whitespace,
+    mutable timestamps excluded, so the same record always hashes identically.
     """
-    # Remove mutable metadata that shouldn't affect the core record's hash
     hash_data = {k: v for k, v in data.items() if k not in ["created_at", "updated_at"]}
-    canonical_str = json.dumps(hash_data, separators=(',', ':'), sort_keys=True)
-    return hashlib.sha256(canonical_str.encode('utf-8')).hexdigest()
+    canonical_str = json.dumps(hash_data, separators=(",", ":"), sort_keys=True, default=str)
+    return hashlib.sha256(canonical_str.encode("utf-8")).hexdigest()
+
+
+def _resolve_policy(policy_ref: Optional[str], vehicle_id: Optional[str]) -> Optional[dict]:
+    if policy_ref:
+        for column in ("id", "policy_number"):
+            rows = supabase.table("policies").select("*").eq(column, policy_ref).execute().data
+            if rows:
+                return rows[0]
+        return None
+    if vehicle_id:
+        rows = supabase.table("policies").select("*").eq("vehicle_id", vehicle_id).execute().data
+        return rows[0] if rows else None
+    return None
+
+
+def _ledger_row(claim_id: str) -> Optional[dict]:
+    rows = supabase.table("ledger_references").select("*").eq("entity_id", claim_id).execute().data
+    return rows[0] if rows else None
+
+
+async def _anchor(ledger_row: dict, vehicle_id: str) -> dict:
+    """Attempts the Fabric commit for an existing ledger reference and persists the outcome."""
+    from services.blockchain_service import commit_event_to_ledger
+
+    result = await commit_event_to_ledger(
+        vehicle_id=vehicle_id,
+        event_type=ledger_row["event_type"],
+        entity_id=ledger_row["entity_id"],
+        local_hash=ledger_row["local_data_hash"],
+        timestamp=ledger_row.get("created_at"),
+    )
+    if result.get("success"):
+        update = {"sync_status": "COMMITTED", "blockchain_tx_id": result.get("transaction_id"),
+                  "network_mode": result.get("network_mode"), "last_error": None}
+    else:
+        # PENDING: ledger not reachable (safe to retry later). FAILED: the ledger rejected it.
+        status = "PENDING" if result.get("network_mode") == "UNAVAILABLE" else "FAILED"
+        update = {"sync_status": status, "network_mode": result.get("network_mode"),
+                  "last_error": str(result.get("error", ""))[:500]}
+    update["last_attempt_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    supabase.table("ledger_references").update(update).eq("id", ledger_row["id"]).execute()
+    return {**ledger_row, **update}
+
+
+def _ledger_view(row: Optional[dict]) -> dict:
+    if not row:
+        return {"sync_status": "NOT_COMMITTED", "blockchain_tx_id": None, "network_mode": None}
+    return {
+        "sync_status": row.get("sync_status"),
+        "blockchain_tx_id": row.get("blockchain_tx_id"),
+        "network_mode": row.get("network_mode"),
+        "canonical_hash": row.get("local_data_hash"),
+        "last_error": row.get("last_error"),
+        "last_attempt_at": row.get("last_attempt_at"),
+        "anchored_at": row.get("created_at"),
+    }
+
 
 @router.get("", response_model=List[dict])
 @router.get("/", response_model=List[dict])
 async def list_claims(profile: dict = Depends(get_current_profile)):
-    if profile["role"] == "POLICYHOLDER":
-        policies = supabase.table("policies").select("id").eq("policyholder_id", profile["id"]).execute()
-        p_ids = [p["id"] for p in policies.data]
-        if not p_ids:
-            return []
-        res = supabase.table("claims").select("*, policies(vehicle_id)").in_("policy_id", p_ids).execute()
-    else:
-        res = supabase.table("claims").select("*").limit(50).execute()
-    return res.data
+    allowed = accessible_vehicle_ids(profile)
+    rows = supabase.table("claims").select("*").execute().data or []
+    claims = []
+    for c in rows:
+        v_id = claim_vehicle_id(c)
+        if allowed is None or v_id in allowed:
+            claims.append({**c, "vehicle_id": v_id, "ledger": _ledger_view(_ledger_row(c["id"]))})
+    claims.sort(key=lambda c: str(c.get("created_at", "")), reverse=True)
+    return claims
+
 
 @router.post("")
 @router.post("/")
-async def create_claim(claim: ClaimBase, profile: dict = Depends(get_current_profile)):
-    claim_dict = claim.dict()
-    # 1. Resolve vehicle_id from policy if not provided
-    v_id = claim_dict.get("vehicle_id")
-    if not v_id:
-        pol = supabase.table("policies").select("vehicle_id").eq("id", claim.policy_id).execute()
-        if pol.data and pol.data[0].get("vehicle_id"):
-            v_id = pol.data[0]["vehicle_id"]
-    if not v_id:
-        v_id = "V-REAL-101"
-    claim_dict["vehicle_id"] = v_id
+async def create_claim(claim: ClaimCreate, profile: dict = Depends(get_current_profile)):
+    if profile.get("role") not in CLAIM_CREATOR_ROLES:
+        raise HTTPException(status_code=403, detail="Your role cannot file claims.")
 
-    # 2. Database Transaction
-    res = supabase.table("claims").insert(claim_dict).execute()
-    c_data = res.data[0]
-    
-    # 3. Canonical Hashing & Synchronized Timestamp
-    local_hash = get_canonical_hash(c_data)
-    event_timestamp = c_data.get("created_at")
+    policy = _resolve_policy(claim.policy_id, claim.vehicle_id)
+    vehicle_id = (policy or {}).get("vehicle_id") or claim.vehicle_id
+    if not vehicle_id:
+        raise HTTPException(status_code=422, detail="Provide a vehicle_id or a policy linked to a vehicle.")
+    if claim.vehicle_id and policy and policy.get("vehicle_id") and policy["vehicle_id"] != claim.vehicle_id:
+        raise HTTPException(status_code=422, detail="The selected policy does not belong to this vehicle.")
+    require_vehicle_access(profile, vehicle_id)
 
-    # 4. Create initial PENDING ledger reference
-    ledger_res = supabase.table("ledger_references").insert({
+    accident_id = None
+    if claim.accident_date or claim.accident_description:
+        accident = supabase.table("accidents").insert({
+            "vehicle_id": vehicle_id,
+            "accident_date": (claim.accident_date or datetime.date.today()).isoformat(),
+            "description": claim.accident_description,
+        }).execute().data[0]
+        accident_id = accident["id"]
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    record = {
+        "claim_number": f"VS-{now:%Y%m%d}-{uuid.uuid4().hex[:6].upper()}",
+        "policy_id": (policy or {}).get("id"),
+        "vehicle_id": vehicle_id,
+        "accident_id": accident_id,
+        "status": claim.status,
+        "estimated_repair_cost": claim.estimated_repair_cost,
+        "repair_cost_source": "USER_INPUT",
+        "calculated_payout": claim.calculated_payout,
+        "immediate_out_of_pocket": claim.immediate_out_of_pocket,
+        "future_ncb_impact": claim.future_ncb_impact,
+        "recommendation": claim.recommendation,
+        "calculation_rule_version": claim.calculation_rule_version,
+        "payout_source": "COMPUTED_RULE" if claim.calculated_payout is not None else None,
+        "created_by": profile["id"],
+        "created_at": now.isoformat(),
+    }
+    c_data = supabase.table("claims").insert(record).execute().data[0]
+
+    # The claim is now saved. Anchoring its fingerprint on the ledger is a
+    # separate, retryable step whose outcome never undoes the save.
+    ledger = supabase.table("ledger_references").insert({
         "event_type": "CLAIM_CREATED",
         "entity_id": c_data["id"],
         "entity_table": "claims",
-        "local_data_hash": local_hash,
+        "local_data_hash": get_canonical_hash(c_data),
         "sync_status": "PENDING",
-        "org_id": profile["organization_id"],
-        "created_at": event_timestamp
-    }).execute()
-    
-    ledger_id = ledger_res.data[0]["id"]
-    
-    # 5. Attempt Blockchain Commit with synchronized timestamp
-    from services.blockchain_service import commit_event_to_ledger
-    ledger_result = await commit_event_to_ledger(
-        vehicle_id=v_id, 
-        event_type="CLAIM_CREATED", 
-        entity_id=c_data["id"], 
-        local_hash=local_hash,
-        timestamp=event_timestamp
-    )
-    
-    # 6. Update DB based on blockchain success/failure
-    if ledger_result.get("success"):
-        supabase.table("ledger_references").update({
-            "sync_status": "COMMITTED",
-            "blockchain_tx_id": ledger_result.get("transaction_id"),
-            "created_at": ledger_result.get("timestamp", event_timestamp)
-        }).eq("id", ledger_id).execute()
-    else:
-        supabase.table("ledger_references").update({
-            "sync_status": "FAILED",
-        }).eq("id", ledger_id).execute()
-    
+        "org_id": profile.get("organization_id"),
+        "created_at": c_data.get("created_at"),
+    }).execute().data[0]
+    ledger = await _anchor(ledger, vehicle_id)
+
     return {
         **c_data,
-        "vehicle_id": v_id,
-        "sync_status": "COMMITTED" if ledger_result.get("success") else "FAILED",
-        "blockchain_tx_id": ledger_result.get("transaction_id"),
-        "network_mode": ledger_result.get("network_mode", "UNKNOWN"),
-        "canonical_hash": local_hash
+        "saved": True,
+        "ledger": _ledger_view(ledger),
+        # Flat fields kept for existing clients.
+        "sync_status": ledger["sync_status"],
+        "blockchain_tx_id": ledger.get("blockchain_tx_id"),
+        "network_mode": ledger.get("network_mode"),
+        "canonical_hash": ledger["local_data_hash"],
     }
 
-from services.ml_engine.pipeline import run_claim_intelligence
+
+@router.post("/{claim_id}/ledger/retry")
+@limiter.limit(sensitive_limit)
+async def retry_ledger_commit(request: Request, claim_id: str, profile: dict = Depends(get_current_profile)):
+    """
+    Idempotent: a COMMITTED record is returned unchanged. Otherwise the original
+    fingerprint is re-submitted, but only if the claim still matches it; a
+    record changed since it was saved is never anchored under the old reference.
+    """
+    rows = supabase.table("claims").select("*").eq("id", claim_id).execute().data
+    if not rows:
+        raise HTTPException(status_code=404, detail="Claim not found.")
+    claim = rows[0]
+    vehicle_id = require_claim_access(profile, claim)
+
+    ledger = _ledger_row(claim_id)
+    if not ledger:
+        raise HTTPException(status_code=404, detail="This claim has no ledger reference.")
+    if ledger.get("sync_status") == "COMMITTED":
+        return {"claim_id": claim_id, "ledger": _ledger_view(ledger), "changed": False}
+    if get_canonical_hash(claim) != ledger["local_data_hash"]:
+        raise HTTPException(
+            status_code=409,
+            detail="The claim has changed since it was saved, so its original fingerprint cannot be anchored.",
+        )
+    ledger = await _anchor(ledger, vehicle_id)
+    return {"claim_id": claim_id, "ledger": _ledger_view(ledger), "changed": True}
+
+
+from services.ml_engine.pipeline import run_claim_intelligence  # noqa: E402
+
+
 @router.post("/{claim_id}/analyze-intelligence")
 async def analyze_claim_intelligence(claim_id: str, profile: dict = Depends(get_current_profile)):
     if profile["role"] not in ["INSURER", "SURVEYOR", "ADMIN"]:
         raise HTTPException(status_code=403, detail="Unauthorized")
-        
-    c_res = supabase.table("claims").select("*, policies(vehicle_id)").eq("id", claim_id).execute()
-    if not c_res.data:
+
+    rows = supabase.table("claims").select("*").eq("id", claim_id).execute().data
+    if not rows:
         raise HTTPException(status_code=404, detail="Claim not found")
-        
-    claim_data = c_res.data[0]
-    vehicle_id = claim_data["policies"][0]["vehicle_id"]
-    
-    v_res = supabase.table("vehicles").select("*").eq("id", vehicle_id).execute()
-    vehicle_data = v_res.data[0] if v_res.data else {}
-    
+    claim_data = rows[0]
+    vehicle_id = require_claim_access(profile, claim_data)
+
+    v_rows = supabase.table("vehicles").select("*").eq("id", vehicle_id).execute().data
+    vehicle_data = v_rows[0] if v_rows else {}
+
     intelligence_result = run_claim_intelligence(claim_id, claim_data, vehicle_data, historical_claims=0)
-    
-    # Store result in ml_predictions table
+
     supabase.table("ml_predictions").insert({
         "claim_id": claim_id,
         "model_version": intelligence_result["fraud_analysis"]["model_version"],
         "prediction_type": "FRAUD_AND_SEVERITY",
         "score": intelligence_result["fraud_analysis"]["risk_score"],
         "risk_level": intelligence_result["fraud_analysis"]["risk_level"],
-        "explanation_json": intelligence_result
+        "explanation_json": intelligence_result,
     }).execute()
-    
+
     return intelligence_result
+
 
 @router.get("/{claim_id}")
 async def get_claim_details(claim_id: str, profile: dict = Depends(get_current_profile)):
-    """
-    Returns the comprehensive Claim Dossier:
-    - Claim data
-    - Associated policy details
-    - Associated vehicle details
-    - Ledger reference & Fabric verification status
-    - Uploaded documents
-    - ML Intelligence data availability disclosure
-    """
-    c_res = supabase.table("claims").select("*").eq("id", claim_id).execute()
-    if not c_res.data:
-        raise HTTPException(status_code=404, detail="Claim record not found.")
-    claim_data = c_res.data[0]
+    """Claim dossier: claim, policy, vehicle, ledger status, documents and ML availability."""
+    rows = supabase.table("claims").select("*").eq("id", claim_id).execute().data
+    if not rows:
+        raise HTTPException(status_code=404, detail="Claim not found.")
+    claim_data = rows[0]
+    vehicle_id = require_claim_access(profile, claim_data)
 
-    # Policy
     policy_data = {}
     if claim_data.get("policy_id"):
-        p_res = supabase.table("policies").select("*").eq("id", claim_data["policy_id"]).execute()
-        if p_res.data:
-            policy_data = p_res.data[0]
+        p_rows = supabase.table("policies").select("*").eq("id", claim_data["policy_id"]).execute().data
+        policy_data = p_rows[0] if p_rows else {}
 
-    # Vehicle
-    vehicle_data = {}
-    vehicle_id = policy_data.get("vehicle_id") or claim_data.get("vehicle_id")
-    if vehicle_id:
-        v_res = supabase.table("vehicles").select("*").eq("id", vehicle_id).execute()
-        if v_res.data:
-            vehicle_data = v_res.data[0]
+    v_rows = supabase.table("vehicles").select("*").eq("id", vehicle_id).execute().data
+    vehicle_data = v_rows[0] if v_rows else {}
 
-    # Ledger reference
-    ledger_ref = {}
-    l_res = supabase.table("ledger_references").select("*").eq("entity_id", claim_id).execute()
-    if l_res.data:
-        ledger_ref = l_res.data[0]
+    documents = supabase.table("documents").select("*").eq("entity_id", claim_id).execute().data or []
 
-    # Documents
-    doc_res = supabase.table("documents").select("id, document_type, file_path, file_hash, extraction_status, created_at").eq("entity_id", claim_id).execute()
-    documents = doc_res.data or []
-
-    # Canonical hash
-    current_hash = get_canonical_hash(claim_data)
+    ledger = _ledger_view(_ledger_row(claim_id))
+    ledger["current_hash"] = get_canonical_hash(claim_data)
 
     return {
         "claim": claim_data,
         "policy": policy_data,
         "vehicle": vehicle_data,
-        "ledger": {
-            "sync_status": ledger_ref.get("sync_status", "NOT_COMMITTED"),
-            "blockchain_tx_id": ledger_ref.get("blockchain_tx_id"),
-            "canonical_hash": current_hash,
-            "created_at": ledger_ref.get("created_at")
-        },
+        "ledger": ledger,
         "documents": documents,
         "ml_intelligence_disclosure": {
             "status": "DATA_LIMITED",
-            "reason": "Regulatory consumer privacy restrictions (IRDAI/IIB) legally limit public access to row-level claim histories. Operational models run in experimental/data-limited mode.",
-            "regulatory_framework": "IRDAI Consumer Privacy & DPDP Data Minimization Principles",
-            "integrity_commitment": "Deterministic financial rules executed; no synthetic fraud probabilities presented as facts.",
-            "available_features": ["Deterministic Depreciation Engine", "Rules-Based Document Extraction", "COCO-Damage CV Stub"]
-        }
+            "reason": "VeriSure does not have access to a validated, licensed claims dataset, so fraud and severity models are not trained. No ML scores are produced.",
+            "integrity_commitment": "Financial figures come from deterministic rules; no synthetic fraud probabilities are presented.",
+            "available_features": ["Deterministic depreciation & payout rules", "Rules-based PDF extraction"],
+        },
     }

@@ -14,7 +14,7 @@ import { EmptyState, ErrorState, SkeletonCard } from '@/components/common/EmptyS
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR, formatDate, truncateHash } from '@/lib/formatters';
 import { useVehicle, Vehicle } from '@/context/VehicleContext';
-import { API_BASE_URL } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
 import {
   Car,
   ShieldCheck,
@@ -93,9 +93,8 @@ export default function VehicleDetailPage() {
       const contextVehicle = vehicles.find((v) => v.id === id);
 
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/vehicles/${id}/timeline`);
-        if (res.ok) {
-          const timelineData: VehicleTimelineResponse = await res.json();
+        {
+          const timelineData = await apiFetch<VehicleTimelineResponse>(`/api/v1/vehicles/${encodeURIComponent(id)}/timeline`);
           // Merge context properties like policy / IDV / NCB if present
           if (contextVehicle) {
             timelineData.vehicle = {
@@ -149,7 +148,7 @@ export default function VehicleDetailPage() {
               blockchain_verified: false,
             },
           ],
-          integrity_notice: 'Vehicle registered in active session.',
+          integrity_notice: 'The VeriSure server could not be reached, so only details saved in this browser are shown. No ledger records could be checked.',
         });
         setSelectedVehicleId(id);
       } else {

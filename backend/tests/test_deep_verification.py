@@ -131,6 +131,7 @@ def test_vision_engine_experimental_stub():
 # ---------------------------------------------------------
 # 4. Hyperledger Fabric Client Verification
 # ---------------------------------------------------------
+@pytest.mark.fabric
 def test_fabric_client_network_detection():
     """Verifies that FabricClient accurately reports live network status in WSL."""
     client = FabricClient()
@@ -138,6 +139,7 @@ def test_fabric_client_network_detection():
 
     assert is_active is True, "Hyperledger Fabric peers must be active and running in Docker."
 
+@pytest.mark.fabric
 def test_fabric_client_verify_real_transaction():
     """Verifies querying the live Fabric ledger for the committed test transaction."""
     client = FabricClient()

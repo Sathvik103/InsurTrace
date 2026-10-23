@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from dependencies import get_current_profile, supabase
+from services.access import require_claim_access
 from services.vision_engine.detector import DamageDetector, VisionAnalysisResult
 import uuid
 import re
@@ -44,7 +45,7 @@ async def analyze_vehicle_damage(
         )
 
     # 3. Read and enforce size limit
-    contents = await file.read()
+    contents = await file.read(MAX_IMAGE_SIZE_BYTES + 1)
     if len(contents) > MAX_IMAGE_SIZE_BYTES:
         raise HTTPException(
             status_code=413, 
@@ -55,6 +56,8 @@ async def analyze_vehicle_damage(
 
     # 4. Deep magic-bytes validation (Untrusted-file security)
     is_valid_magic = any(contents.startswith(sig) for sig in MAGIC_SIGNATURES.keys())
+    if contents.startswith(b"RIFF") and contents[8:12] != b"WEBP":
+        is_valid_magic = False
     if not is_valid_magic:
         raise HTTPException(status_code=400, detail="File content does not match valid image signature.")
 
@@ -65,8 +68,12 @@ async def analyze_vehicle_damage(
     safe_name = sanitize_filename(file.filename or "damage_photo.jpg")
     storage_path = f"/{profile['organization_id']}/damage_images/{uuid.uuid4().hex[:12]}_{safe_name}"
 
-    # If claim_id provided, record into audit_logs
+    # If claim_id provided, record into audit_logs (only for claims the caller may access)
     if claim_id:
+        rows = supabase.table("claims").select("*").eq("id", claim_id).execute().data
+        if not rows:
+            raise HTTPException(status_code=404, detail="Claim not found.")
+        require_claim_access(profile, rows[0])
         supabase.table("audit_logs").insert({
             "action": "DAMAGE_IMAGE_ANALYZED",
             "entity_type": "claims",

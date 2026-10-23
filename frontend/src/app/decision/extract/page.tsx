@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { StatCard } from '@/components/common/StatCard';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR } from '@/lib/formatters';
-import { API_BASE_URL } from '@/lib/api';
+import { apiFetch, describeApiError } from '@/lib/api';
 import {
   FileUp,
   FileCheck,
@@ -103,17 +103,7 @@ export default function DocumentExtractionPage() {
       fd.append('file', file);
       fd.append('document_type', docType);
 
-      const res = await fetch(`${API_BASE_URL}/api/v1/documents/extract`, {
-        method: 'POST',
-        body: fd,
-      });
-
-      if (!res.ok) {
-        const errorDetail = await res.json();
-        throw new Error(errorDetail.detail || 'Extraction failed');
-      }
-
-      const data = await res.json();
+      const data = await apiFetch<any>('/api/v1/documents/extract', { method: 'POST', body: fd, timeoutMs: 90000 });
       setExtractedData(data);
 
       if (docType === 'POLICY') {
@@ -138,8 +128,9 @@ export default function DocumentExtractionPage() {
           grand_total: est.grand_total ? String(est.grand_total) : '53100',
         });
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Failed to process document.');
+    } catch (err) {
+      const { title, message } = describeApiError(err);
+      setErrorMessage(`${title}. ${message}`);
     } finally {
       setLoading(false);
     }

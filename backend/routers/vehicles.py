@@ -1,171 +1,183 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Optional, Any
-from pydantic import BaseModel
 import datetime
+import re
+from typing import Any, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field, field_validator
+
 from dependencies import get_current_profile, supabase
+from services.access import accessible_vehicle_ids, require_vehicle_access
 
 router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 
+VEHICLE_CREATOR_ROLES = {"POLICYHOLDER", "FLEET_OPERATOR", "ADMIN"}
+
+
 class VehicleBase(BaseModel):
-    registration_number: str
-    vin: Optional[str] = None
-    make: str
-    model: str
-    manufacture_year: int
-    fuel_type: Optional[str] = None
-    variant: Optional[str] = None
+    registration_number: str = Field(min_length=4, max_length=20)
+    vin: Optional[str] = Field(default=None, max_length=40)
+    make: str = Field(min_length=1, max_length=100)
+    model: str = Field(min_length=1, max_length=100)
+    manufacture_year: int = Field(ge=1980, le=datetime.date.today().year + 1)
+    fuel_type: Optional[str] = Field(default=None, max_length=50)
+    variant: Optional[str] = Field(default=None, max_length=100)
     usage_type: Optional[str] = "PERSONAL"
-    permit_info: Optional[str] = None
+    permit_info: Optional[str] = Field(default=None, max_length=200)
     fitness_valid_until: Optional[str] = None
-    downtime_cost_per_day: Optional[float] = None
+    downtime_cost_per_day: Optional[float] = Field(default=None, ge=0)
     is_demo: Optional[bool] = False
+
+    @field_validator("registration_number")
+    @classmethod
+    def _normalise_reg(cls, v: str) -> str:
+        cleaned = re.sub(r"[\s\-]", "", v).upper()
+        if not re.fullmatch(r"[A-Z0-9]{4,15}", cleaned):
+            raise ValueError("Registration number may only contain letters and digits.")
+        return cleaned
+
 
 class VehicleResponse(VehicleBase):
     id: str
     created_at: Optional[Any] = None
 
+
 @router.get("", response_model=List[VehicleResponse])
 @router.get("/", response_model=List[VehicleResponse])
 async def list_vehicles(profile: dict = Depends(get_current_profile)):
-    # Depending on role, fetch relevant vehicles
-    # Simplification: Admin gets all, others get vehicles they have relation to
-    role = profile["role"]
-    if role == "ADMIN":
-        res = supabase.table("vehicles").select("*").execute()
-    elif role == "POLICYHOLDER":
-        # Get vehicles owned by them via ownership_history
-        # Real query would join, but Supabase python client doesn't support complex joins well without RPC.
-        # Workaround: fetch ownership, then vehicles
-        ownership = supabase.table("ownership_history").select("vehicle_id").eq("owner_profile_id", profile["id"]).execute()
-        v_ids = [o["vehicle_id"] for o in ownership.data]
-        if not v_ids:
-            return []
-        res = supabase.table("vehicles").select("*").in_("id", v_ids).execute()
-    else:
-        # Insurers / Garages / Surveyors logic would go here. 
-        # For demo, returning an empty list or specific logic.
-        res = supabase.table("vehicles").select("*").limit(50).execute()
-        
-    return res.data
+    ids = accessible_vehicle_ids(profile)
+    if ids is None:
+        return supabase.table("vehicles").select("*").execute().data or []
+    if not ids:
+        return []
+    return supabase.table("vehicles").select("*").in_("id", list(ids)).execute().data or []
+
 
 @router.get("/{vehicle_id}", response_model=VehicleResponse)
 async def get_vehicle(vehicle_id: str, profile: dict = Depends(get_current_profile)):
-    res = supabase.table("vehicles").select("*").eq("id", vehicle_id).execute()
-    if not res.data:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
-    return res.data[0]
+    require_vehicle_access(profile, vehicle_id)
+    rows = supabase.table("vehicles").select("*").eq("id", vehicle_id).execute().data
+    if not rows:
+        raise HTTPException(status_code=404, detail="Vehicle not found.")
+    return rows[0]
+
 
 @router.post("", response_model=VehicleResponse)
 @router.post("/", response_model=VehicleResponse)
 async def create_vehicle(vehicle: VehicleBase, profile: dict = Depends(get_current_profile)):
-    # Create the vehicle
-    res = supabase.table("vehicles").insert(vehicle.dict()).execute()
-    v_data = res.data[0]
-    
-    # If policyholder, create ownership record
-    if profile["role"] == "POLICYHOLDER":
-        supabase.table("ownership_history").insert({
-            "vehicle_id": v_data["id"],
-            "owner_profile_id": profile["id"],
-            "start_date": datetime.date.today().isoformat()
-        }).execute()
-        
+    if profile.get("role") not in VEHICLE_CREATOR_ROLES:
+        raise HTTPException(status_code=403, detail="Your role cannot register vehicles.")
+    existing = supabase.table("vehicles").select("id").eq("registration_number", vehicle.registration_number).execute().data
+    if existing:
+        raise HTTPException(status_code=409, detail="A vehicle with this registration number is already registered.")
+
+    data = vehicle.model_dump()
+    # Only administrators may create seeded demo records.
+    data["is_demo"] = bool(vehicle.is_demo) and profile.get("role") == "ADMIN"
+    v_data = supabase.table("vehicles").insert(data).execute().data[0]
+
+    supabase.table("ownership_history").insert({
+        "vehicle_id": v_data["id"],
+        "owner_profile_id": profile["id"],
+        "start_date": datetime.date.today().isoformat(),
+    }).execute()
     return v_data
+
+
+def _day(value: Any, default: str = "") -> str:
+    s = str(value or default)
+    return s.split("T")[0]
+
 
 @router.get("/{vehicle_id}/timeline")
 async def get_vehicle_timeline(vehicle_id: str, profile: dict = Depends(get_current_profile)):
     """
-    Returns a chronological lifecycle history for the vehicle,
-    categorizing each event as DATABASE_RECORD, USER_PROVIDED_RECORD, COMPUTED_RECORD,
-    and indicating BLOCKCHAIN_VERIFIED status where committed to Fabric.
+    Chronological history for the vehicle. Each event states where it came from;
+    `blockchain_verified` is true only for records whose fingerprint is COMMITTED on Fabric.
     """
-    # 1. Fetch vehicle base
-    v_res = supabase.table("vehicles").select("*").eq("id", vehicle_id).execute()
-    if not v_res.data:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
-    vehicle = v_res.data[0]
+    require_vehicle_access(profile, vehicle_id)
+    v_rows = supabase.table("vehicles").select("*").eq("id", vehicle_id).execute().data
+    if not v_rows:
+        raise HTTPException(status_code=404, detail="Vehicle not found.")
+    vehicle = v_rows[0]
+    demo = bool(vehicle.get("is_demo"))
+    events = []
 
-    timeline_events = []
-
-    # Vehicle Registration Event
-    timeline_events.append({
-        "date": vehicle["created_at"].split("T")[0] if "T" in vehicle["created_at"] else vehicle["created_at"],
+    events.append({
+        "date": _day(vehicle.get("created_at")),
         "event_type": "REGISTRATION",
-        "title": "Vehicle Registered",
-        "description": f"{vehicle['make']} {vehicle['model']} ({vehicle['manufacture_year']}) registered with {vehicle['registration_number']}",
-        "provenance_type": "DATABASE_RECORD",
-        "actor": "RTO / Parivahan",
-        "blockchain_verified": True
+        "title": "Vehicle added to VeriSure",
+        "description": f"{vehicle['make']} {vehicle['model']} ({vehicle['manufacture_year']}), registration {vehicle['registration_number']}",
+        "provenance_type": "DEMO_RECORD" if demo else "USER_PROVIDED_RECORD",
+        "actor": "Owner",
+        "blockchain_verified": False,
     })
 
-    # Ownership History
-    owns = supabase.table("ownership_history").select("*, profiles(full_name)").eq("vehicle_id", vehicle_id).execute()
-    for o in (owns.data or []):
-        owner_name = o.get("profiles", {}).get("full_name", "Registered Owner") if isinstance(o.get("profiles"), dict) else "Registered Owner"
-        timeline_events.append({
-            "date": str(o.get("start_date", "2026-01-01")),
+    owns = supabase.table("ownership_history").select("*, profiles(full_name)").eq("vehicle_id", vehicle_id).execute().data or []
+    for o in owns:
+        owner_name = o.get("profiles", {}).get("full_name", "Registered owner") if isinstance(o.get("profiles"), dict) else "Registered owner"
+        events.append({
+            "date": _day(o.get("start_date")),
             "event_type": "OWNERSHIP",
-            "title": "Ownership Recorded",
-            "description": f"Vehicle title assigned to {owner_name}",
-            "provenance_type": "DATABASE_RECORD",
-            "actor": "Registry",
-            "blockchain_verified": True
+            "title": "Ownership recorded in VeriSure",
+            "description": f"Linked to {owner_name}",
+            "provenance_type": "DEMO_RECORD" if demo else "DATABASE_RECORD",
+            "actor": "VeriSure account",
+            "blockchain_verified": False,
         })
 
-    # Policies
-    pols = supabase.table("policies").select("*, organizations(name)").eq("vehicle_id", vehicle_id).execute()
-    for p in (pols.data or []):
+    pols = supabase.table("policies").select("*, organizations(name)").eq("vehicle_id", vehicle_id).execute().data or []
+    for p in pols:
         org_name = p.get("organizations", {}).get("name", "Insurer") if isinstance(p.get("organizations"), dict) else "Insurer"
-        timeline_events.append({
-            "date": str(p.get("start_date", "2026-01-01")),
+        idv = p.get("idv") or p.get("idv_amount") or 0
+        events.append({
+            "date": _day(p.get("start_date")),
             "event_type": "POLICY_ISSUED",
-            "title": f"Policy Issued ({p.get('policy_type', 'COMPREHENSIVE')})",
-            "description": f"IDV: ₹{p.get('idv', 0):,.2f} | NCB: {p.get('ncb_percentage', 0)}% via {org_name}",
-            "provenance_type": "USER_PROVIDED_RECORD",
+            "title": f"Policy on record ({p.get('policy_type', 'COMPREHENSIVE')})",
+            "description": f"IDV ₹{float(idv):,.0f} · NCB {p.get('ncb_percentage', 0)}% · {org_name}",
+            "provenance_type": "DEMO_RECORD" if demo else "USER_PROVIDED_RECORD",
             "actor": org_name,
-            "blockchain_verified": True
+            "blockchain_verified": False,
         })
 
-    # Claims
-    p_ids = [p["id"] for p in (pols.data or [])]
+    claims = supabase.table("claims").select("*").eq("vehicle_id", vehicle_id).execute().data or []
+    known = {c["id"] for c in claims}
+    p_ids = [p["id"] for p in pols]
     if p_ids:
-        claims = supabase.table("claims").select("*").in_("policy_id", p_ids).execute()
-        for c in (claims.data or []):
-            ledger_info = supabase.table("ledger_references").select("blockchain_tx_id, sync_status, local_data_hash").eq("entity_id", c["id"]).execute()
-            tx_id = ledger_info.data[0].get("blockchain_tx_id") if ledger_info.data else None
-            is_committed = ledger_info.data[0].get("sync_status") == "COMMITTED" if ledger_info.data else False
+        claims += [c for c in (supabase.table("claims").select("*").in_("policy_id", p_ids).execute().data or []) if c["id"] not in known]
+    for c in claims:
+        ledger = supabase.table("ledger_references").select("blockchain_tx_id, sync_status").eq("entity_id", c["id"]).execute().data
+        ref = ledger[0] if ledger else {}
+        events.append({
+            "date": _day(c.get("created_at")),
+            "event_type": "CLAIM_FILED",
+            "title": f"Claim recorded ({c.get('status', 'DRAFT')})",
+            "description": f"Claim {c.get('claim_number') or c['id'][:8]} · estimated repair ₹{float(c.get('estimated_repair_cost') or 0):,.0f}",
+            "provenance_type": "DEMO_RECORD" if demo else "USER_PROVIDED_RECORD",
+            "actor": "Policyholder",
+            "claim_id": c["id"],
+            "ledger_sync_status": ref.get("sync_status", "NOT_COMMITTED"),
+            "blockchain_verified": ref.get("sync_status") == "COMMITTED",
+            "blockchain_tx_id": ref.get("blockchain_tx_id"),
+        })
 
-            timeline_events.append({
-                "date": c.get("created_at", "2026-01-01").split("T")[0],
-                "event_type": "CLAIM_FILED",
-                "title": f"Claim Filed ({c.get('status', 'PENDING')})",
-                "description": f"Claim {c['id'][:8]} filed. Estimated repair: ₹{c.get('estimated_repair_cost', 0):,.2f}",
-                "provenance_type": "USER_PROVIDED_RECORD",
-                "actor": "Policyholder",
-                "blockchain_verified": is_committed,
-                "blockchain_tx_id": tx_id
-            })
-
-    # Consents
-    cons = supabase.table("consents").select("*, organizations(name)").eq("vehicle_id", vehicle_id).execute()
-    for con in (cons.data or []):
-        target_org = con.get("organizations", {}).get("name", "Third Party") if isinstance(con.get("organizations"), dict) else "Third Party"
-        timeline_events.append({
-            "date": con.get("created_at", "2026-01-01").split("T")[0],
+    cons = supabase.table("consents").select("*, organizations(name)").eq("vehicle_id", vehicle_id).execute().data or []
+    for con in cons:
+        target_org = con.get("organizations", {}).get("name", "Third party") if isinstance(con.get("organizations"), dict) else "Third party"
+        events.append({
+            "date": _day(con.get("created_at")),
             "event_type": "CONSENT_GRANTED",
-            "title": "Data Access Granted",
-            "description": f"Owner authorized data sharing with {target_org} until {con.get('valid_until', '')[:10]}",
+            "title": "Data access granted",
+            "description": f"Owner allowed {target_org} to view this vehicle's records until {str(con.get('valid_until', ''))[:10]}",
             "provenance_type": "DATABASE_RECORD",
             "actor": "Policyholder",
-            "blockchain_verified": True
+            "blockchain_verified": False,
         })
 
-    # Sort chronologically
-    timeline_events.sort(key=lambda x: x["date"], reverse=True)
+    events.sort(key=lambda x: x["date"], reverse=True)
 
     return {
         "vehicle": vehicle,
-        "total_events": len(timeline_events),
-        "timeline": timeline_events,
-        "integrity_notice": "Cryptographic Verification Notice: Hyperledger Fabric confirms the digital integrity and timestamp of records since entry. It proves records have not been tampered with; it does not substitute for human surveyor inspection of physical damage."
+        "total_events": len(events),
+        "timeline": events,
+        "integrity_notice": "A ledger record proves that a record's contents have not changed since its fingerprint was anchored. It does not prove that the underlying event or damage occurred; that remains for insurers and surveyors to assess.",
     }

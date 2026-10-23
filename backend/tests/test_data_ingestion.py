@@ -32,6 +32,7 @@ def test_ml_pipeline_feature_extraction():
     vehicle = {"manufacture_year": 2022}
     
     features = extract_features(claim, vehicle, 2)
-    assert features.vehicle_age == -4 # 2022 - 2026
+    import datetime
+    assert features.vehicle_age == datetime.date.today().year - 2022
     assert features.historical_claim_count == 2
     assert features.estimated_cost_ratio == 0.5

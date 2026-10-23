@@ -10,7 +10,8 @@ import { StatusBadge, VerificationBadge } from '@/components/common/StatusBadge'
 import { EmptyState, SkeletonCard } from '@/components/common/EmptyState';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR, formatDate, truncateHash } from '@/lib/formatters';
-import { API_BASE_URL } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
+import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
 import {
   Activity,
   ShieldAlert,
@@ -38,6 +39,7 @@ type ClaimSummary = {
   status: string;
   created_at: string;
   policies?: { vehicle_id?: string };
+  ledger?: { sync_status?: string; blockchain_tx_id?: string | null };
 };
 
 type ClaimDossier = {
@@ -98,19 +100,16 @@ export default function InsurerDashboard() {
   const [dossierLoading, setDossierLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
+  const [loadError, setLoadError] = useState<unknown>(null);
 
   const fetchClaims = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/claims`, {
-        headers: { Authorization: 'Bearer dev-insurer' },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setClaims(data || []);
-      }
+      setLoadError(null);
+      const data = await apiFetch<ClaimSummary[]>('/api/v1/claims');
+      setClaims(data || []);
     } catch (e) {
-      console.error('Failed to fetch claims:', e);
+      setLoadError(e);
     } finally {
       setLoading(false);
     }
@@ -124,15 +123,9 @@ export default function InsurerDashboard() {
     setSelectedClaimId(claimId);
     setDossierLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/claims/${claimId}`, {
-        headers: { Authorization: 'Bearer dev-insurer' },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setDossier(data);
-      }
+      setDossier(await apiFetch<ClaimDossier>(`/api/v1/claims/${encodeURIComponent(claimId)}`));
     } catch (e) {
-      console.error('Failed to fetch claim dossier:', e);
+      setLoadError(e);
     } finally {
       setDossierLoading(false);
     }
@@ -173,6 +166,8 @@ export default function InsurerDashboard() {
         }
       />
 
+      {loadError != null && <ApiErrorNotice error={loadError} onRetry={fetchClaims} className="mb-6" />}
+
       {/* KPI Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
@@ -182,22 +177,21 @@ export default function InsurerDashboard() {
           icon={Activity}
         />
         <StatCard
-          label="On-Chain Anchors"
-          value="100%"
-          subtext="Sealed on Hyperledger Fabric"
+          label="Ledger-Anchored Claims"
+          value={claims.length ? `${claims.filter((c) => c.ledger?.sync_status === 'COMMITTED').length} / ${claims.length}` : '—'}
+          subtext="Fingerprint committed on Fabric"
           icon={ShieldCheck}
-          trend={{ value: 'ALL SEALED', isPositive: true }}
         />
         <StatCard
           label="Underwriting Desk"
-          value="HDFC ERGO"
-          subtext="Desk ID: 0004 • Motor OD"
+          value="Demo insurer"
+          subtext="Fictional demo organisation"
           icon={Building}
         />
         <StatCard
           label="ML Audit Mode"
           value="DATA_LIMITED"
-          subtext="IRDAI Compliant (Zero Hallucination)"
+          subtext="No ML scores produced"
           icon={ShieldAlert}
           trend={{ value: 'DETERMINISTIC', isNeutral: true }}
         />

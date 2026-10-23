@@ -1,3 +1,4 @@
+import datetime
 from typing import Dict, Any
 from .fraud_scorer import FraudScorer, FraudFeatureVector
 from .severity_predictor import SeverityPredictor, SeverityFeatureVector
@@ -9,10 +10,12 @@ def extract_features(claim_data: Dict[str, Any], vehicle_data: Dict[str, Any], h
     """
     Data Ingestion pipeline to convert raw PostgreSQL JSON into normalized model features.
     """
+    current_year = datetime.date.today().year
+    manufacture_year = vehicle_data.get("manufacture_year") or current_year
     return FraudFeatureVector(
-        vehicle_age=vehicle_data.get("manufacture_year", 2026) - 2026,
+        vehicle_age=max(0, current_year - int(manufacture_year)),
         historical_claim_count=historical_claims,
-        estimated_cost_ratio=claim_data.get("estimated_repair_cost", 0) / 100000.0
+        estimated_cost_ratio=float(claim_data.get("estimated_repair_cost") or 0) / 100000.0
     )
 
 def run_claim_intelligence(claim_id: str, claim_data: Dict[str, Any], vehicle_data: Dict[str, Any], historical_claims: int) -> Dict[str, Any]:

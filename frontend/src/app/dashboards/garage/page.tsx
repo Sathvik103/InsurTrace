@@ -9,7 +9,8 @@ import { StatusBadge } from '@/components/common/StatusBadge';
 import { EmptyState, SkeletonCard } from '@/components/common/EmptyState';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR, formatDate } from '@/lib/formatters';
-import { API_BASE_URL } from '@/lib/api';
+import { apiFetch, describeApiError } from '@/lib/api';
+import { toast } from 'sonner';
 import {
   Wrench,
   CheckSquare,
@@ -59,15 +60,10 @@ export default function GarageDashboard() {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/claims`, {
-        headers: { Authorization: 'Bearer dev-garage' },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setJobs(data || []);
-      }
+      const data = await apiFetch<GarageJob[]>('/api/v1/claims');
+      setJobs(data || []);
     } catch (e) {
-      console.error('Failed to fetch garage repair jobs:', e);
+      toast.error('Could not load repair jobs', { description: describeApiError(e).message });
     } finally {
       setLoading(false);
     }
@@ -96,32 +92,13 @@ export default function GarageDashboard() {
   const gst = Math.round(subtotal * 0.18);
   const grandTotal = subtotal + gst;
 
+  // Workshop estimates need their own repairs workflow (estimate -> claim, with the
+  // owner's consent). Until it exists, say so instead of pretending to transmit.
   const submitEstimate = async () => {
-    setSubmitting(true);
     setSuccessMessage(null);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/claims`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer dev-garage',
-        },
-        body: JSON.stringify({
-          policy_id: targetPolicy,
-          accident_id: 'EST-' + Date.now().toString().slice(-6),
-          estimated_repair_cost: grandTotal,
-          status: 'ESTIMATE_SUBMITTED',
-        }),
-      });
-      if (!res.ok) throw new Error('Failed to record garage estimate');
-      setSuccessMessage('Itemized estimate transmitted to insurer desk and recorded.');
-      await fetchJobs();
-    } catch (e) {
-      console.error(e);
-      alert('Failed to submit estimate. Verify backend connection.');
-    } finally {
-      setSubmitting(false);
-    }
+    toast.info('Estimate submission is not available yet', {
+      description: 'Workshop estimates will be recorded against a consented claim in an upcoming release. Nothing was sent.',
+    });
   };
 
   return (

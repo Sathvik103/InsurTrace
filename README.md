@@ -91,22 +91,25 @@ cd backend/blockchain
 ./start_and_verify.sh
 ```
 
-### 3. Start Blockchain REST Gateway
-```bash
-cd backend/blockchain/gateway
-npm install
-npm start
-# Listens on http://localhost:3001
-```
-
-### 4. Start FastAPI Backend
+### 3. Start FastAPI Backend
 ```bash
 cd backend
 python -m venv venv
 .\venv\Scripts\activate   # Windows
 # source venv/bin/activate  # Linux/macOS
-pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+pip install -r requirements-dev.txt
+uvicorn main:app --port 8000 --reload
+```
+With no `SUPABASE_URL` the API runs on the in-memory **demo sandbox** (fictional data, reset on restart).
+With `FABRIC_MODE=auto` (default) on a machine with WSL/Docker, it talks to the local Fabric network
+directly through the peer CLI; the optional gateway in `backend/blockchain/gateway` is only needed when
+the API runs on a different host from the peers (see [docs/deployment.md](docs/deployment.md)).
+
+### 4. (Optional) Fabric gateway
+```bash
+cd backend/blockchain/gateway
+npm install
+GATEWAY_API_KEY=$(openssl rand -hex 32) npm start   # listens on :3001, requires X-Gateway-Key
 ```
 
 ### 5. Start Next.js Frontend
@@ -124,16 +127,16 @@ npm run dev
 ### Backend Test Suite
 ```bash
 cd backend
-.\venv\Scripts\pytest
-# Result: 25 passed in ~34s
+.\venv\Scripts\python -m pytest            # unit + API tests, ledger disabled
+FABRIC_TESTS=1 .\venv\Scripts\python -m pytest -m fabric   # live tests against the local Fabric network
 ```
 
 ### Frontend Type Safety & Production Build
 ```bash
 cd frontend
 npx tsc --noEmit
+npm run lint
 npm run build
-# Result: Compiled successfully; 20 static/dynamic routes optimized
 ```
 
 ---

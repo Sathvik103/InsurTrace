@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { useVehicle, Vehicle } from '@/context/VehicleContext';
 import { formatINR } from '@/lib/formatters';
+import { describeApiError } from '@/lib/api';
 import {
   Car,
   CheckCircle2,
@@ -167,9 +168,8 @@ export default function NewVehiclePage() {
 
       setCreatedVehicle(newVehicle);
       setSelectedVehicleId(newVehicle.id);
-    } catch (err: any) {
-      console.error('Failed to create vehicle:', err);
-      setError(err.message || 'Failed to save vehicle. Please check inputs.');
+    } catch (err) {
+      setError(describeApiError(err).message);
     } finally {
       setSaving(false);
     }

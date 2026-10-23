@@ -1,0 +1,32 @@
+# Render Blueprint for the VeriSure API (FastAPI).
+# Secrets marked sync:false are entered in the Render dashboard, never committed.
+services:
+  - type: web
+    name: verisure-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: ALLOWED_ORIGINS
+        value: https://insur-trace.vercel.app
+      # auto: ledger disabled until GATEWAY_URL + GATEWAY_API_KEY point at a reachable gateway
+      - key: FABRIC_MODE
+        value: auto
+      - key: ENABLE_DEMO_AUTH
+        value: "true"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: GATEWAY_URL
+        sync: false
+      - key: GATEWAY_API_KEY
+        sync: false

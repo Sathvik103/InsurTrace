@@ -81,7 +81,7 @@ export default function OnboardingPage() {
         fuel_type: vehicleData.fuelType,
         usage_type: vehicleData.usageType,
         is_demo: false,
-        policy_number: insuranceData.unknownPolicy ? undefined : (insuranceData.policyNumber || 'POL-PENDING'),
+        policy_number: insuranceData.unknownPolicy ? undefined : (insuranceData.policyNumber.trim() || undefined),
         idv: insuranceData.unknownPolicy ? 500000 : Number(insuranceData.idv),
         ncb_percentage: insuranceData.unknownPolicy ? 20 : Number(insuranceData.ncbPercentage),
         policy_type: insuranceData.policyType,
@@ -91,15 +91,13 @@ export default function OnboardingPage() {
       };
 
       try {
-        await addVehicle(newVeh);
-        setSelectedVehicleId(newVeh.id);
-        setCreatedVehicle(newVeh);
-      } catch (e) {
-        console.error('Error saving vehicle:', e);
-        setCreatedVehicle(newVeh);
+        const saved = await addVehicle(newVeh);
+        setSelectedVehicleId(saved.id);
+        setCreatedVehicle(saved);
+        setCurrentStep(4);
+      } catch {
+        // addVehicle has already shown the reason (e.g. duplicate registration); stay on this step.
       }
-
-      setCurrentStep(4);
     }
   };
 

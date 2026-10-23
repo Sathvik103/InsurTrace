@@ -8,7 +8,9 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { FadeIn } from '@/components/motion/MotionPrimitives';
 import { formatDate } from '@/lib/formatters';
 import { useVehicle } from '@/context/VehicleContext';
-import { API_BASE_URL } from '@/lib/api';
+import { apiFetch, describeApiError } from '@/lib/api';
+import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
+import { toast } from 'sonner';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -61,6 +63,7 @@ export default function ConsentDashboard() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [grantSuccess, setGrantSuccess] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<unknown>(null);
 
   // Form state
   const [targetVehicleId, setTargetVehicleId] = useState<string>(selectedVehicleId || 'V-REAL-101');
@@ -76,53 +79,13 @@ export default function ConsentDashboard() {
 
   const fetchConsents = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/consents`, {
-        headers: { Authorization: 'Bearer dev-policyholder' },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setConsents(data || []);
-      } else {
-        setConsents([
-          {
-            id: 'CON-001',
-            vehicle_id: 'V-REAL-101',
-            requesting_org_id: '00000000-0000-0000-0000-000000000003',
-            valid_until: '2027-01-01T00:00:00Z',
-            created_at: '2026-01-02T10:00:00Z',
-            organizations: { name: 'Quality Auto Care Workshop' },
-          },
-          {
-            id: 'CON-002',
-            vehicle_id: 'V-REAL-102',
-            requesting_org_id: '00000000-0000-0000-0000-000000000005',
-            valid_until: '2026-12-31T23:59:59Z',
-            created_at: '2026-02-15T11:00:00Z',
-            organizations: { name: 'Demo Independent Assessors Guild' },
-          },
-          {
-            id: 'CON-003',
-            vehicle_id: 'V-REAL-104',
-            requesting_org_id: '00000000-0000-0000-0000-000000000004',
-            valid_until: '2027-04-10T00:00:00Z',
-            created_at: '2026-04-11T09:00:00Z',
-            organizations: { name: 'Demo General Insurance Ltd' },
-          },
-        ]);
-      }
+      const data = await apiFetch<ConsentItem[]>('/api/v1/consents');
+      setConsents(data || []);
     } catch (e) {
-      console.error('Failed to load consents:', e);
-      setConsents([
-        {
-          id: 'CON-001',
-          vehicle_id: 'V-REAL-101',
-          requesting_org_id: '00000000-0000-0000-0000-000000000003',
-          valid_until: '2027-01-01T00:00:00Z',
-          created_at: '2026-01-02T10:00:00Z',
-          organizations: { name: 'Quality Auto Care Workshop' },
-        },
-      ]);
+      setConsents([]);
+      setLoadError(e);
     } finally {
       setLoading(false);
     }
@@ -132,24 +95,19 @@ export default function ConsentDashboard() {
     fetchConsents();
   }, []);
 
+  // Only report a change after the server confirms it: a revocation that did
+  // not happen must never be shown as done.
   const revoke = async (id: string) => {
     setActionLoading(true);
+    setGrantSuccess(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/consents/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: 'Bearer dev-policyholder' },
-      });
-      if (res.ok) {
-        setConsents((prev) => prev.filter((c) => c.id !== id));
-        setGrantSuccess('Data sharing permission revoked immediately.');
-      } else {
-        setConsents((prev) => prev.filter((c) => c.id !== id));
-        setGrantSuccess('Data sharing permission revoked (local record updated).');
-      }
-    } catch (e) {
-      console.error('Failed to revoke consent:', e);
+      await apiFetch(`/api/v1/consents/${id}`, { method: 'DELETE' });
       setConsents((prev) => prev.filter((c) => c.id !== id));
       setGrantSuccess('Data sharing permission revoked.');
+      toast.success('Access revoked.');
+    } catch (e) {
+      const { title, message } = describeApiError(e);
+      toast.error(`Access was NOT revoked: ${title}`, { description: message });
     } finally {
       setActionLoading(false);
     }
@@ -157,51 +115,26 @@ export default function ConsentDashboard() {
 
   const grantAccess = async () => {
     setActionLoading(true);
+    setGrantSuccess(null);
     const targetOrg = PARTNER_ORGANIZATIONS.find((o) => o.id === selectedOrgId) || PARTNER_ORGANIZATIONS[0];
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + validityDays);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/consents`, {
+      await apiFetch('/api/v1/consents', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer dev-policyholder',
+        body: {
+          vehicle_id: targetVehicleId,
+          requesting_org_id: selectedOrgId,
+          valid_until: expiryDate.toISOString(),
         },
-        body: JSON.stringify({
-          vehicle_id: targetVehicleId,
-          requesting_org_id: selectedOrgId,
-          valid_until: expiryDate.toISOString(),
-        }),
       });
-
-      if (res.ok) {
-        await fetchConsents();
-        setGrantSuccess(`Data sharing permission granted to ${targetOrg.name} for ${validityDays} days.`);
-      } else {
-        const newConsent: ConsentItem = {
-          id: `CON-${Date.now().toString().slice(-4)}`,
-          vehicle_id: targetVehicleId,
-          requesting_org_id: selectedOrgId,
-          valid_until: expiryDate.toISOString(),
-          created_at: new Date().toISOString(),
-          organizations: { name: targetOrg.name },
-        };
-        setConsents((prev) => [newConsent, ...prev]);
-        setGrantSuccess(`Data sharing permission granted to ${targetOrg.name} for ${validityDays} days.`);
-      }
-    } catch (e) {
-      console.error('Failed to grant consent, adding locally:', e);
-      const newConsent: ConsentItem = {
-        id: `CON-${Date.now().toString().slice(-4)}`,
-        vehicle_id: targetVehicleId,
-        requesting_org_id: selectedOrgId,
-        valid_until: expiryDate.toISOString(),
-        created_at: new Date().toISOString(),
-        organizations: { name: targetOrg.name },
-      };
-      setConsents((prev) => [newConsent, ...prev]);
+      await fetchConsents();
       setGrantSuccess(`Data sharing permission granted to ${targetOrg.name} for ${validityDays} days.`);
+      toast.success('Access granted.');
+    } catch (e) {
+      const { title, message } = describeApiError(e);
+      toast.error(`Access was not granted: ${title}`, { description: message });
     } finally {
       setActionLoading(false);
     }
@@ -319,6 +252,8 @@ export default function ConsentDashboard() {
 
             {loading ? (
               <div className="p-8 text-center text-xs text-zinc-400">Loading data sharing permissions...</div>
+            ) : loadError != null ? (
+              <ApiErrorNotice error={loadError} onRetry={fetchConsents} />
             ) : filteredConsents.length === 0 ? (
               <EmptyState
                 icon={ShieldCheck}

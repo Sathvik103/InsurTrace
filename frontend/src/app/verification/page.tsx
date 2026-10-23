@@ -7,7 +7,9 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { StatCard } from '@/components/common/StatCard';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { formatINR, truncateHash } from '@/lib/formatters';
-import { API_BASE_URL } from '@/lib/api';
+import { apiFetch, describeApiError } from '@/lib/api';
+import { toast } from 'sonner';
+import { useSystemStatus } from '@/lib/useSystemStatus';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -64,21 +66,14 @@ function VerificationContent() {
     if (!targetId) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/verify-claim/${targetId}`);
-      if (!res.ok) {
-        throw new Error(`Verification endpoint returned status ${res.status}`);
-      }
-      const data = await res.json();
+      const data = await apiFetch<any>(`/api/v1/admin/verify-claim/${encodeURIComponent(targetId)}`, { timeoutMs: 60000 });
       setStatus(data);
       if (data.original_cost) {
         setOriginalCost(data.original_cost);
       }
-    } catch (e: any) {
-      console.error('Verification error:', e);
-      setStatus({
-        status: 'ERROR',
-        message: e.message || 'Failed to connect to verification service. Ensure backend is running.',
-      });
+    } catch (e) {
+      const { title, message } = describeApiError(e);
+      setStatus({ status: 'ERROR', message: `${title}. ${message}` });
     } finally {
       setLoading(false);
     }
@@ -88,18 +83,11 @@ function VerificationContent() {
     if (!claimId) return;
     setActionLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/tamper-claim/${claimId}`, {
-        method: 'POST',
-        headers: {
-          Authorization: 'Bearer dev-admin',
-        },
-      });
-      const data = await res.json();
+      await apiFetch(`/api/v1/admin/tamper-claim/${encodeURIComponent(claimId)}`, { method: 'POST' });
       // Re-verify immediately to demonstrate detection
       await runVerification(claimId);
     } catch (e) {
-      console.error(e);
-      alert('Failed to tamper record.');
+      toast.error('Tamper simulation unavailable', { description: describeApiError(e).message });
     } finally {
       setActionLoading(false);
     }
@@ -109,27 +97,21 @@ function VerificationContent() {
     if (!claimId) return;
     setActionLoading(true);
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/v1/admin/restore-claim/${claimId}?original_cost=${originalCost}`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: 'Bearer dev-admin',
-          },
-        }
-      );
-      const data = await res.json();
+      await apiFetch(`/api/v1/admin/restore-claim/${encodeURIComponent(claimId)}?original_cost=${originalCost}`, { method: 'POST' });
       // Re-verify immediately to demonstrate restoration to green verified state
       await runVerification(claimId);
     } catch (e) {
-      console.error(e);
-      alert('Failed to restore record.');
+      toast.error('Restore failed', { description: describeApiError(e).message });
     } finally {
       setActionLoading(false);
     }
   };
 
-  const isTampered = status?.status === 'TAMPERED';
+  const isTampered = status?.status === 'TAMPERED' || status?.status === 'INTEGRITY_VERIFICATION_FAILED';
+  const { status: system, error: systemError } = useSystemStatus();
+  const fabric = system?.components?.hyperledger_fabric as
+    | { status?: string; mode?: string; peer0_org1?: { status?: string }; peer0_org2?: { status?: string }; orderer?: { status?: string } }
+    | undefined;
   const isVerified = status?.status === 'VERIFIED';
 
   return (
@@ -143,35 +125,31 @@ function VerificationContent() {
         ]}
       />
 
-      {/* Network Health Grid */}
+      {/* Network Health Grid: live values from /api/v1/system/status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           label="Fabric Peer 0 (Org1)"
-          value="HEALTHY"
+          value={fabric?.peer0_org1?.status || (fabric ? 'NOT CONNECTED' : '…')}
           subtext="Org1MSP • Port 7051 • Channel mychannel"
           icon={Network}
-          trend={{ value: 'ACTIVE', isPositive: true }}
         />
         <StatCard
           label="Fabric Peer 0 (Org2)"
-          value="HEALTHY"
+          value={fabric?.peer0_org2?.status || (fabric ? 'NOT CONNECTED' : '…')}
           subtext="Org2MSP • Port 9051 • Endorsing"
           icon={Network}
-          trend={{ value: 'ACTIVE', isPositive: true }}
         />
         <StatCard
-          label="Orderer Consensus"
-          value="RAFT CFT"
-          subtext="OrdererMSP • Port 7050 • TLS Enabled"
+          label="Orderer (Raft)"
+          value={fabric?.orderer?.status || (fabric ? 'NOT CONNECTED' : '…')}
+          subtext="OrdererMSP • Port 7050 • TLS"
           icon={Cpu}
-          trend={{ value: 'CONSENSUS OK', isPositive: true }}
         />
         <StatCard
-          label="Active Chaincode"
-          value="VehicleHistory"
-          subtext="Version 1.0 • Channel mychannel"
+          label="Ledger Connection"
+          value={fabric?.status || (systemError ? 'UNKNOWN' : '…')}
+          subtext={fabric?.mode ? `Mode: ${fabric.mode} • chaincode vehicle` : 'Status from the VeriSure API'}
           icon={ShieldCheck}
-          trend={{ value: 'ENDORSED', isPositive: true }}
         />
       </div>
 
@@ -194,7 +172,7 @@ function VerificationContent() {
                   Cryptographic State Proof Inspector
                 </h3>
                 <p className="text-[11px] text-zinc-500">
-                  Compares PostgreSQL relational row hash with on-chain Hyperledger Fabric block record
+                  Compares the current record’s fingerprint with the one anchored on Hyperledger Fabric
                 </p>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
@@ -297,7 +275,7 @@ function VerificationContent() {
                             : 'bg-zinc-200 text-zinc-800'
                         }`}
                       >
-                        {status.network_mode || 'REAL_FABRIC'}
+                        {status.network_mode || '—'}
                       </span>
                     </div>
 
@@ -311,9 +289,9 @@ function VerificationContent() {
                       }`}
                     >
                       {isVerified
-                        ? 'The live database state hash matches the on-chain Hyperledger Fabric block record character-for-character. No unauthorized mutations have occurred.'
+                        ? 'The current record’s SHA-256 fingerprint matches the one anchored on the Fabric ledger, so the record has not changed since it was anchored.'
                         : isTampered
-                        ? 'The PostgreSQL state has diverged from the on-chain consortium block record! The database repair cost or claim metadata has been mutated out-of-band.'
+                        ? 'The current record no longer matches the fingerprint anchored on the ledger: it was modified after anchoring.'
                         : status.message || 'Audit complete.'}
                     </p>
                   </div>
@@ -329,7 +307,7 @@ function VerificationContent() {
                 <div className="space-y-3 font-mono text-xs">
                   <div>
                     <div className="text-[10px] text-zinc-500 uppercase mb-1">
-                      1. Live PostgreSQL Canonical Hash:
+                      1. Current database record (SHA-256):
                     </div>
                     <div
                       className={`p-3 rounded-lg border break-all select-all ${
@@ -338,23 +316,23 @@ function VerificationContent() {
                           : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200'
                       }`}
                     >
-                      {status.computed_hash || status.database_hash || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}
+                      {status.database_hash || status.hash || 'Not available'}
                     </div>
                   </div>
 
                   <div>
                     <div className="text-[10px] text-zinc-500 uppercase mb-1">
-                      2. On-Chain Hyperledger Fabric Block Hash:
+                      2. Fingerprint anchored on the ledger:
                     </div>
                     <div className="p-3 rounded-lg border bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 break-all select-all">
-                      {status.ledger_hash || status.blockchain_hash || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}
+                      {status.ledger_hash || 'Not available (ledger not queried)'}
                     </div>
                   </div>
 
-                  {status.blockchain_tx_id && (
+                  {(status.transaction_id || status.blockchain_tx_id) && (
                     <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px]">
                       <span className="text-zinc-500">Fabric Transaction ID:</span>
-                      <span className="text-zinc-800 dark:text-zinc-200">{status.blockchain_tx_id}</span>
+                      <span className="text-zinc-800 dark:text-zinc-200">{status.transaction_id || status.blockchain_tx_id}</span>
                     </div>
                   )}
                 </div>
@@ -408,7 +386,7 @@ function VerificationContent() {
               Conventional databases have a single point of failure: an administrator or malicious query can alter claim payout amounts without leaving an indisputable external trace.
             </p>
             <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              By committing canonical SHA-256 hashes to a multi-peer Hyperledger Fabric ledger, VeriSure guarantees that unauthorized data mutations are mathematically impossible to conceal.
+              By committing canonical SHA-256 hashes to a multi-peer Hyperledger Fabric ledger, later changes to a record can be detected, provided the ledger network itself has not been compromised.
             </p>
           </div>
         </div>

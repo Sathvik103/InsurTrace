@@ -1,9 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { getAuthToken } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { API_BASE_URL } from '@/lib/api';
+import { apiFetch, describeApiError } from '@/lib/api';
+import { toast } from 'sonner';
 
 export interface Vehicle {
   id: string;
@@ -25,6 +25,8 @@ export interface Vehicle {
   policy_type?: string;
   policy_expiry?: string;
   has_zero_dep?: boolean;
+  /** True when the server could not be reached and the vehicle exists only in this browser. */
+  is_local_only?: boolean;
   created_at?: string;
 }
 
@@ -221,15 +223,8 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
     if (status === 'hydrating') return;
 
     try {
-      const currentToken = token || getAuthToken();
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (currentToken) {
-        headers['Authorization'] = `Bearer ${currentToken}`;
-      }
-
-      const res = await fetch(`${API_BASE_URL}/api/v1/vehicles`, { headers });
-      if (res.ok) {
-        const backendVehicles: Vehicle[] = await res.json();
+      {
+        const backendVehicles = await apiFetch<Vehicle[]>('/api/v1/vehicles');
         if (Array.isArray(backendVehicles) && backendVehicles.length > 0) {
           setVehicles((prev) => {
             const map = new Map<string, Vehicle>();
@@ -280,17 +275,11 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
       is_demo: false,
     };
 
-    // Try posting to backend
+    // Try saving to the backend; fall back to this browser only (flagged) if unreachable.
     try {
-      const token = getAuthToken();
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      const res = await fetch(`${API_BASE_URL}/api/v1/vehicles`, {
+      const saved = await apiFetch<Vehicle>('/api/v1/vehicles', {
         method: 'POST',
-        headers,
-        body: JSON.stringify({
+        body: {
           registration_number: newVehicle.registration_number,
           make: newVehicle.make,
           model: newVehicle.model,
@@ -302,16 +291,20 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
           fitness_valid_until: newVehicle.fitness_valid_until,
           downtime_cost_per_day: newVehicle.downtime_cost_per_day,
           is_demo: false,
-        }),
+        },
       });
-      if (res.ok) {
-        const saved = await res.json();
-        if (saved && saved.id) {
-          newVehicle.id = saved.id;
-        }
-      }
+      if (saved?.id) newVehicle.id = saved.id;
     } catch (e) {
-      console.warn('Backend unavailable, saving vehicle locally:', e);
+      const { title, message } = describeApiError(e);
+      if ((e as { kind?: string })?.kind === 'validation') {
+        // e.g. duplicate registration: surface it rather than silently keeping a local copy.
+        toast.error(title, { description: message });
+        throw e;
+      }
+      newVehicle.is_local_only = true;
+      toast.warning('Saved in this browser only', {
+        description: `${title}. The vehicle will not be available on other devices until the server is reachable.`,
+      });
     }
 
     // Save locally

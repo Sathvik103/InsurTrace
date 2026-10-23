@@ -7,7 +7,8 @@ import { PageHeader } from '@/components/common/PageHeader';
 import { TrustBadge } from '@/components/common/TrustBadge';
 import { useVehicle, Vehicle } from '@/context/VehicleContext';
 import { formatINR, formatDate, truncateHash } from '@/lib/formatters';
-import { API_BASE_URL } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
+import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
 import {
   FileCheck,
   Printer,
@@ -52,6 +53,7 @@ function ReportsContent() {
   const [copied, setCopied] = useState(false);
   const [timelineEvents, setTimelineEvents] = useState<any[]>([]);
   const [loadingTimeline, setLoadingTimeline] = useState(false);
+  const [timelineError, setTimelineError] = useState<unknown>(null);
 
   const activeVehicle: Vehicle =
     vehicles.find((v) => v.id === activeVehId) ||
@@ -73,36 +75,14 @@ function ReportsContent() {
   useEffect(() => {
     async function loadVehicleTimeline() {
       setLoadingTimeline(true);
+      setTimelineError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/vehicles/${activeVehicle.id}/timeline`);
-        if (res.ok) {
-          const json = await res.json();
-          setTimelineEvents(json.timeline || []);
-        } else {
-          setTimelineEvents([
-            {
-              date: activeVehicle.created_at?.split('T')[0] || '2024-05-10',
-              title: 'Vehicle Profile Initialized',
-              description: `${activeVehicle.make} ${activeVehicle.model} (${activeVehicle.registration_number}) registered in VeriSure registry.`,
-              actor: 'Policyholder Profile',
-              blockchain_verified: true,
-              canonical_hash: 'c72cb5b63e5a4cfb44169df2191f2fd233665b9abb73d8a3422eaac132678a2c',
-              tx_id: 'e14646ae8491c944358bb7488fc831f28b',
-            },
-          ]);
-        }
+        const json = await apiFetch<{ timeline?: typeof timelineEvents }>(`/api/v1/vehicles/${encodeURIComponent(activeVehicle.id)}/timeline`);
+        setTimelineEvents(json.timeline || []);
       } catch (e) {
-        setTimelineEvents([
-          {
-            date: '2024-05-10',
-            title: 'Vehicle Profile Initialized',
-            description: `${activeVehicle.make} ${activeVehicle.model} registered in VeriSure consortium registry.`,
-            actor: 'Policyholder Profile',
-            blockchain_verified: true,
-            canonical_hash: 'c72cb5b63e5a4cfb44169df2191f2fd233665b9abb73d8a3422eaac132678a2c',
-            tx_id: 'e14646ae8491c944358bb7488fc831f28b',
-          },
-        ]);
+        // Never substitute invented records: show the failure instead.
+        setTimelineEvents([]);
+        setTimelineError(e);
       } finally {
         setLoadingTimeline(false);
       }
@@ -345,13 +325,15 @@ function ReportsContent() {
             <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
                 <Lock className="w-4 h-4 text-indigo-600" />
-                <span>Verified Historical Lifecycle Records</span>
+                <span>Recorded Lifecycle Events</span>
               </h3>
               <span className="font-mono text-xs text-zinc-400">
-                {timelineEvents.length} Verified Entries
+                {timelineEvents.length} records · {timelineEvents.filter((e) => e.blockchain_verified).length} ledger-anchored
               </span>
             </div>
 
+            {timelineError != null && <ApiErrorNotice error={timelineError} />}
+            {loadingTimeline && <p className="text-xs text-zinc-500">Loading vehicle records…</p>}
             <div className="divide-y divide-zinc-100 dark:divide-zinc-800 text-xs">
               {timelineEvents.map((evt, idx) => (
                 <div key={idx} className="py-3.5 space-y-1">

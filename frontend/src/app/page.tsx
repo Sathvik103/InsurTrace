@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 import { PublicNavbar } from '@/components/public/PublicNavbar';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { TrustBadge } from '@/components/common/TrustBadge';
+import { LedgerStatusBadge } from '@/components/common/LedgerStatusBadge';
 import { useVehicle } from '@/context/VehicleContext';
 import { 
   FadeIn, SlideUp, SectionReveal, StaggerContainer, StaggerItem 
@@ -110,10 +111,9 @@ export default function HomePage() {
             <div className="lg:col-span-7 space-y-6">
               <FadeIn delay={0.1}>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-zinc-100 text-zinc-800 border border-zinc-200/80 dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-800">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="font-semibold">VeriSure 2.0</span>
                   <span className="text-zinc-400">•</span>
-                  <span>Hyperledger Fabric Consortium Active</span>
+                  <LedgerStatusBadge />
                 </div>
               </FadeIn>
 
@@ -170,11 +170,11 @@ export default function HomePage() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                    <span>Dual-Peer Consortium Active</span>
+                    <span>Hyperledger Fabric record integrity</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
-                    <span>Zero Fabricated External Scores</span>
+                    <span>No fabricated ML or fraud scores</span>
                   </div>
                 </div>
               </FadeIn>
@@ -338,7 +338,7 @@ export default function HomePage() {
                   Verify a document
                 </h3>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                  Upload an insurance policy or body shop estimate PDF. Review extracted line items and check parts depreciation against official tariff schedules.
+                  Upload an insurance policy or body shop estimate PDF. Review extracted line items and check parts depreciation against the standard motor depreciation schedule.
                 </p>
               </div>
               <div className="pt-4 mt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-xs font-semibold text-emerald-600 dark:text-emerald-400">

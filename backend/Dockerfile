@@ -1,21 +1,22 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PORT=8000
 
 WORKDIR /app
 
-# Install system dependencies (e.g. for pdfplumber/tesseract if needed later)
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
-    tesseract-ocr \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 COPY . .
 
-# Expose FastAPI port
+# Run as an unprivileged user.
+RUN useradd --create-home --uid 10001 verisure && chown -R verisure /app
+USER verisure
+
 EXPOSE 8000
 
-# Run Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Hosting platforms (Render, Cloud Run, Fly) inject $PORT.
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT} --proxy-headers --forwarded-allow-ips='*'"]
