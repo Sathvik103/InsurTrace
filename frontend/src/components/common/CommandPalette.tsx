@@ -28,14 +28,6 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   // Global keydown shortcut Cmd+K / Ctrl+K
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        if (isOpen) {
-          onClose();
-        } else {
-          // Trigger open via event or parent
-        }
-      }
       if (e.key === 'Escape' && isOpen) {
         onClose();
       }
@@ -51,7 +43,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   // Navigation Items
   const staticCommands = [
     { label: 'Check a Claim Decision', href: '/decision', icon: Scale, category: 'Actions' },
-    { label: 'Add a New Vehicle', href: '/vehicles/new', icon: Car, category: 'Actions' },
+    { label: 'Add a New Vehicle', href: '/onboarding', icon: Car, category: 'Actions' },
     { label: 'Upload / Review Document', href: '/decision/extract', icon: FileText, category: 'Actions' },
     { label: 'Verify Record Integrity (Ledger)', href: '/verification', icon: ShieldCheck, category: 'Actions' },
     { label: 'Fleet Management', href: '/fleet', icon: Truck, category: 'Actions' },

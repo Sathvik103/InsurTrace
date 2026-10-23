@@ -178,7 +178,7 @@ export default function OnboardingPage() {
                   Tell us about your vehicle
                 </h2>
                 <p className="text-xs text-zinc-500 mt-0.5">
-                  We use your vehicle age and category to calculate depreciation under Indian Motor Tariff GR.8.
+                  Your car’s age decides how much insurers deduct for wear on replaced parts.
                 </p>
               </div>
 

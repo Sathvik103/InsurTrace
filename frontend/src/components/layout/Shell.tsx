@@ -1,29 +1,29 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Car,
-  Scale,
-  FileSearch,
-  ShieldCheck,
-  Truck,
-  FileText,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  ChevronDown,
-  Plus,
-  Search,
   Building2,
-  FileCheck2,
-  Wrench,
+  Car,
   Check,
-  AlertTriangle,
+  ChevronDown,
+  FileCheck2,
+  FileSearch,
+  FileText,
+  LayoutGrid,
+  LogOut,
+  Plus,
+  Scale,
+  Search,
+  Settings,
+  ShieldCheck,
   Activity,
-  Layers,
+  Truck,
+  UserRound,
+  Wrench,
+  Lock,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useVehicle, Vehicle } from '@/context/VehicleContext';
@@ -35,477 +35,332 @@ interface ShellProps {
   children: React.ReactNode;
 }
 
+type NavItem = { label: string; href: string; icon: typeof Car; match?: (p: string) => boolean; roles?: string[] };
+
+export const PRIMARY_NAV: NavItem[] = [
+  { label: 'My cars', href: '/vehicles', icon: Car, match: (p) => p === '/vehicles' || (p.startsWith('/vehicles/') && p !== '/vehicles/new') },
+  { label: 'Check a claim', href: '/decision', icon: Scale, match: (p) => p === '/decision' },
+  { label: 'Documents', href: '/decision/extract', icon: FileSearch },
+  { label: 'Verify a record', href: '/verification', icon: ShieldCheck },
+];
+
+export const MORE_NAV: NavItem[] = [
+  { label: 'Vehicle passport', href: '/reports', icon: FileText },
+  { label: 'Data & privacy', href: '/decision/consent', icon: Lock },
+  { label: 'Fleet', href: '/fleet', icon: Truck },
+  { label: 'Insurer workspace', href: '/dashboards/insurer', icon: Building2, roles: ['insurer', 'admin'] },
+  { label: 'Surveyor workspace', href: '/dashboards/surveyor', icon: FileCheck2, roles: ['surveyor', 'admin'] },
+  { label: 'Workshop workspace', href: '/dashboards/garage', icon: Wrench, roles: ['garage', 'admin'] },
+];
+
+const isActive = (item: NavItem, pathname: string) => (item.match ? item.match(pathname) : pathname === item.href || pathname.startsWith(`${item.href}/`));
+
+function useClickOutside(ref: React.RefObject<HTMLElement | null>, onOutside: () => void) {
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onOutside();
+    };
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && onOutside();
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('keydown', esc);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', esc);
+    };
+  }, [ref, onOutside]);
+}
+
+const menuMotion = {
+  initial: { opacity: 0, y: -6, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -6, scale: 0.98 },
+  transition: { duration: 0.18, ease: [0.16, 1, 0.3, 1] as const },
+};
+
 export default function Shell({ children }: ShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, role, signOut, isDemo, activePersona, status, initialized } = useAuth();
-  const { vehicles, selectedVehicle, selectedVehicleId, setSelectedVehicleId, isDemoActive } =
-    useVehicle();
+  const { vehicles, selectedVehicle, setSelectedVehicleId, isDemoActive } = useVehicle();
 
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [switcherOpen, setSwitcherOpen] = useState(false);
-  const [portalsOpen, setPortalsOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
+  const [mobileMore, setMobileMore] = useState(false);
 
-  const switcherRef = useRef<HTMLDivElement>(null);
-  const portalsRef = useRef<HTMLDivElement>(null);
-  const profileRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdowns on outside click
+  // Redirect unauthenticated visitors after render, never during it.
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (switcherRef.current && !switcherRef.current.contains(event.target as Node)) {
-        setSwitcherOpen(false);
-      }
-      if (portalsRef.current && !portalsRef.current.contains(event.target as Node)) {
-        setPortalsOpen(false);
-      }
-      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
-        setProfileOpen(false);
-      }
+    if (initialized && status === 'unauthenticated') {
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [initialized, status, pathname, router]);
+
+
+  // Ctrl/Cmd+K toggles search from anywhere in the app.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCmdOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const handleSelectVehicle = (vehicle: Vehicle) => {
-    setSelectedVehicleId(vehicle.id);
-    setSwitcherOpen(false);
-    if (pathname.startsWith('/vehicles/') && pathname !== '/vehicles/new') {
-      router.push(`/vehicles/${vehicle.id}`);
-    }
-  };
-
-  const handleLogout = async () => {
-    await signOut();
-    router.replace('/login');
-  };
-
-  // 1. Session Hydration Guard
-  if (!initialized || status === 'hydrating') {
+  if (!initialized || status === 'hydrating' || status === 'unauthenticated' || !user) {
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6">
-        <div className="flex flex-col items-center space-y-4 max-w-sm text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-6">
+        <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}>
           <VeriSureLogo size="lg" />
-          <div className="flex items-center gap-2.5 text-xs font-semibold text-zinc-500 dark:text-zinc-400 mt-2">
-            <div className="w-3.5 h-3.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin" />
-            <span>Restoring your session...</span>
-          </div>
+        </motion.div>
+        <div className="flex items-center gap-2.5 text-sm text-navy-500">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-steel-500 border-t-transparent" />
+          {status === 'unauthenticated' ? 'Taking you to sign in…' : 'Loading your account…'}
         </div>
       </div>
     );
   }
 
-  // 2. Unauthenticated Guard
-  if (status === 'unauthenticated' || !user) {
-    if (typeof window !== 'undefined') {
-      const nextTarget = encodeURIComponent(pathname);
-      router.replace(`/login?next=${nextTarget}`);
-    }
-    return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6">
-        <div className="flex flex-col items-center space-y-3 text-center">
-          <VeriSureLogo size="md" />
-          <p className="text-xs text-zinc-500">Redirecting to sign in...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const primaryNav = [
-    { label: 'Vehicles', href: '/vehicles', icon: Car },
-    { label: 'Claim Decision', href: '/decision', icon: Scale },
-    { label: 'Documents', href: '/decision/extract', icon: FileSearch },
-    { label: 'History & Integrity', href: '/verification', icon: ShieldCheck },
-    { label: 'Fleet', href: '/fleet', icon: Truck },
-    { label: 'Reports', href: '/reports', icon: FileText },
-  ];
-
-  const enterprisePortals = [
-    { label: 'Insurer Command', href: '/dashboards/insurer', icon: Building2 },
-    { label: 'Surveyor Assessment', href: '/dashboards/surveyor', icon: FileCheck2 },
-    { label: 'Garage Workshop', href: '/dashboards/garage', icon: Wrench },
-  ];
-
-  const isVehicleWorkspace = pathname.startsWith('/vehicles/') && pathname !== '/vehicles/new';
+  const roleKey = (role || '').toLowerCase();
+  const more = MORE_NAV.filter((i) => !i.roles || i.roles.includes(roleKey));
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col">
-      {/* 1. Global Demo Mode Notice Banner */}
+    <div className="flex min-h-screen flex-col bg-background text-navy-900">
       {isDemoActive && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-1.5 text-xs text-amber-900 dark:text-amber-200 flex items-center justify-between">
-          <div className="flex items-center gap-2 max-w-4xl mx-auto w-full">
-            <span className="font-bold uppercase tracking-wider text-[10px] bg-amber-200 dark:bg-amber-900/80 px-1.5 py-0.5 rounded text-amber-900 dark:text-amber-200 shrink-0">
-              Demo Mode
-            </span>
-            <span className="truncate">
-              You are viewing sample vehicle records. Add your own vehicle to use VeriSure with your data.
-            </span>
-            <Link
-              href="/vehicles/new"
-              className="ml-auto underline font-semibold text-amber-950 dark:text-amber-100 hover:text-amber-800 shrink-0 hidden sm:inline"
-            >
-              Add My Vehicle →
-            </Link>
-          </div>
+        <div className="border-b border-amber-200/70 bg-amber-50 px-4 py-2 text-center text-xs text-amber-900">
+          You’re exploring with <strong>sample cars and policies</strong>. Numbers are calculated for real, but the records are fictional.{' '}
+          <Link href="/onboarding" className="font-semibold underline underline-offset-2">Add your own car</Link>
         </div>
       )}
 
-      {/* 2. Top Navigation Bar (Desktop & Mobile) */}
-      <header className="sticky top-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-4">
-            {/* Left: Brand Logo */}
-            <div className="flex items-center gap-6 shrink-0">
-              <VeriSureLogo size="sm" asLink href="/" />
+      <header className="sticky top-0 z-40 border-b border-navy-100/80 bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
+          <Link href="/vehicles" className="mr-2 shrink-0" aria-label="VeriSure home">
+            <VeriSureLogo size="sm" />
+          </Link>
 
-              {/* Desktop Primary Navigation Links */}
-              <nav className="hidden lg:flex items-center gap-1">
-                {primaryNav.map((item) => {
-                  const isActive =
-                    pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                        isActive
-                          ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs'
-                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
-                      }`}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-
-                {/* Enterprise Portals Dropdown */}
-                <div className="relative" ref={portalsRef}>
-                  <button
-                    type="button"
-                    onClick={() => setPortalsOpen(!portalsOpen)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60"
-                  >
-                    <span>Portals</span>
-                    <ChevronDown className="w-3 h-3 text-zinc-400" />
-                  </button>
-
-                  {portalsOpen && (
-                    <div className="absolute left-0 mt-2 w-48 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-lg py-1.5 z-50 text-xs">
-                      {enterprisePortals.map((p) => {
-                        const Icon = p.icon;
-                        return (
-                          <Link
-                            key={p.href}
-                            href={p.href}
-                            onClick={() => setPortalsOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-medium"
-                          >
-                            <Icon className="w-4 h-4 text-zinc-500" />
-                            <span>{p.label}</span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </nav>
-            </div>
-
-            {/* Right: Actions, Search, Attention, Vehicle Switcher, Profile */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* Command Palette Trigger */}
-              <button
-                type="button"
-                onClick={() => setCmdPaletteOpen(true)}
-                className="hidden sm:flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50 text-xs text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
-                title="Search or Run Command (Ctrl+K)"
-              >
-                <Search className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Quick Search...</span>
-                <kbd className="hidden md:inline text-[10px] bg-zinc-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded text-zinc-600 dark:text-zinc-300 font-mono">
-                  ⌘K
-                </kbd>
-              </button>
-
-              {/* Attention Center Popover */}
-              <AttentionCenter />
-
-              {/* Active Vehicle Switcher */}
-              <div className="relative" ref={switcherRef}>
-                <button
-                  type="button"
-                  onClick={() => setSwitcherOpen(!switcherOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 text-xs font-semibold transition-all max-w-[200px] sm:max-w-[260px]"
-                >
-                  <Car className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
-                  <div className="truncate text-left">
-                    <div className="truncate text-zinc-900 dark:text-zinc-100 leading-tight">
-                      {selectedVehicle ? `${selectedVehicle.make} ${selectedVehicle.model}` : 'Select Vehicle'}
-                    </div>
-                    <div className="text-[10px] font-mono text-zinc-400 truncate">
-                      {selectedVehicle?.registration_number || 'None'} • {isDemoActive ? 'Demo' : 'My Car'}
-                    </div>
-                  </div>
-                  <ChevronDown className="w-3 h-3 text-zinc-400 shrink-0 ml-auto" />
-                </button>
-
-                {switcherOpen && (
-                  <div className="absolute right-0 mt-2 w-72 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl py-2 z-50 text-xs">
-                    <div className="px-3 py-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-                      Switch Active Vehicle
-                    </div>
-
-                    <div className="max-h-60 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800 my-1">
-                      {vehicles.map((v) => {
-                        const isSelected = v.id === selectedVehicleId;
-                        return (
-                          <button
-                            key={v.id}
-                            type="button"
-                            onClick={() => handleSelectVehicle(v)}
-                            className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors ${
-                              isSelected ? 'bg-sky-50 dark:bg-sky-950/40' : ''
-                            }`}
-                          >
-                            <div className="truncate pr-2">
-                              <div className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                                {v.make} {v.model}
-                              </div>
-                              <div className="text-[10px] font-mono text-zinc-400">
-                                {v.registration_number} • {v.is_demo ? 'Demo Record' : 'My Vehicle'}
-                              </div>
-                            </div>
-                            {isSelected && <Check className="w-4 h-4 text-sky-600 shrink-0" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <div className="pt-2 px-2 border-t border-zinc-100 dark:border-zinc-800">
-                      <Link
-                        href="/vehicles/new"
-                        onClick={() => setSwitcherOpen(false)}
-                        className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 font-semibold text-zinc-800 dark:text-zinc-200"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Add New Vehicle</span>
-                      </Link>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Profile Menu Trigger */}
-              <div className="relative" ref={profileRef}>
-                <button
-                  type="button"
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:ring-2 hover:ring-sky-500/30"
-                  title="Profile & Settings"
-                >
-                  {user?.email ? user.email.slice(0, 2).toUpperCase() : 'VS'}
-                </button>
-
-                {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl py-1.5 z-50 text-xs">
-                    <div className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
-                      <div className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                        {user?.email || 'Authenticated User'}
-                      </div>
-                      <div className="text-[10px] text-zinc-400 uppercase font-mono mt-0.5">
-                        Role: {role || 'Policyholder'}
-                      </div>
-                    </div>
-
-                    <Link
-                      href="/settings"
-                      onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                    >
-                      <Settings className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>Settings & Privacy</span>
-                    </Link>
-
-                    <Link
-                      href="/settings?tab=status"
-                      onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-2 px-3 py-2 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                    >
-                      <Activity className="w-3.5 h-3.5 text-emerald-500" />
-                      <span>System Status</span>
-                    </Link>
-
-                    <div className="pt-1 border-t border-zinc-100 dark:border-zinc-800">
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="w-full text-left flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-medium"
-                      >
-                        <LogOut className="w-3.5 h-3.5" />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Mobile Menu Button */}
-              <button
-                type="button"
-                onClick={() => setMobileOpen(!mobileOpen)}
-                className="lg:hidden p-1.5 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg"
-                aria-label="Toggle navigation"
-              >
-                {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. Contextual Vehicle Sub-Navigation Bar */}
-        {isVehicleWorkspace && selectedVehicle && (
-          <div className="bg-zinc-100/70 dark:bg-zinc-950/60 border-t border-zinc-200 dark:border-zinc-800">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between h-10 overflow-x-auto text-xs">
-                {/* Active Context Marker */}
-                <div className="flex items-center gap-2 shrink-0 pr-4">
-                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
-                    {selectedVehicle.make} {selectedVehicle.model}
-                  </span>
-                  <span className="font-mono text-zinc-500 text-[11px]">
-                    ({selectedVehicle.registration_number})
-                  </span>
-                  {selectedVehicle.is_demo ? (
-                    <span className="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
-                      Demo
-                    </span>
-                  ) : (
-                    <span className="text-[10px] uppercase font-bold px-1.5 py-0.2 rounded bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 border border-sky-300 dark:border-sky-800">
-                      My Vehicle
-                    </span>
-                  )}
-                </div>
-
-                {/* Subnav Tabs */}
-                <div className="flex items-center gap-1 shrink-0">
-                  <Link
-                    href={`/vehicles/${selectedVehicle.id}`}
-                    className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                      pathname === `/vehicles/${selectedVehicle.id}`
-                        ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs font-semibold'
-                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
-                    }`}
-                  >
-                    Command Center
-                  </Link>
-
-                  <Link
-                    href={`/decision?vehicle_id=${selectedVehicle.id}`}
-                    className="px-2.5 py-1 rounded-md font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 hover:bg-white/50"
-                  >
-                    Check Claim
-                  </Link>
-
-                  <Link
-                    href="/decision/extract"
-                    className="px-2.5 py-1 rounded-md font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 hover:bg-white/50"
-                  >
-                    Documents
-                  </Link>
-
-                  <Link
-                    href="/decision/consent"
-                    className="px-2.5 py-1 rounded-md font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 hover:bg-white/50"
-                  >
-                    Share Records
-                  </Link>
-
-                  <Link
-                    href={`/reports?vehicle_id=${selectedVehicle.id}`}
-                    className="px-2.5 py-1 rounded-md font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 hover:bg-white/50"
-                  >
-                    Report
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </header>
-
-      {/* 4. Mobile Navigation Drawer */}
-      {mobileOpen && (
-        <div className="lg:hidden bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 py-4 space-y-4">
-          <div className="space-y-1">
-            <div className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider px-2">
-              Primary Navigation
-            </div>
-            {primaryNav.map((item) => {
-              const isActive =
-                pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
-              const Icon = item.icon;
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
+            {PRIMARY_NAV.map((item) => {
+              const active = isActive(item, pathname);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold ${
-                    isActive
-                      ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
-                      : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                  }`}
+                  aria-current={active ? 'page' : undefined}
+                  className={`relative rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${active ? 'text-white' : 'text-navy-600 hover:text-navy-900'}`}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
+                  {active && (
+                    <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-full bg-navy-900" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />
+                  )}
+                  <span className="relative">{item.label}</span>
                 </Link>
               );
             })}
-          </div>
+            <MoreMenu items={more} pathname={pathname} />
+          </nav>
 
-          <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-1">
-            <div className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider px-2">
-              Enterprise Portals
-            </div>
-            {enterprisePortals.map((p) => {
-              const Icon = p.icon;
-              return (
-                <Link
-                  key={p.href}
-                  href={p.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{p.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center text-xs">
-            <span className="text-zinc-500">{user?.email || 'Guest'}</span>
+          <div className="ml-auto flex items-center gap-1.5">
             <button
               type="button"
-              onClick={handleLogout}
-              className="text-rose-600 font-semibold hover:underline flex items-center gap-1"
+              onClick={() => setCmdOpen(true)}
+              className="hidden items-center gap-2 rounded-full border border-navy-100 bg-white px-3 py-2 text-sm text-navy-500 transition hover:border-navy-200 md:flex"
+              aria-label="Search (Ctrl+K)"
             >
-              <LogOut className="w-3.5 h-3.5" /> Sign out
+              <Search className="h-4 w-4" />
+              <span className="hidden xl:inline">Search</span>
+              <kbd className="hidden rounded-md bg-navy-50 px-1.5 py-0.5 font-mono text-[10px] text-navy-500 xl:inline">⌘K</kbd>
             </button>
+            <AttentionCenter />
+            <VehicleSwitcher vehicles={vehicles} selected={selectedVehicle} onSelect={(v) => {
+              setSelectedVehicleId(v.id);
+              if (pathname.startsWith('/vehicles/') && pathname !== '/vehicles/new') router.push(`/vehicles/${v.id}`);
+            }} />
+            <ProfileMenu
+              name={activePersona?.name || user.email || 'Account'}
+              roleLabel={activePersona?.label || (role ? role[0].toUpperCase() + role.slice(1) : 'Member')}
+              isDemo={isDemo}
+              onSignOut={async () => {
+                await signOut();
+                router.replace('/login');
+              }}
+            />
           </div>
         </div>
-      )}
+      </header>
 
-      {/* 5. Main Content Area */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <motion.main
+        key={pathname}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+        className="mx-auto w-full max-w-6xl flex-1 px-4 pb-32 pt-8 lg:pb-16"
+      >
         {children}
-      </main>
+      </motion.main>
 
-      {/* 6. Command Palette Modal */}
-      <CommandPalette isOpen={cmdPaletteOpen} onClose={() => setCmdPaletteOpen(false)} />
+      {/* Mobile bottom navigation */}
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-navy-100 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden" aria-label="Main">
+        <div className="mx-auto grid max-w-md grid-cols-5">
+          {PRIMARY_NAV.map((item) => {
+            const active = isActive(item, pathname);
+            return (
+              <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className="relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium">
+                {active && <motion.span layoutId="tab-dot" className="absolute top-0 h-0.5 w-8 rounded-full bg-navy-900" />}
+                <item.icon className={`h-5 w-5 ${active ? 'text-navy-900' : 'text-navy-400'}`} />
+                <span className={active ? 'text-navy-900' : 'text-navy-500'}>{item.label.replace('Verify a record', 'Verify').replace('Check a claim', 'Check')}</span>
+              </Link>
+            );
+          })}
+          <button type="button" onClick={() => setMobileMore((v) => !v)} className="flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-navy-500" aria-expanded={mobileMore}>
+            <LayoutGrid className="h-5 w-5 text-navy-400" />
+            More
+          </button>
+        </div>
+      </nav>
+
+      <AnimatePresence>
+        {mobileMore && (
+          <>
+            <motion.div className="fixed inset-0 z-[55] bg-navy-950/20 lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileMore(false)} />
+            <motion.div
+              className="fixed inset-x-3 bottom-20 z-[56] rounded-3xl border border-navy-100 bg-white p-2 shadow-2xl lg:hidden"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+            >
+              {[...more, { label: 'Settings', href: '/settings', icon: Settings }].map((i) => (
+                <Link key={i.href} href={i.href} onClick={() => setMobileMore(false)} className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-navy-800 hover:bg-navy-50">
+                  <i.icon className="h-5 w-5 text-navy-500" /> {i.label}
+                </Link>
+              ))}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      <CommandPalette isOpen={cmdOpen} onClose={() => setCmdOpen(false)} />
+    </div>
+  );
+}
+
+function MoreMenu({ items, pathname }: { items: NavItem[]; pathname: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useClickOutside(ref, () => setOpen(false));
+  const active = items.some((i) => isActive(i, pathname));
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className={`flex items-center gap-1 rounded-full px-3.5 py-2 text-sm font-medium transition-colors ${active ? 'bg-navy-100 text-navy-900' : 'text-navy-600 hover:text-navy-900'}`}
+      >
+        More <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div {...menuMotion} role="menu" className="absolute left-0 top-12 w-64 origin-top-left rounded-2xl border border-navy-100 bg-white p-1.5 shadow-xl">
+            {items.map((i) => (
+              <Link key={i.href} href={i.href} role="menuitem" onClick={() => setOpen(false)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive(i, pathname) ? 'bg-navy-50 text-navy-900' : 'text-navy-700 hover:bg-navy-50'}`}>
+                <i.icon className="h-4 w-4 text-navy-400" /> {i.label}
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function VehicleSwitcher({ vehicles, selected, onSelect }: { vehicles: Vehicle[]; selected?: Vehicle | null; onSelect: (v: Vehicle) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useClickOutside(ref, () => setOpen(false));
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        className="flex items-center gap-2 rounded-full border border-navy-100 bg-white py-1.5 pl-1.5 pr-3 text-left transition hover:border-navy-200"
+      >
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-navy-50 text-navy-700"><Car className="h-4 w-4" /></span>
+        <span className="hidden max-w-[140px] sm:block">
+          <span className="block truncate text-xs font-semibold leading-tight text-navy-900">{selected ? `${selected.make} ${selected.model}` : 'Choose a car'}</span>
+          <span className="block truncate text-[10px] leading-tight text-navy-500">{selected?.registration_number}{selected?.is_demo ? ' · Demo' : ''}</span>
+        </span>
+        <ChevronDown className="h-3.5 w-3.5 text-navy-400" />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div {...menuMotion} className="absolute right-0 top-12 w-72 origin-top-right rounded-2xl border border-navy-100 bg-white p-1.5 shadow-xl" role="listbox" aria-label="Your cars">
+            <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-navy-400">Your cars</p>
+            <div className="max-h-72 overflow-y-auto">
+              {vehicles.map((v) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  role="option"
+                  aria-selected={selected?.id === v.id}
+                  onClick={() => {
+                    onSelect(v);
+                    setOpen(false);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-navy-50"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-navy-900">{v.make} {v.model}</span>
+                    <span className="block text-xs text-navy-500">{v.registration_number}{v.is_demo ? ' · Demo' : ''}{v.is_local_only ? ' · This browser only' : ''}</span>
+                  </span>
+                  {selected?.id === v.id && <Check className="h-4 w-4 text-navy-900" />}
+                </button>
+              ))}
+            </div>
+            <Link href="/onboarding" className="mt-1 flex items-center gap-2 rounded-xl border-t border-navy-50 px-3 py-2.5 text-sm font-semibold text-steel-700 hover:bg-steel-50">
+              <Plus className="h-4 w-4" /> Add a car
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function ProfileMenu({ name, roleLabel, isDemo, onSignOut }: { name: string; roleLabel: string; isDemo: boolean; onSignOut: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useClickOutside(ref, () => setOpen(false));
+  const initials = name.replace(/\(.*\)/, '').split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join('');
+  return (
+    <div ref={ref} className="relative">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-haspopup="menu" aria-label="Account menu" className="flex h-9 w-9 items-center justify-center rounded-full bg-navy-900 text-xs font-semibold text-white ring-2 ring-white transition hover:ring-navy-100">
+        {initials || <UserRound className="h-4 w-4" />}
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div {...menuMotion} role="menu" className="absolute right-0 top-12 w-64 origin-top-right rounded-2xl border border-navy-100 bg-white p-1.5 shadow-xl">
+            <div className="px-3 py-2.5">
+              <p className="truncate text-sm font-semibold text-navy-900">{name}</p>
+              <p className="text-xs text-navy-500">{roleLabel}{isDemo ? ' · Demo account' : ''}</p>
+            </div>
+            <div className="my-1 h-px bg-navy-50" />
+            {[
+              { label: 'Settings', href: '/settings', icon: Settings },
+              { label: 'System status', href: '/settings?tab=status', icon: Activity },
+            ].map((i) => (
+              <Link key={i.href} href={i.href} role="menuitem" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-50">
+                <i.icon className="h-4 w-4 text-navy-400" /> {i.label}
+              </Link>
+            ))}
+            <button type="button" role="menuitem" onClick={onSignOut} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-loss hover:bg-loss-soft">
+              <LogOut className="h-4 w-4" /> Sign out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

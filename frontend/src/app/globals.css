@@ -9,6 +9,32 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
+  --color-navy-50: #f2f5fa;
+  --color-navy-100: #e3e9f3;
+  --color-navy-200: #c4d0e4;
+  --color-navy-300: #95a8c9;
+  --color-navy-400: #637ca6;
+  --color-navy-500: #43598a;
+  --color-navy-600: #324571;
+  --color-navy-700: #26365b;
+  --color-navy-800: #1a2644;
+  --color-navy-900: #111a31;
+  --color-navy-950: #0a1022;
+  --color-steel-50: #eff7fc;
+  --color-steel-100: #daedf8;
+  --color-steel-200: #b5dbf1;
+  --color-steel-300: #7fc0e6;
+  --color-steel-400: #45a0d6;
+  --color-steel-500: #2283c1;
+  --color-steel-600: #1468a3;
+  --color-steel-700: #135485;
+  --color-steel-800: #15476e;
+  --color-steel-900: #163c5c;
+  --color-gain: #0f8a5f;
+  --color-gain-soft: #e6f5ee;
+  --color-loss: #c2410c;
+  --color-loss-soft: #fdf0e8;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -49,15 +75,15 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.992 0.003 250);
+  --foreground: oklch(0.2 0.04 265);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
+  --primary: #1a2644;
+  --primary-foreground: #ffffff;
+  --secondary: oklch(0.97 0.005 250);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
@@ -66,7 +92,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: #2283c1;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -127,4 +153,51 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ------------------------------------------------------------------ VeriSure */
+@layer base {
+  h1, h2, h3 { letter-spacing: -0.022em; }
+  .tabular { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+  :focus-visible { outline: 2px solid #2283c1; outline-offset: 2px; }
+}
+
+@layer components {
+  .vs-surface {
+    @apply rounded-3xl border border-navy-100 bg-white shadow-[0_1px_2px_rgba(17,26,49,0.04),0_12px_32px_-12px_rgba(17,26,49,0.10)];
+  }
+  .vs-glass {
+    @apply border border-white/60 bg-white/70 backdrop-blur-xl shadow-[0_8px_32px_-8px_rgba(17,26,49,0.18)];
+  }
+  .vs-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-navy-100 bg-white px-3 py-1 text-xs font-medium text-navy-700;
+  }
+  .vs-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-navy-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(17,26,49,0.55)] transition-all duration-300 hover:bg-navy-800 hover:shadow-[0_12px_28px_-8px_rgba(17,26,49,0.6)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+  .vs-btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-navy-200 bg-white px-5 py-3 text-sm font-semibold text-navy-800 transition-all duration-300 hover:border-navy-300 hover:bg-navy-50 active:scale-[0.98];
+  }
+  .vs-input {
+    @apply w-full rounded-2xl border border-navy-200 bg-white px-4 py-3 text-base text-navy-900 transition placeholder:text-navy-300 focus:border-steel-500 focus:outline-none focus:ring-4 focus:ring-steel-500/15;
+  }
+}
+
+.vs-grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(67, 89, 138, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(67, 89, 138, 0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 40%, transparent 100%);
+}
+
+@keyframes vs-shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+.vs-shimmer {
+  background: linear-gradient(90deg, rgba(227,233,243,0.6) 25%, rgba(242,245,250,1) 50%, rgba(227,233,243,0.6) 75%);
+  background-size: 200% 100%;
+  animation: vs-shimmer 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }

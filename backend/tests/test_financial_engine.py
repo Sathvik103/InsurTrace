@@ -116,3 +116,10 @@ def test_case_10_future_impact_outweighs():
     # Saving = 15000 - (2000 + 20000) = -7000
     res = calculate_decision(data)
     assert res.recommendation == "SELF-PAY"
+
+
+@pytest.mark.parametrize("age,rate", [(0.3, 0.0), (0.8, 0.05), (1.5, 0.10), (2.5, 0.15), (3.5, 0.25),
+                                      (4.5, 0.35), (7.0, 0.40), (12.0, 0.50)])
+def test_metal_depreciation_follows_gr8_schedule(age, rate):
+    from services.financial_engine.calculator import get_metal_depreciation
+    assert get_metal_depreciation(age) == rate

@@ -4,17 +4,23 @@ from .models import ClaimDecisionInput, ClaimDecisionOutput, SimulationYear, Sen
 NCB_SLABS = [0, 20, 25, 35, 45, 50]
 
 def get_metal_depreciation(age_years: float) -> float:
+    """
+    Depreciation on metal parts by vehicle age, per the India Motor Tariff
+    schedule (GR.8) that insurers commonly still apply.
+    """
     if age_years <= 0.5:
-        return 0.05
+        return 0.0
     elif age_years <= 1.0:
-        return 0.10
+        return 0.05
     elif age_years <= 2.0:
-        return 0.15
+        return 0.10
     elif age_years <= 3.0:
-        return 0.25
+        return 0.15
     elif age_years <= 4.0:
-        return 0.35
+        return 0.25
     elif age_years <= 5.0:
+        return 0.35
+    elif age_years <= 10.0:
         return 0.40
     else:
         return 0.50

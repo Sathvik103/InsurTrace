@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { VehicleProvider } from "@/context/VehicleContext";
 import { Toaster } from "sonner";
+import { AssistantProvider } from "@/context/AssistantContext";
+import { AssistantWidget } from "@/components/assistant/AssistantWidget";
 
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
   display: "swap",
 });
 
@@ -28,11 +36,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geist.variable}>
-      <body className="font-sans antialiased text-zinc-900 bg-white dark:bg-zinc-950 dark:text-zinc-50 selection:bg-zinc-900 selection:text-white">
+    <html lang="en" className={`${geist.variable} ${geistMono.variable}`}>
+      <body className="font-sans antialiased bg-background text-navy-900 selection:bg-steel-200 selection:text-navy-950">
         <AuthProvider>
           <VehicleProvider>
-            {children}
+            <AssistantProvider>
+              {children}
+              <AssistantWidget />
+            </AssistantProvider>
           </VehicleProvider>
         </AuthProvider>
         <Toaster position="top-right" richColors closeButton />
