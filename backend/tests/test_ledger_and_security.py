@@ -309,3 +309,8 @@ def test_secret_key_env_alias(monkeypatch):
     s = Settings()
     assert s.supabase_service_key == "sb_secret_example"
     assert s.jwks_url == "https://abc.supabase.co/auth/v1/.well-known/jwks.json"
+
+
+def test_root_endpoint():
+    assert client.get("/").json()["service"] == "VeriSure API"
+    assert client.head("/").status_code == 200

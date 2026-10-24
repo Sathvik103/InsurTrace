@@ -76,6 +76,13 @@ app.add_middleware(
 )
 
 
+@app.api_route("/", methods=["GET", "HEAD"])
+@limiter.exempt
+async def root():
+    """Friendly landing response instead of a 404 for the bare API URL."""
+    return {"service": "VeriSure API", "status": "ok", "health": "/health", "status_page": "/api/v1/system/status"}
+
+
 @app.get("/health")
 @limiter.exempt
 async def health_check():
