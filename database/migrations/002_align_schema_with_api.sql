@@ -4,8 +4,21 @@
 -- Claim lifecycle status used by the API
 ALTER TYPE claim_status ADD VALUE IF NOT EXISTS 'PENDING_SURVEY';
 
--- Organisations: the API reads `type`
-ALTER TABLE organizations ADD COLUMN IF NOT EXISTS type text GENERATED ALWAYS AS (org_type::text) STORED;
+-- Organisations: the API reads `type`. (A generated column can't be used here:
+-- enum-to-text casts are not immutable, so a trigger keeps it in sync.)
+ALTER TABLE organizations ADD COLUMN IF NOT EXISTS type text;
+UPDATE organizations SET type = org_type::text WHERE type IS DISTINCT FROM org_type::text;
+CREATE OR REPLACE FUNCTION public.sync_organization_type() RETURNS trigger
+SET search_path = public
+AS $$
+BEGIN
+  NEW.type := NEW.org_type::text;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS organizations_sync_type ON organizations;
+CREATE TRIGGER organizations_sync_type BEFORE INSERT OR UPDATE ON organizations
+  FOR EACH ROW EXECUTE FUNCTION public.sync_organization_type();
 
 -- Vehicles: owner-entered details and policy summary
 ALTER TABLE vehicles

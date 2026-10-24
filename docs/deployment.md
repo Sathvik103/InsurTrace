@@ -47,7 +47,7 @@ What happens now:
 
    | Variable | Value |
    |---|---|
-   | `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_JWT_SECRET` | Leave all three **empty** to run the demo sandbox. Set all three to use a real Supabase project (see step 4). |
+   | `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | Leave both **empty** to run the demo sandbox. Set both to use a real Supabase project (see step 4). Sign-in tokens are verified against the project's published keys (JWKS) automatically; a JWT secret is only needed for legacy projects. |
    | `GATEWAY_URL`, `GATEWAY_API_KEY` | Leave empty until a Fabric gateway is reachable over HTTPS (see step 3). |
 
 3. Check that `ALLOWED_ORIGINS` contains exactly the frontend origin, `https://insur-trace.vercel.app`, and add any custom domain. The API refuses to start in production if this is `*` or empty.
@@ -99,7 +99,7 @@ To set it up:
 
 1. Restore the project, or create a new one, in the Supabase dashboard.
 2. Apply `database/schema.sql`. **Known gap:** the API currently uses a richer data model than `schema.sql`. For example, it uses `claims.vehicle_id`, `policies.idv` and the `PENDING_SURVEY` status. Reconciling the schema with the API is tracked as follow-up work. Until it's done, keep Render on the demo sandbox.
-3. Set `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` and `SUPABASE_JWT_SECRET` on Render. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` on Vercel, then redeploy.
+3. Set `SUPABASE_URL` and `SUPABASE_SECRET_KEY` (the `sb_secret_...` key) on Render. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` on Vercel, then redeploy.
 
 When the API is connected to a real Supabase project in production, it **rejects demo tokens**, so demo personas cannot reach real user data.
 

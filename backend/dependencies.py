@@ -37,6 +37,16 @@ DEV_TOKENS = {
 
 DEFAULT_DEV_USER = DEV_TOKENS["dev-policyholder"]
 
+_jwks: Optional[jwt.PyJWKClient] = None
+
+
+def _jwks_client() -> jwt.PyJWKClient:
+    """Cached client for the project's public signing keys (refreshed by PyJWT as needed)."""
+    global _jwks
+    if _jwks is None:
+        _jwks = jwt.PyJWKClient(settings.jwks_url, cache_keys=True, lifespan=3600, timeout=5)
+    return _jwks
+
 
 def get_current_user_id(credentials: Optional[HTTPAuthorizationCredentials] = Security(security)) -> str:
     """
@@ -74,7 +84,19 @@ def get_current_user_id(credentials: Optional[HTTPAuthorizationCredentials] = Se
         except Exception:
             pass
 
-    # 2. Local HS256 validation, only with a configured secret (never a fallback).
+    # 2. Asymmetric (ES256/RS256) tokens verified against the project's published keys.
+    if settings.jwks_url:
+        try:
+            signing_key = _jwks_client().get_signing_key_from_jwt(token)
+            payload = jwt.decode(token, signing_key.key, algorithms=["ES256", "RS256"], audience="authenticated")
+            if payload.get("sub"):
+                return payload["sub"]
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Your session has expired. Please sign in again.")
+        except Exception:
+            pass
+
+    # 3. Legacy HS256 validation, only with a configured secret (never a fallback).
     if settings.supabase_jwt_secret:
         try:
             payload = jwt.decode(
@@ -93,7 +115,7 @@ def get_current_user_id(credentials: Optional[HTTPAuthorizationCredentials] = Se
         except jwt.InvalidTokenError:
             pass
 
-    # 3. Development only: a raw demo profile UUID as token.
+    # 4. Development only: a raw demo profile UUID as token.
     if demo_ok and not settings.is_production:
         res = supabase.table("profiles").select("id").eq("id", token).execute()
         if res.data:

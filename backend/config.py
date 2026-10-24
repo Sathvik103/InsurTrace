@@ -9,7 +9,7 @@ closed: the app refuses to start with unsafe or missing security config.
 from functools import lru_cache
 from typing import List, Literal, Optional
 
-from pydantic import field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 MOCK_SUPABASE_HOSTS = ("test.supabase.co", "mock.supabase.co")
@@ -22,8 +22,14 @@ class Settings(BaseSettings):
 
     # Supabase (managed identity + Postgres + storage)
     supabase_url: Optional[str] = None
-    supabase_service_key: Optional[str] = None
+    # New-style projects issue a secret key (sb_secret_...); older ones a service_role JWT.
+    supabase_service_key: Optional[str] = Field(
+        default=None, validation_alias=AliasChoices("SUPABASE_SERVICE_KEY", "SUPABASE_SECRET_KEY")
+    )
+    # Legacy HS256 projects only. New projects sign tokens with asymmetric keys
+    # published at the JWKS URL, so no shared secret is needed.
     supabase_jwt_secret: Optional[str] = None
+    supabase_jwks_url: Optional[str] = None
 
     # Demo personas (dev-* bearer tokens). In production they are only honoured
     # when the backend runs on the in-memory demo sandbox, so they can never
@@ -68,6 +74,14 @@ class Settings(BaseSettings):
         )
 
     @property
+    def jwks_url(self) -> Optional[str]:
+        if self.supabase_jwks_url:
+            return self.supabase_jwks_url
+        if self.uses_real_supabase:
+            return f"{self.supabase_url.rstrip('/')}/auth/v1/.well-known/jwks.json"
+        return None
+
+    @property
     def data_mode(self) -> str:
         """SUPABASE when connected to a real project, otherwise DEMO_SANDBOX."""
         return "SUPABASE" if self.uses_real_supabase else "DEMO_SANDBOX"
@@ -89,8 +103,6 @@ class Settings(BaseSettings):
         problems = []
         if not self.origins or "*" in self.origins:
             problems.append("ALLOWED_ORIGINS must list explicit origins in production")
-        if self.uses_real_supabase and not self.supabase_jwt_secret:
-            problems.append("SUPABASE_JWT_SECRET is required when connected to Supabase")
         if self.allow_mock_blockchain:
             problems.append("ALLOW_MOCK_BLOCKCHAIN must be false in production")
         uses_gateway = self.fabric_mode == "gateway" or (self.fabric_mode == "auto" and self.gateway_url)

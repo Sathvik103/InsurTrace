@@ -274,3 +274,38 @@ def test_invalid_id_from_database_is_404(monkeypatch):
     monkeypatch.setattr(claims_router, "accessible_vehicle_ids", bad)
     res = client.get("/api/v1/claims", headers=PH)
     assert res.status_code == 404
+
+
+def test_asymmetric_supabase_tokens_verified_via_jwks(settings, monkeypatch):
+    """New Supabase projects sign tokens with ES256 keys published at a JWKS URL."""
+    import dependencies
+    from cryptography.hazmat.primitives.asymmetric import ec
+
+    key = ec.generate_private_key(ec.SECP256R1())
+    other = ec.generate_private_key(ec.SECP256R1())
+
+    class FakeJWKS:
+        def get_signing_key_from_jwt(self, token):
+            return type("K", (), {"key": key.public_key()})()
+
+    settings.supabase_jwks_url = "https://example.test/auth/v1/.well-known/jwks.json"
+    monkeypatch.setattr(dependencies, "_jwks_client", lambda: FakeJWKS())
+
+    claims = {"sub": "22222222-2222-2222-2222-222222222222", "aud": "authenticated"}
+    good = jwt.encode(claims, key, algorithm="ES256")
+    res = client.get("/api/v1/profiles/me", headers={"Authorization": f"Bearer {good}"})
+    assert res.status_code == 200 and res.json()["role"] == "POLICYHOLDER"
+
+    forged = jwt.encode(claims, other, algorithm="ES256")
+    assert client.get("/api/v1/profiles/me", headers={"Authorization": f"Bearer {forged}"}).status_code == 401
+
+
+def test_secret_key_env_alias(monkeypatch):
+    from config import Settings
+
+    monkeypatch.delenv("SUPABASE_SERVICE_KEY", raising=False)
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "sb_secret_example")
+    monkeypatch.setenv("SUPABASE_URL", "https://abc.supabase.co")
+    s = Settings()
+    assert s.supabase_service_key == "sb_secret_example"
+    assert s.jwks_url == "https://abc.supabase.co/auth/v1/.well-known/jwks.json"
