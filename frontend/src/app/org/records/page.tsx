@@ -16,7 +16,7 @@ interface Row {
   estimated_repair_cost: number;
   calculated_payout?: number | null;
   created_at?: string;
-  ledger?: { sync_status: string };
+  ledger?: { sync_status: string; network_mode?: string | null };
 }
 
 export default function OrgRecordsPage() {
@@ -47,7 +47,7 @@ export default function OrgRecordsPage() {
         ) : (
           <ul className="divide-y divide-navy-50">
             {rows.map((r) => {
-              const anchored = r.ledger?.sync_status === 'COMMITTED';
+              const anchored = r.ledger?.sync_status === 'COMMITTED' && r.ledger?.network_mode !== 'MOCK';
               return (
                 <li key={r.id}>
                   <Link href={`/verification?claimId=${encodeURIComponent(r.id)}`} className="flex flex-col gap-1 px-4 py-4 hover:bg-navy-50/50 sm:flex-row sm:items-center sm:justify-between">
@@ -60,7 +60,7 @@ export default function OrgRecordsPage() {
                     </div>
                     <span className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${anchored ? 'bg-gain-soft text-gain' : 'bg-amber-50 text-amber-800'}`}>
                       {anchored ? <ShieldCheck className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
-                      {anchored ? 'Anchored' : 'Anchoring pending'}
+                      {anchored ? 'Anchored' : r.ledger?.network_mode === 'MOCK' ? 'Sample · no ledger' : 'Anchoring pending'}
                     </span>
                   </Link>
                 </li>

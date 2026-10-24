@@ -41,7 +41,7 @@ export function AttentionCenter() {
         id: `missing-ins-${v.id}`,
         title: `Incomplete Insurance (${v.make} ${v.model})`,
         description: 'Missing IDV or NCB percentage prevents accurate claim comparisons.',
-        category: 'insurance' as any,
+        category: 'policy',
         severity: 'high',
         actionHref: `/vehicles/${v.id}`,
         actionLabel: 'Complete Profile',

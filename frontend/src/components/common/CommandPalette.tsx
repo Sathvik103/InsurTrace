@@ -16,13 +16,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Focus input on open
+  // Focus on open. The Shell unmounts the palette on close, which clears the query.
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    } else {
-      setQuery('');
-    }
+    if (isOpen) inputRef.current?.focus();
   }, [isOpen]);
 
   // Global keydown shortcut Cmd+K / Ctrl+K
@@ -46,9 +42,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     { label: 'Add a New Vehicle', href: '/onboarding', icon: Car, category: 'Actions' },
     { label: 'Upload / Review Document', href: '/decision/extract', icon: FileText, category: 'Actions' },
     { label: 'Verify Record Integrity (Ledger)', href: '/verification', icon: ShieldCheck, category: 'Actions' },
-    { label: 'Fleet Management', href: '/fleet', icon: Truck, category: 'Actions' },
+    { label: 'Fleet workspace', href: '/org/fleet', icon: Truck, category: 'Actions' },
     { label: 'Vehicle Reports & Export', href: '/reports', category: 'Actions', icon: FileText },
-    { label: 'System Status & Health', href: '/settings?tab=status', category: 'System', icon: ShieldCheck },
+    { label: 'System Status & Health', href: '/settings', category: 'System', icon: ShieldCheck },
     { label: 'Account & Privacy Settings', href: '/settings', category: 'Settings', icon: Settings },
   ];
 
@@ -165,7 +161,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
           {matchedVehicles.length === 0 && matchedCommands.length === 0 && (
             <div className="p-6 text-center text-zinc-500 text-xs">
-              No matching records or actions found for "{query}".
+              No matching records or actions found for &ldquo;{query}&rdquo;.
             </div>
           )}
         </div>

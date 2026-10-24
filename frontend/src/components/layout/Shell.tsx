@@ -9,7 +9,6 @@ import {
   Car,
   Check,
   ChevronDown,
-  FileCheck2,
   FileSearch,
   FileText,
   LayoutGrid,
@@ -47,9 +46,7 @@ export const PRIMARY_NAV: NavItem[] = [
 export const MORE_NAV: NavItem[] = [
   { label: 'Vehicle passport', href: '/reports', icon: FileText },
   { label: 'Data & privacy', href: '/decision/consent', icon: Lock },
-  { label: 'Fleet', href: '/fleet', icon: Truck },
-  { label: 'Insurer workspace', href: '/dashboards/insurer', icon: Building2, roles: ['insurer', 'admin'] },
-  { label: 'Surveyor workspace', href: '/dashboards/surveyor', icon: FileCheck2, roles: ['surveyor', 'admin'] },
+  { label: 'Review workspace', href: '/org/review', icon: Building2, roles: ['insurer', 'surveyor', 'admin'] },
   { label: 'Workshop workspace', href: '/org/workshop', icon: Wrench, roles: ['garage', 'admin'] },
   { label: 'Fleet workspace', href: '/org/fleet', icon: Truck, roles: ['fleet_operator', 'admin'] },
 ];
@@ -239,7 +236,7 @@ export default function Shell({ children }: ShellProps) {
         )}
       </AnimatePresence>
 
-      <CommandPalette isOpen={cmdOpen} onClose={() => setCmdOpen(false)} />
+      {cmdOpen && <CommandPalette isOpen onClose={() => setCmdOpen(false)} />}
     </div>
   );
 }

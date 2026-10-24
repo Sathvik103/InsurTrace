@@ -33,7 +33,7 @@ export const DEMO_PERSONAS: Persona[] = [
     name: 'Demo Insurer Officer',
     email: 'demo-insurer@verisure.in',
     token: 'dev-insurer',
-    targetRoute: '/dashboards/insurer',
+    targetRoute: '/org/review',
     desc: 'Underwriting officer auditing claim dossiers, loss ratios & fraud indicators.',
   },
   {
@@ -42,7 +42,7 @@ export const DEMO_PERSONAS: Persona[] = [
     name: 'Demo Motor Loss Assessor',
     email: 'demo-surveyor@verisure.in',
     token: 'dev-surveyor',
-    targetRoute: '/dashboards/surveyor',
+    targetRoute: '/org/review',
     desc: 'Licensed independent assessor verifying physical vehicle damage & admissible parts.',
   },
   {

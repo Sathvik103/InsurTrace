@@ -1,3 +1,5 @@
+import hashlib
+import json
 import uuid
 import datetime
 from typing import Dict, List, Any, Optional
@@ -113,6 +115,12 @@ class TableQueryBuilder:
             return MockResponse(deleted)
 
         return MockResponse([])
+
+
+def _canonical_hash(data: Dict[str, Any]) -> str:
+    """Same rule as routers.claims.get_canonical_hash (kept here to avoid a circular import)."""
+    body = {k: v for k, v in data.items() if k not in ["created_at", "updated_at"]}
+    return hashlib.sha256(json.dumps(body, separators=(",", ":"), sort_keys=True, default=str).encode("utf-8")).hexdigest()
 
 
 class MockDatabaseStore:
@@ -498,7 +506,8 @@ class MockDatabaseStore:
                 "event_type": "CLAIM_CREATED",
                 "local_data_hash": "3a3267bb774c1dea18b84aaa30c9173444e67c817a57e3e108ab767d45e28d5f",
                 "sync_status": "COMMITTED",
-                "blockchain_tx_id": "e14646ae3aa8e7abca324f525aac9e91e632372ba6999e9f1654259885b7488f",
+                "blockchain_tx_id": None,
+                "network_mode": "MOCK",
                 "org_id": "00000000-0000-0000-0000-000000000001",
                 "created_at": "2026-09-18T18:20:00Z"
             },
@@ -509,7 +518,8 @@ class MockDatabaseStore:
                 "event_type": "CLAIM_SETTLED",
                 "local_data_hash": "b8f411ce51792de5a19001b6329cbb91a6294d1f2a361e71239851acdb980145",
                 "sync_status": "COMMITTED",
-                "blockchain_tx_id": "7c92ae498b3f20d18e9531a892b1567ef401824a719234bb582103fca91b8921",
+                "blockchain_tx_id": None,
+                "network_mode": "MOCK",
                 "org_id": "00000000-0000-0000-0000-000000000004",
                 "created_at": "2026-07-15T11:00:00Z"
             },
@@ -520,7 +530,8 @@ class MockDatabaseStore:
                 "event_type": "CLAIM_SURVEYED",
                 "local_data_hash": "5d2b78119ae4c8520a1b946ef280147cb9815024d981240562e841209b52a149",
                 "sync_status": "COMMITTED",
-                "blockchain_tx_id": "99e1428fa5b602187310d54a24c79801f9241b782903561ec9014529348123ab",
+                "blockchain_tx_id": None,
+                "network_mode": "MOCK",
                 "org_id": "00000000-0000-0000-0000-000000000005",
                 "created_at": "2026-09-12T16:45:00Z"
             },
@@ -531,11 +542,20 @@ class MockDatabaseStore:
                 "event_type": "CLAIM_APPROVED",
                 "local_data_hash": "4fa091e7b2354917a8029c54e198b935cf182046ab819543e0129845ba362091",
                 "sync_status": "COMMITTED",
-                "blockchain_tx_id": "f82051048b1945196e8194b150923058a91254cb912803456810245196ab1409",
+                "blockchain_tx_id": None,
+                "network_mode": "MOCK",
                 "org_id": "00000000-0000-0000-0000-000000000004",
                 "created_at": "2026-08-05T13:30:00Z"
             }
         ]
+
+        # Sample rows are never on a real ledger: fingerprint the sample claims
+        # themselves so the integrity check is consistent, and mark them MOCK.
+        claims_by_id = {c["id"]: c for c in self.tables["claims"]}
+        for ref in self.tables["ledger_references"]:
+            claim = claims_by_id.get(ref["entity_id"])
+            if claim:
+                ref["local_data_hash"] = _canonical_hash(claim)
 
         # 8. Consents (DPDP Act Active Grants)
         self.tables["consents"] = [

@@ -1,438 +1,179 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { CheckCircle2, CircleAlert, CircleDashed, Download, Mail, Share2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { AppShell } from '@/components/layout/Shell';
-import { PageHeader } from '@/components/common/PageHeader';
-import { StatCard } from '@/components/common/StatCard';
-import { TrustBadge } from '@/components/common/TrustBadge';
-import { FadeIn } from '@/components/motion/MotionPrimitives';
 import { useAuth } from '@/context/AuthContext';
 import { useVehicle } from '@/context/VehicleContext';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, describeApiError } from '@/lib/api';
+import { useSystemStatus } from '@/lib/useSystemStatus';
+import { orgHomeFor, ORG_ROLES } from '@/components/org/OrgShell';
 import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
-import {
-  User,
-  Building,
-  ShieldCheck,
-  Database,
-  Key,
-  Network,
-  Download,
-  AlertTriangle,
-  Mail,
-  CheckCircle2,
-  Car,
-  Activity,
-  Cpu,
-  RefreshCw,
-  Server
-} from 'lucide-react';
+import { BRAND } from '@/lib/brand';
 
-interface SystemStatusResponse {
-  platform: string;
-  version: string;
-  timestamp: string;
-  components: {
-    database: { name: string; type: string; status: string; details: string };
-    authentication: { name: string; type: string; status: string; details: string };
-    financial_engine: { name: string; type: string; status: string; rule_version?: string; details: string };
-    hyperledger_fabric: { name: string; type: string; status: string; channel?: string; details: string };
-    ml_intelligence: { name: string; type: string; status: string; details: string };
-    external_vahan: { name: string; type: string; status: string; details: string };
-    external_insurers: { name: string; type: string; status: string; details: string };
-    external_workshops: { name: string; type: string; status: string; details: string };
-  };
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+interface Profile {
+  email?: string | null;
+  full_name?: string | null;
+  role: string;
+  organization?: { name: string; type?: string } | null;
+}
+
+const ROLE_WORDS: Record<string, string> = {
+  POLICYHOLDER: 'Car owner',
+  FLEET_OPERATOR: 'Fleet operator',
+  GARAGE: 'Workshop',
+  INSURER: 'Insurer',
+  SURVEYOR: 'Surveyor',
+  ADMIN: 'Administrator',
+};
+
+// Uses the server's own badge classification so the two never disagree.
+const OK = ['connected', 'operational'];
+const OFF = ['not_connected', 'not_integrated', 'data_limited'];
+
+function Card({ title, children, delay = 0 }: { title: string; children: React.ReactNode; delay?: number }) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: EASE, delay }}
+      className="rounded-3xl border border-navy-100 bg-white p-6"
+    >
+      <h2 className="text-lg font-semibold text-navy-900">{title}</h2>
+      <div className="mt-4">{children}</div>
+    </motion.section>
+  );
 }
 
 export default function SettingsPage() {
   const { user, role, isDemo } = useAuth();
-  const { vehicles, selectedVehicle } = useVehicle();
-  const [activeTab, setActiveTab] = useState<'PROFILE' | 'ORGANIZATION' | 'PRIVACY' | 'LEDGER' | 'SYSTEM_STATUS'>('PROFILE');
-  const [downloaded, setDownloaded] = useState(false);
-  const [systemStatus, setSystemStatus] = useState<SystemStatusResponse | null>(null);
-  const [loadingStatus, setLoadingStatus] = useState(false);
-  const [statusError, setStatusError] = useState<unknown>(null);
+  const { vehicles } = useVehicle();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const { status, error: statusError, loading: statusLoading } = useSystemStatus();
+  const roleKey = (profile?.role || role || 'POLICYHOLDER').toUpperCase();
+  const isOrg = ORG_ROLES.includes(roleKey.toLowerCase()) && roleKey !== 'ADMIN';
 
   useEffect(() => {
-    async function fetchSystemStatus() {
-      setLoadingStatus(true);
-      setStatusError(null);
-      try {
-        setSystemStatus(await apiFetch<SystemStatusResponse>('/api/v1/system/status', { anonymous: true, timeoutMs: 60000 }));
-      } catch (e) {
-        setStatusError(e);
-      } finally {
-        setLoadingStatus(false);
-      }
-    }
+    apiFetch<Profile>('/api/v1/profiles/me').then(setProfile).catch(() => setProfile(null));
+  }, []);
 
-    if (activeTab === 'SYSTEM_STATUS') {
-      fetchSystemStatus();
+  // Exports what the server actually holds for this account, not a summary.
+  const exportData = async () => {
+    setExporting(true);
+    try {
+      const [claims, consents] = await Promise.all([
+        apiFetch<unknown[]>('/api/v1/claims').catch(() => []),
+        apiFetch<unknown[]>('/api/v1/consent').catch(() => []),
+      ]);
+      const body = {
+        exported_by: BRAND.name,
+        exported_at: new Date().toISOString(),
+        demo_session: isDemo,
+        profile: profile ?? { email: user?.email, role: roleKey },
+        vehicles,
+        saved_records: claims,
+        sharing_permissions: consents,
+      };
+      const url = URL.createObjectURL(new Blob([JSON.stringify(body, null, 2)], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `clearclaim-my-data-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Your data was downloaded.');
+    } catch (e) {
+      toast.error(describeApiError(e).title);
+    } finally {
+      setExporting(false);
     }
-  }, [activeTab]);
-
-  const handleDownloadPassport = () => {
-    setDownloaded(true);
-    const exportData = {
-      product: 'ClearClaim — Know if a car insurance claim is worth it',
-      user: user?.email || 'demo-policyholder@verisure.in',
-      role: role || 'POLICYHOLDER',
-      vehicles_count: vehicles.length,
-      active_vehicle: selectedVehicle
-        ? {
-            id: selectedVehicle.id,
-            make: selectedVehicle.make,
-            model: selectedVehicle.model,
-            registration: selectedVehicle.registration_number,
-            usage_type: selectedVehicle.usage_type,
-          }
-        : null,
-      all_vehicles: vehicles.map((v) => ({
-        id: v.id,
-        make: v.make,
-        model: v.model,
-        registration: v.registration_number,
-        usage_type: v.usage_type,
-      })),
-      ledger: 'Hyperledger Fabric mychannel (private development network)',
-      privacy_standard: 'DPDP-Aligned Consent & Data Minimization Architecture',
-      exported_at: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `verisure-data-passport-${Date.now()}.json`;
-    a.click();
-    setTimeout(() => setDownloaded(false), 3000);
   };
+
+  const rows: [string, string][] = [
+    ['Email', profile?.email || user?.email || 'Not available'],
+    ['Name', profile?.full_name || 'Not set'],
+    ['Account type', ROLE_WORDS[roleKey] || roleKey],
+    ['Organisation', profile?.organization?.name || (isOrg ? 'Not linked' : 'Personal account')],
+    ['Sign-in', isDemo ? 'Demo session (sample data, nothing is kept)' : 'Email account'],
+  ];
 
   return (
     <AppShell>
-      <PageHeader
-        title="Settings & System Configuration"
-        description="Manage identity profiles, organizational affiliations, DPDP-aligned data rights, and live system status."
-        breadcrumbs={[
-          { label: 'Platform', href: '/decision' },
-          { label: 'Settings' },
-        ]}
-      />
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">Settings</h1>
+          <p className="mt-2 text-navy-500">Your account, your data, and whether each part of {BRAND.name} is working right now.</p>
+        </div>
 
-      {/* Tabs */}
-      <div className="flex overflow-x-auto border-b border-zinc-200 dark:border-zinc-800 space-x-6 mb-8 text-xs font-medium">
-        <button
-          onClick={() => setActiveTab('PROFILE')}
-          className={`pb-3 border-b-2 transition-colors shrink-0 ${
-            activeTab === 'PROFILE'
-              ? 'border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100 font-semibold'
-              : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
-          }`}
-        >
-          Identity & Profile
-        </button>
-        <button
-          onClick={() => setActiveTab('ORGANIZATION')}
-          className={`pb-3 border-b-2 transition-colors shrink-0 ${
-            activeTab === 'ORGANIZATION'
-              ? 'border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100 font-semibold'
-              : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
-          }`}
-        >
-          Organization
-        </button>
-        <button
-          onClick={() => setActiveTab('PRIVACY')}
-          className={`pb-3 border-b-2 transition-colors shrink-0 ${
-            activeTab === 'PRIVACY'
-              ? 'border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100 font-semibold'
-              : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
-          }`}
-        >
-          DPDP Privacy & Rights
-        </button>
-        <button
-          onClick={() => setActiveTab('LEDGER')}
-          className={`pb-3 border-b-2 transition-colors shrink-0 ${
-            activeTab === 'LEDGER'
-              ? 'border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100 font-semibold'
-              : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
-          }`}
-        >
-          Hyperledger Fabric Node
-        </button>
-        <button
-          onClick={() => setActiveTab('SYSTEM_STATUS')}
-          className={`pb-3 border-b-2 transition-colors shrink-0 flex items-center gap-1.5 ${
-            activeTab === 'SYSTEM_STATUS'
-              ? 'border-sky-600 text-sky-600 dark:border-sky-400 dark:text-sky-400 font-semibold'
-              : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
-          }`}
-        >
-          <Activity className="w-3.5 h-3.5" />
-          <span>Live System Status</span>
-        </button>
-      </div>
-
-      {/* Tab 1: Profile */}
-      {activeTab === 'PROFILE' && (
-        <FadeIn className="space-y-6 max-w-2xl">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-6 space-y-4 shadow-xs">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              Active User Identity
-            </h3>
-
-            <div className="space-y-3 text-xs">
-              <div>
-                <span className="text-zinc-500 block text-[11px]">Primary Email</span>
-                <span className="font-mono text-zinc-900 dark:text-zinc-100 font-semibold">
-                  {user?.email || 'demo-policyholder@verisure.in'}
-                </span>
+        <Card title="Account">
+          <dl className="divide-y divide-navy-50">
+            {rows.map(([k, v]) => (
+              <div key={k} className="flex flex-col gap-0.5 py-3 sm:flex-row sm:justify-between">
+                <dt className="text-sm text-navy-500">{k}</dt>
+                <dd className="text-sm font-medium text-navy-900">{v}</dd>
               </div>
-
-              <div>
-                <span className="text-zinc-500 block text-[11px]">Authoritative System Role</span>
-                <span className="inline-block mt-0.5 px-2.5 py-0.5 rounded font-mono text-[10px] font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 uppercase border border-zinc-200 dark:border-zinc-700">
-                  {role || 'POLICYHOLDER'}
-                </span>
-              </div>
-
-              <div>
-                <span className="text-zinc-500 block text-[11px]">Authentication Mode</span>
-                <span className="font-mono text-xs text-zinc-700 dark:text-zinc-300">
-                  {isDemo ? 'Sandbox Persona (Dev Session)' : 'Supabase Auth JWT (Persistent Session)'}
-                </span>
-              </div>
-
-              <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                <span className="text-zinc-500 block text-[11px]">Registered Vehicles</span>
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-zinc-800 dark:text-zinc-200 font-medium">
-                    {vehicles.length} vehicles registered {selectedVehicle ? `(Active: ${selectedVehicle.registration_number})` : ''}
-                  </span>
-                  <a
-                    href="/vehicles"
-                    className="text-sky-600 hover:text-sky-700 text-[11px] font-semibold flex items-center gap-1"
-                  >
-                    <span>Manage</span>
-                    <span>&rarr;</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
-      )}
-
-      {/* Tab 2: Organization */}
-      {activeTab === 'ORGANIZATION' && (
-        <FadeIn className="space-y-6 max-w-2xl">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-6 space-y-4 shadow-xs">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              Organizational Credentials
-            </h3>
-
-            <div className="space-y-3 text-xs">
-              <div>
-                <span className="text-zinc-500 block text-[11px]">Organization Name</span>
-                <span className="font-bold text-zinc-900 dark:text-zinc-100">
-                  {role === 'insurer'
-                    ? 'Demo General Insurance Ltd.'
-                    : role === 'garage'
-                    ? 'Quality Auto Care Workshop'
-                    : role === 'surveyor'
-                    ? 'Demo Independent Assessors Guild'
-                    : 'Personal Policyholder Account'}
-                </span>
-              </div>
-
-              <div>
-                <span className="text-zinc-500 block text-[11px]">Institutional Designation</span>
-                <span className="font-medium text-zinc-800 dark:text-zinc-200">
-                  {role === 'insurer'
-                    ? 'General Insurance Underwriting Desk'
-                    : role === 'garage'
-                    ? 'Authorized Network Bodyworks & Repair Facility'
-                    : role === 'surveyor'
-                    ? 'Independent Motor Loss Assessor (Level II)'
-                    : 'Registered Vehicle Owner'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
-      )}
-
-      {/* Tab 3: DPDP Privacy */}
-      {activeTab === 'PRIVACY' && (
-        <FadeIn className="space-y-6 max-w-2xl">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-6 space-y-4 shadow-xs">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              DPDP Act 2023 Statutory Rights
-            </h3>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              Under India&apos;s Digital Personal Data Protection Act 2023, you retain the right to export a complete copy of your vehicle and claim ledger records, or request erasure of non-statutory data.
-            </p>
-
-            <div className="pt-2">
-              <button
-                onClick={handleDownloadPassport}
-                className="px-4 py-2.5 rounded-xl text-xs font-semibold bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 transition-colors flex items-center gap-2 shadow-2xs"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download Cryptographic Data Passport (JSON)</span>
-              </button>
-              {downloaded && (
-                <p className="text-xs text-emerald-600 mt-2 font-medium">
-                  Export dispatched successfully.
-                </p>
-              )}
-            </div>
-
-            <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800 text-xs text-zinc-500">
-              Data Fiduciary Contact: <span className="font-mono text-zinc-900 dark:text-zinc-100">sathvikkandukuri202@gmail.com</span>
-            </div>
-          </div>
-        </FadeIn>
-      )}
-
-      {/* Tab 4: Ledger Node */}
-      {activeTab === 'LEDGER' && (
-        <FadeIn className="space-y-6 max-w-2xl">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-6 space-y-4 shadow-xs">
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              Ledger configuration
-            </h3>
-
-            <div className="space-y-3 text-xs font-mono">
-              <div className="flex justify-between p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
-                <span className="text-zinc-500 font-sans">Channel Name:</span>
-                <span className="text-zinc-900 dark:text-zinc-100 font-bold">mychannel</span>
-              </div>
-              <div className="flex justify-between p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
-                <span className="text-zinc-500 font-sans">Chaincode ID:</span>
-                <span className="text-zinc-900 dark:text-zinc-100 font-bold">VehicleHistory (v1.0)</span>
-              </div>
-              <div className="flex justify-between p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
-                <span className="text-zinc-500 font-sans">Orderer Consensus:</span>
-                <span className="text-emerald-600 font-bold">CFT Raft (Port 7050)</span>
-              </div>
-              <div className="flex justify-between p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
-                <span className="text-zinc-500 font-sans">Endorsing Peer MSP:</span>
-                <span className="text-zinc-900 dark:text-zinc-100">Org1MSP &amp; Org2MSP</span>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
-      )}
-
-      {/* Tab 5: Live System Status */}
-      {activeTab === 'SYSTEM_STATUS' && (
-        <FadeIn className="space-y-6 max-w-3xl">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 p-6 space-y-5 shadow-xs">
-            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
-              <div>
-                <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                  <Server className="w-4 h-4 text-sky-600" />
-                  <span>Authoritative Subsystem Status</span>
-                </h3>
-                <p className="text-xs text-zinc-500 mt-0.5">
-                  Live verification of infrastructure connections and external dependencies.
-                </p>
-              </div>
-
-              {loadingStatus ? (
-                <RefreshCw className="w-4 h-4 animate-spin text-zinc-400" />
-              ) : (
-                <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  ONLINE
-                </span>
-              )}
-            </div>
-
-            {systemStatus && systemStatus.components ? (
-              <div className="space-y-4 text-xs">
-                {/* Core Verified Subsystems */}
-                <div className="space-y-2">
-                  <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block">
-                    Core Platform Services
-                  </span>
-
-                  <div className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950 flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-zinc-900 dark:text-zinc-100">{systemStatus.components.database?.name || 'Database & Storage'}</p>
-                      <p className="text-[11px] text-zinc-500">{systemStatus.components.database?.details}</p>
-                    </div>
-                    <TrustBadge source="COMPUTED_RESULT" label={systemStatus.components.database?.status || 'CONNECTED'} />
-                  </div>
-
-                  <div className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950 flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-zinc-900 dark:text-zinc-100">{systemStatus.components.financial_engine?.name || 'Deterministic Financial Engine'}</p>
-                      <p className="text-[11px] text-zinc-500">{systemStatus.components.financial_engine?.details}</p>
-                    </div>
-                    <TrustBadge source="COMPUTED_RESULT" label={systemStatus.components.financial_engine?.status || 'OPERATIONAL'} />
-                  </div>
-
-                  <div className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950 flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-zinc-900 dark:text-zinc-100">{systemStatus.components.hyperledger_fabric?.name || 'Record Integrity Ledger'}</p>
-                      <p className="text-[11px] text-zinc-500">{systemStatus.components.hyperledger_fabric?.details}</p>
-                    </div>
-                    <TrustBadge
-                      source="BLOCKCHAIN_RECORD"
-                      label={systemStatus.components.hyperledger_fabric?.status === 'CONNECTED' ? 'LEDGER CONNECTED' : 'LEDGER NOT CONNECTED'}
-                    />
-                  </div>
-
-                  <div className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950 flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-zinc-900 dark:text-zinc-100">{systemStatus.components.ml_intelligence?.name || 'ML Intelligence (Vision & Fraud)'}</p>
-                      <p className="text-[11px] text-zinc-500">{systemStatus.components.ml_intelligence?.details}</p>
-                    </div>
-                    <TrustBadge source="ML_ESTIMATE" label="DATA-LIMITED" />
-                  </div>
-                </div>
-
-                {/* External Ecosystem Systems - Clearly Marked Not Connected */}
-                <div className="space-y-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
-                  <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider block">
-                    External Ecosystem APIs (Strict Honesty Policy)
-                  </span>
-
-                  <div className="p-3 rounded-xl border border-amber-200/60 dark:border-amber-900/40 bg-amber-50/30 dark:bg-amber-950/10 flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-zinc-900 dark:text-zinc-100">{systemStatus.components.external_vahan?.name || 'VAHAN / Parivahan Registry'}</p>
-                      <p className="text-[11px] text-zinc-500">{systemStatus.components.external_vahan?.details}</p>
-                    </div>
-                    <TrustBadge source="EXTERNAL_SOURCE_NOT_CONNECTED" />
-                  </div>
-
-                  <div className="p-3 rounded-xl border border-amber-200/60 dark:border-amber-900/40 bg-amber-50/30 dark:bg-amber-950/10 flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-zinc-900 dark:text-zinc-100">{systemStatus.components.external_insurers?.name || 'Insurer Policy Systems'}</p>
-                      <p className="text-[11px] text-zinc-500">{systemStatus.components.external_insurers?.details}</p>
-                    </div>
-                    <TrustBadge source="EXTERNAL_SOURCE_NOT_CONNECTED" />
-                  </div>
-
-                  <div className="p-3 rounded-xl border border-amber-200/60 dark:border-amber-900/40 bg-amber-50/30 dark:bg-amber-950/10 flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-zinc-900 dark:text-zinc-100">{systemStatus.components.external_workshops?.name || 'Audatex / DAT Parts Systems'}</p>
-                      <p className="text-[11px] text-zinc-500">{systemStatus.components.external_workshops?.details}</p>
-                    </div>
-                    <TrustBadge source="EXTERNAL_SOURCE_NOT_CONNECTED" />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="p-6 text-center text-zinc-500 text-xs">
-                {loadingStatus ? 'Connecting to system diagnostics…' : statusError != null ? <ApiErrorNotice error={statusError} className="text-left" /> : 'No status available.'}
-              </div>
+            ))}
+          </dl>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {['POLICYHOLDER', 'FLEET_OPERATOR'].includes(roleKey) && (
+              <Link href="/vehicles" className="rounded-xl border border-navy-200 px-3 py-2 text-sm font-medium text-navy-700 hover:bg-navy-50">My cars ({vehicles.length})</Link>
             )}
+            {isOrg && <Link href={orgHomeFor(roleKey)} className="rounded-xl border border-navy-200 px-3 py-2 text-sm font-medium text-navy-700 hover:bg-navy-50">Open workspace</Link>}
           </div>
-        </FadeIn>
-      )}
+        </Card>
+
+        <Card title="Your data" delay={0.05}>
+          <p className="text-sm leading-relaxed text-navy-600">
+            Download everything stored for your account: cars, saved records and who you have shared them with. To have your data deleted, email us from the address on your account. We handle requests in line with India&apos;s DPDP Act.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button type="button" onClick={exportData} disabled={exporting} className="inline-flex items-center gap-2 rounded-xl bg-navy-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:opacity-60">
+              <Download className="h-4 w-4" /> {exporting ? 'Preparing…' : 'Download my data'}
+            </button>
+            <Link href="/decision/consent" className="inline-flex items-center gap-2 rounded-xl border border-navy-200 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-50">
+              <Share2 className="h-4 w-4" /> Manage sharing
+            </Link>
+            <a href={`mailto:${BRAND.contactEmail}?subject=${encodeURIComponent('Data deletion request')}`} className="inline-flex items-center gap-2 rounded-xl border border-navy-200 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-50">
+              <Mail className="h-4 w-4" /> Request deletion
+            </a>
+          </div>
+        </Card>
+
+        <Card title="Service status" delay={0.1}>
+          {statusError != null ? (
+            <ApiErrorNotice error={statusError} />
+          ) : statusLoading || !status ? (
+            <div className="vs-shimmer h-40 rounded-2xl" />
+          ) : (
+            <>
+              <ul className="divide-y divide-navy-50">
+                {Object.entries(status.components).map(([key, c]) => {
+                  const ok = OK.includes(c.badge_variant || '');
+                  const off = OFF.includes(c.badge_variant || '');
+                  const Icon = ok ? CheckCircle2 : off ? CircleDashed : CircleAlert;
+                  return (
+                    <li key={key} className="flex items-start gap-3 py-3">
+                      <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${ok ? 'text-gain' : off ? 'text-navy-300' : 'text-amber-600'}`} />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-navy-900">{c.name}</p>
+                        {c.details && <p className="text-xs leading-relaxed text-navy-500">{c.details}</p>}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="mt-3 text-xs text-navy-400">
+                {status.data_mode === 'DEMO_SANDBOX' ? 'This server runs on sample data.' : 'Connected to the live database.'} Grey items are not part of {BRAND.name} yet; we never show them as working.
+              </p>
+            </>
+          )}
+        </Card>
+      </div>
     </AppShell>
   );
 }

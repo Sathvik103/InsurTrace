@@ -188,6 +188,8 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
       // Start with vehicles saved on this device only; the server list replaces
       // them as soon as it arrives. Sample cars are never shown to real accounts.
       const initialVehicles: Vehicle[] = savedCustom ? (JSON.parse(savedCustom) as Vehicle[]).filter((v) => v.is_local_only) : [];
+      // localStorage only exists after mount; reading it during render would break hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVehicles(initialVehicles);
 
       // Validate saved active vehicle exists
@@ -251,6 +253,8 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
   }, [token, status, selectedVehicleId, isDemo]);
 
   useEffect(() => {
+    // Fetches from the API; state updates happen after the request resolves.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshVehicles();
   }, [refreshVehicles]);
 

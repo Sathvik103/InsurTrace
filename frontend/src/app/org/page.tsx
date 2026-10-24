@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { orgKindFor } from '@/components/org/OrgShell';
+import { orgHomeFor } from '@/components/org/OrgShell';
 
 /** Sends each organisation to its own workspace. */
 export default function OrgHome() {
@@ -12,7 +12,7 @@ export default function OrgHome() {
   useEffect(() => {
     if (!initialized) return;
     if (status !== 'authenticated') router.replace('/login?next=%2Forg');
-    else router.replace(orgKindFor(role) === 'workshop' ? '/org/workshop' : '/org/fleet');
+    else router.replace(orgHomeFor(role));
   }, [initialized, status, role, router]);
   return <div className="min-h-screen bg-navy-950" />;
 }

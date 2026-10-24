@@ -14,8 +14,8 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 
 const ROLE_ROUTES: Record<string, string> = {
   POLICYHOLDER: '/vehicles',
-  INSURER: '/dashboards/insurer',
-  SURVEYOR: '/dashboards/surveyor',
+  INSURER: '/org/review',
+  SURVEYOR: '/org/review',
   GARAGE: '/org/workshop',
   FLEET_OPERATOR: '/org/fleet',
   ADMIN: '/verification',
