@@ -4,12 +4,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, Car, Check, Clock, FileCheck2, FileText, KeyRound, Lock, Scale, ShieldCheck, Truck, UserRound } from 'lucide-react';
+import { ArrowRight, Car, Check, Clock, FileCheck2, FileText, KeyRound, Lock, Scale, ShieldCheck, UserRound } from 'lucide-react';
 import { AppShell } from '@/components/layout/Shell';
 import { useVehicle } from '@/context/VehicleContext';
 import { apiFetch } from '@/lib/api';
 import { rupees } from '@/lib/claimCheck';
 import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
+import { CarSilhouette } from '@/components/vehicle/CarSilhouette';
+import { NumberPlate } from '@/components/vehicle/NumberPlate';
+import { BODY_LABEL, bodyTypeOf } from '@/lib/bodyType';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -84,7 +87,7 @@ export default function VehicleHistoryPage() {
     () => [
       { label: 'Car details added', done: !!vehicle },
       { label: 'IDV on file', done: !!vehicle?.idv },
-      { label: 'No-Claim Bonus on file', done: vehicle?.ncb_percentage !== undefined },
+      { label: 'No-Claim Bonus on file', done: vehicle?.ncb_percentage != null },
       { label: 'Policy number on file', done: !!vehicle?.policy_number },
       { label: 'A claim check saved', done: claimEvents > 0 },
       { label: 'A record anchored on the ledger', done: anchored > 0 },
@@ -109,31 +112,34 @@ export default function VehicleHistoryPage() {
       <div className="space-y-8">
         {/* Summary */}
         <motion.section initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }} className="vs-surface overflow-hidden">
-          <div className="flex flex-col gap-6 p-6 sm:p-8 lg:flex-row lg:items-center">
-            <div className="flex flex-1 items-start gap-4">
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl bg-navy-900 text-white shadow-lg">
-                {commercial ? <Truck className="h-7 w-7" /> : <Car className="h-7 w-7" />}
-              </span>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">{vehicle ? `${vehicle.make} ${vehicle.model}` : 'Vehicle'}</h1>
-                  {vehicle?.is_demo && <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-800 ring-1 ring-amber-200">Demo</span>}
-                </div>
-                <p className="mt-1 text-sm text-navy-500">
-                  {vehicle?.registration_number}{vehicle?.variant ? ` · ${vehicle.variant}` : ''} · {vehicle?.manufacture_year}{vehicle?.fuel_type ? ` · ${vehicle.fuel_type}` : ''}
-                </p>
+          <div className="vs-grain relative grid items-center gap-6 overflow-hidden bg-navy-950 p-6 text-white sm:p-8 lg:grid-cols-[1fr_0.9fr]">
+            <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-steel-600/30 blur-[100px]" />
+            <div className="relative min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-white/15 px-2.5 py-0.5 text-xs font-medium text-white/70">{vehicle ? BODY_LABEL[bodyTypeOf(vehicle)] : 'Vehicle'}</span>
+                {vehicle?.is_demo && <span className="rounded-full bg-amber-400/15 px-2.5 py-0.5 text-xs font-semibold text-amber-300">Demo</span>}
+              </div>
+              <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight sm:text-5xl">{vehicle ? `${vehicle.make} ${vehicle.model}` : 'Vehicle'}</h1>
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-white/55">
+                {vehicle?.registration_number && <NumberPlate value={vehicle.registration_number} commercial={!!commercial} />}
+                <span>{vehicle?.variant ? `${vehicle.variant} · ` : ''}{vehicle?.manufacture_year}{vehicle?.fuel_type ? ` · ${vehicle.fuel_type}` : ''}</span>
+              </div>
+              <div className="mt-6 flex flex-wrap gap-2">
+                <Link href={`/decision?vehicle_id=${encodeURIComponent(id)}`} className="vs-btn-signal py-2.5 text-sm">Check a claim <ArrowRight className="h-4 w-4" /></Link>
+                <Link href="/decision/consent" className="vs-btn-ghost-dark py-2.5 text-sm"><Lock className="h-4 w-4" /> Share access</Link>
+                <Link href="/reports" className="vs-btn-ghost-dark py-2.5 text-sm"><FileText className="h-4 w-4" /> Passport</Link>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Link href={`/decision?vehicle_id=${encodeURIComponent(id)}`} className="vs-btn-primary py-2.5">Check a claim <ArrowRight className="h-4 w-4" /></Link>
-              <Link href="/decision/consent" className="vs-btn-secondary py-2.5"><Lock className="h-4 w-4" /> Share access</Link>
-              <Link href="/reports" className="vs-btn-secondary py-2.5"><FileText className="h-4 w-4" /> Passport</Link>
-            </div>
+            {vehicle && (
+              <motion.div initial={reduce ? false : { opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.9, delay: 0.15, ease: EASE }} className="relative">
+                <CarSilhouette vehicle={vehicle} className="w-full drop-shadow-[0_24px_30px_rgba(0,0,0,0.5)]" />
+              </motion.div>
+            )}
           </div>
           <dl className="grid grid-cols-2 border-t border-navy-100 sm:grid-cols-4">
             {[
               { label: 'IDV (cover)', value: vehicle?.idv ? rupees(vehicle.idv) : 'Not added' },
-              { label: 'No-Claim Bonus', value: vehicle?.ncb_percentage !== undefined ? `${vehicle.ncb_percentage}%` : 'Not added' },
+              { label: 'No-Claim Bonus', value: vehicle?.ncb_percentage != null ? `${vehicle.ncb_percentage}%` : 'Not added' },
               { label: 'Policy renewal', value: days === null ? 'Not added' : days < 0 ? `Expired ${-days}d ago` : `In ${days} days` },
               { label: 'Ledger-anchored records', value: data ? String(anchored) : '–' },
             ].map((s, i) => (

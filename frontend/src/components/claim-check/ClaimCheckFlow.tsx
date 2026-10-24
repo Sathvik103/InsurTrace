@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Car, Check, FileUp, HelpCircle, Plus, Sparkles, Wrench, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, FileUp, HelpCircle, Plus, Wrench, X } from 'lucide-react';
 import { useVehicle } from '@/context/VehicleContext';
 import { useAssistant, useAssistantPageContext } from '@/context/AssistantContext';
 import { analyzeClaim, DAMAGE_PARTS, EngineResult, NCB_STEPS, PartCategory, PolicyInputs, RepairLine, rupees } from '@/lib/claimCheck';
@@ -13,6 +13,8 @@ import { ResultView } from './ResultView';
 import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
 import { takeHandoff } from '@/lib/extractHandoff';
 import { LedgerCommitPanel } from '@/components/common/LedgerCommitPanel';
+import { CarSilhouette } from '@/components/vehicle/CarSilhouette';
+import { BODY_LABEL, bodyTypeOf } from '@/lib/bodyType';
 
 const STEPS = ['Your car', 'What’s damaged', 'Your policy', 'Your answer'] as const;
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -69,8 +71,8 @@ export function ClaimCheckFlow() {
     if (initial && carId === null) {
       setCarId(initial.id);
       if (initial.idv) setIdv(String(initial.idv));
-      if (initial.ncb_percentage !== undefined && (NCB_STEPS as readonly number[]).includes(initial.ncb_percentage)) setNcb(initial.ncb_percentage);
-      if (initial.has_zero_dep !== undefined) setZeroDep(initial.has_zero_dep ? 'yes' : 'no');
+      if (initial.ncb_percentage != null && (NCB_STEPS as readonly number[]).includes(initial.ncb_percentage)) setNcb(initial.ncb_percentage);
+      if (initial.has_zero_dep != null) setZeroDep(initial.has_zero_dep ? 'yes' : 'no');
       if (initial.od_premium) setPremium(String(initial.od_premium));
     }
     if (params.get('idv')) setIdv(params.get('idv')!);
@@ -194,31 +196,37 @@ export function ClaimCheckFlow() {
     <div className="mx-auto w-full max-w-3xl">
       {/* Header + progress */}
       <div className="mb-8 space-y-5">
-        <div className="space-y-2">
-          <span className="vs-chip"><Sparkles className="h-3.5 w-3.5 text-steel-600" /> {fromDocument ? 'Filled in from your document. Please check each value' : 'About 2 minutes'}</span>
-          <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">Should you claim, or pay yourself?</h1>
-          <p className="text-base text-navy-600">Answer a few simple questions. We’ll show what your insurer might pay, what you’d pay, and which option costs you less.</p>
+        <div className="space-y-3">
+          <p className={`font-mono text-xs uppercase tracking-[0.18em] ${fromDocument ? 'text-steel-700' : 'text-navy-400'}`}>
+            {fromDocument ? '( Filled in from your document: check each value )' : '( Claim check · about 2 minutes )'}
+          </p>
+          <h1 className="font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-navy-950 sm:text-5xl">Claim it, or pay it yourself?</h1>
+          <p className="max-w-xl text-base text-navy-500">Answer a few simple questions. We’ll show what your insurer might pay, what you’d pay, and which option costs you less.</p>
         </div>
-        <ol className="grid grid-cols-4 gap-2" aria-label="Progress">
+        <ol className="flex items-center gap-2" aria-label="Progress">
           {STEPS.map((label, i) => (
-            <li key={label} className="space-y-2">
-              <div className="h-1.5 overflow-hidden rounded-full bg-navy-100">
-                <motion.div
-                  className="h-full rounded-full bg-navy-900"
-                  initial={false}
-                  animate={{ width: i < step ? '100%' : i === step ? '50%' : '0%' }}
-                  transition={{ duration: 0.6, ease: EASE }}
-                />
-              </div>
+            <li key={label} className="flex flex-1 items-center gap-2 last:flex-none">
               <button
                 type="button"
-                disabled={i >= step || step === 3 && loading}
+                disabled={i >= step || (step === 3 && loading)}
                 onClick={() => go(i)}
                 aria-current={i === step ? 'step' : undefined}
-                className={`hidden text-left text-xs font-medium sm:block ${i === step ? 'text-navy-900' : i < step ? 'text-navy-500 hover:text-navy-800' : 'text-navy-300'}`}
+                className="group flex items-center gap-2"
               >
-                {i + 1}. {label}
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-mono text-xs font-semibold transition-all duration-500 ${
+                    i < step ? 'bg-navy-950 text-signal' : i === step ? 'bg-signal text-navy-950 ring-4 ring-signal/30' : 'bg-navy-50 text-navy-300'
+                  }`}
+                >
+                  {i < step ? <Check className="h-4 w-4" strokeWidth={3} /> : `0${i + 1}`}
+                </span>
+                <span className={`hidden whitespace-nowrap text-sm font-medium md:block ${i === step ? 'text-navy-950' : i < step ? 'text-navy-500 group-hover:text-navy-900' : 'text-navy-300'}`}>{label}</span>
               </button>
+              {i < STEPS.length - 1 && (
+                <span className="relative h-px flex-1 bg-navy-100">
+                  <motion.span className="absolute inset-y-0 left-0 bg-navy-950" initial={false} animate={{ width: i < step ? '100%' : '0%' }} transition={{ duration: 0.6, ease: EASE }} />
+                </span>
+              )}
             </li>
           ))}
         </ol>
@@ -249,24 +257,28 @@ export function ClaimCheckFlow() {
                         setCarId(v.id);
                         setSelectedVehicleId(v.id);
                         setIdv(v.idv ? String(v.idv) : '');
-                        if (v.ncb_percentage !== undefined && (NCB_STEPS as readonly number[]).includes(v.ncb_percentage)) setNcb(v.ncb_percentage);
-                        if (v.has_zero_dep !== undefined) setZeroDep(v.has_zero_dep ? 'yes' : 'no');
+                        if (v.ncb_percentage != null && (NCB_STEPS as readonly number[]).includes(v.ncb_percentage)) setNcb(v.ncb_percentage);
+                        if (v.has_zero_dep != null) setZeroDep(v.has_zero_dep ? 'yes' : 'no');
                         if (v.od_premium) setPremium(String(v.od_premium));
                       }}
-                      className={`relative flex items-center gap-3 rounded-2xl border p-4 text-left transition ${
-                        on ? 'border-navy-900 bg-navy-900 text-white shadow-lg' : 'border-navy-100 bg-white hover:border-navy-300'
+                      className={`relative overflow-hidden rounded-[22px] border p-4 text-left transition duration-300 ${
+                        on ? 'border-navy-950 bg-navy-950 text-white shadow-[0_20px_40px_-20px_rgba(10,16,34,0.6)]' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'
                       }`}
                     >
-                      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${on ? 'bg-white/10' : 'bg-navy-50 text-navy-600'}`}>
-                        <Car className="h-5 w-5" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-semibold">{v.make} {v.model}</span>
-                        <span className={`block text-xs ${on ? 'text-navy-200' : 'text-navy-500'}`}>
-                          {v.registration_number} · {v.manufacture_year}{v.is_demo ? ' · Demo' : ''}
+                      <div className={`-mx-1 mb-3 rounded-2xl px-3 pt-2 ${on ? 'bg-white/[0.07]' : 'bg-[#f6f5f0]'}`}>
+                        <CarSilhouette vehicle={v} className="h-16 w-full" />
+                      </div>
+                      <span className="flex items-start gap-2">
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-semibold">{v.make} {v.model}</span>
+                          <span className={`block text-xs ${on ? 'text-white/55' : 'text-navy-500'}`}>
+                            {BODY_LABEL[bodyTypeOf(v)]} · {v.registration_number} · {v.manufacture_year}{v.is_demo ? ' · Demo' : ''}
+                          </span>
+                        </span>
+                        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition ${on ? 'bg-signal text-navy-950' : 'border border-navy-200'}`}>
+                          {on && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
                         </span>
                       </span>
-                      {on && <Check className="h-5 w-5" />}
                     </motion.button>
                   );
                 })}
@@ -276,11 +288,11 @@ export function ClaimCheckFlow() {
                     setCarId('other');
                     setIdv('');
                   }}
-                  className={`flex items-center gap-3 rounded-2xl border border-dashed p-4 text-left transition ${
-                    carId === 'other' ? 'border-navy-900 bg-navy-50' : 'border-navy-200 bg-white hover:border-navy-400'
+                  className={`flex min-h-36 flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-dashed p-4 text-center transition ${
+                    carId === 'other' ? 'border-navy-950 bg-navy-50' : 'border-navy-200 bg-white hover:border-navy-400'
                   }`}
                 >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-50 text-navy-600"><Plus className="h-5 w-5" /></span>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy-50 text-navy-600"><Plus className="h-5 w-5" /></span>
                   <span>
                     <span className="block font-semibold text-navy-900">A different car</span>
                     <span className="block text-xs text-navy-500">Quick check without saving</span>
@@ -316,6 +328,7 @@ export function ClaimCheckFlow() {
               {mode === 'parts' ? (
                 <div className="grid gap-8 md:grid-cols-[260px_1fr]">
                   <CarDiagram
+                    type={car ? bodyTypeOf(car) : 'hatchback'}
                     selected={selectedParts}
                     onToggle={(id) =>
                       setCosts((c) => {
@@ -449,7 +462,7 @@ export function ClaimCheckFlow() {
 
           {step === 3 && (
             <div className="space-y-6">
-              {loading && <Working />}
+              {loading && <Working car={car} />}
               {error != null && !loading && <ApiErrorNotice error={error} onRetry={runEngine} />}
               {result && !loading && (
                 <>
@@ -511,8 +524,8 @@ export function ClaimCheckFlow() {
 
 function StepCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
-    <section className="vs-surface p-6 sm:p-8">
-      <h2 className="text-xl font-semibold text-navy-900">{title}</h2>
+    <section className="rounded-[28px] border border-navy-100 bg-white p-6 shadow-[0_1px_2px_rgba(10,16,34,0.04),0_24px_48px_-28px_rgba(10,16,34,0.18)] sm:p-8">
+      <h2 className="font-display text-2xl font-semibold tracking-tight text-navy-950">{title}</h2>
       <p className="mt-1 text-sm text-navy-500">{subtitle}</p>
       <div className="mt-6">{children}</div>
     </section>
@@ -546,10 +559,11 @@ function Choice({ on, onClick, label, hint }: { on: boolean; onClick: () => void
       onClick={onClick}
       whileTap={{ scale: 0.97 }}
       aria-pressed={on}
-      className={`rounded-2xl border px-3 py-3 text-left transition ${on ? 'border-navy-900 bg-navy-900 text-white shadow-md' : 'border-navy-100 bg-white text-navy-900 hover:border-navy-300'}`}
+      className={`relative rounded-2xl border px-3 py-3 text-left transition duration-300 ${on ? 'border-navy-950 bg-navy-950 text-white shadow-[0_12px_24px_-14px_rgba(10,16,34,0.7)]' : 'border-navy-100 bg-white text-navy-900 hover:-translate-y-0.5 hover:border-navy-300'}`}
     >
+      {on && <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-signal" />}
       <span className="block text-sm font-semibold">{label}</span>
-      {hint && <span className={`mt-0.5 block text-[11px] leading-snug ${on ? 'text-navy-200' : 'text-navy-500'}`}>{hint}</span>}
+      {hint && <span className={`mt-0.5 block text-[11px] leading-snug ${on ? 'text-white/55' : 'text-navy-500'}`}>{hint}</span>}
     </motion.button>
   );
 }
@@ -576,32 +590,32 @@ function RupeeInput({ id, value, onChange, placeholder, compact, autoFocus }: { 
   );
 }
 
-function Working() {
+function Working({ car }: { car?: { id?: string; make?: string; model?: string; usage_type?: string | null } }) {
+  const reduce = useReducedMotion();
   const lines = ['Adding up your repair bill', 'Applying depreciation for your car’s age', 'Taking off your deductible', 'Comparing with your No-Claim Bonus'];
   const [i, setI] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setI((x) => Math.min(x + 1, lines.length - 1)), 260);
+    const t = setInterval(() => setI((x) => Math.min(x + 1, lines.length - 1)), 220);
     return () => clearInterval(t);
   }, [lines.length]);
   return (
-    <div className="vs-surface flex flex-col items-center gap-6 p-10 text-center" role="status">
-      <div className="relative h-16 w-16">
-        <motion.span className="absolute inset-0 rounded-full border-4 border-navy-100" />
-        <motion.span
-          className="absolute inset-0 rounded-full border-4 border-transparent border-t-navy-900"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}
-        />
+    <div className="vs-grain relative flex flex-col items-center gap-6 overflow-hidden rounded-[28px] bg-navy-950 p-10 text-center text-white" role="status">
+      <div className="relative w-full max-w-sm">
+        <CarSilhouette vehicle={car} variant="line" className="w-full" />
+        {!reduce && (
+          <motion.span
+            aria-hidden="true"
+            className="absolute inset-y-0 w-px bg-signal shadow-[0_0_24px_6px_rgba(212,242,92,0.45)]"
+            initial={{ left: '0%' }}
+            animate={{ left: ['0%', '100%'] }}
+            transition={{ duration: 0.9, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
+          />
+        )}
       </div>
       <ul className="space-y-2">
         {lines.map((l, idx) => (
-          <motion.li
-            key={l}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: idx <= i ? 1 : 0.25, y: 0 }}
-            className="flex items-center justify-center gap-2 text-sm text-navy-700"
-          >
-            <Check className={`h-4 w-4 ${idx < i ? 'text-gain' : 'text-navy-200'}`} /> {l}
+          <motion.li key={l} initial={{ opacity: 0, y: 6 }} animate={{ opacity: idx <= i ? 1 : 0.25, y: 0 }} className="flex items-center justify-center gap-2 font-mono text-[13px] text-white/80">
+            <Check className={`h-4 w-4 ${idx < i ? 'text-signal' : 'text-white/20'}`} /> {l}
           </motion.li>
         ))}
       </ul>

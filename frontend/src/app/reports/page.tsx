@@ -80,7 +80,7 @@ function Passport() {
     if (!vehicle) return;
     // Only data actually on record; missing fields stay null rather than being filled in.
     const passport = {
-      format: 'verisure-vehicle-passport/v2',
+      format: 'clearclaim-vehicle-passport/v2',
       generated_at: generatedAt.toISOString(),
       is_demo: !!vehicle.is_demo,
       vehicle: {
@@ -120,7 +120,7 @@ function Passport() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `verisure-passport-${vehicle.registration_number}.json`;
+    a.download = `clearclaim-passport-${vehicle.registration_number}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -189,7 +189,7 @@ function Passport() {
               <dl className="mt-3 grid gap-4 sm:grid-cols-4">
                 {[
                   ['IDV', vehicle.idv ? rupees(vehicle.idv) : 'Not added'],
-                  ['No-Claim Bonus', vehicle.ncb_percentage !== undefined ? `${vehicle.ncb_percentage}%` : 'Not added'],
+                  ['No-Claim Bonus', vehicle.ncb_percentage != null ? `${vehicle.ncb_percentage}%` : 'Not added'],
                   ['Zero-dep cover', vehicle.has_zero_dep === undefined ? 'Not added' : vehicle.has_zero_dep ? 'Yes' : 'No'],
                   ['Policy number', vehicle.policy_number || 'Not added'],
                 ].map(([k, v]) => (

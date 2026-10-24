@@ -333,3 +333,10 @@ def test_organisation_directory_exposes_identity_only():
     assert rows and all(set(r) == {"id", "name", "type"} for r in rows)
     assert all(r["type"] == "GARAGE" for r in rows)
     assert client.get("/api/v1/organizations?type=ADMIN", headers=PH).status_code == 422
+
+
+def test_organisation_directory_hides_internal_groups():
+    """Unfiltered directory lists only share targets; admin and policyholder groups would crash the sharing page."""
+    rows = client.get("/api/v1/organizations", headers=PH).json()
+    types = {r["type"] for r in rows}
+    assert types and types <= {"GARAGE", "INSURER", "SURVEYOR", "FLEET_OPERATOR"}

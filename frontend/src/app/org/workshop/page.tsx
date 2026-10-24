@@ -53,7 +53,14 @@ export default function WorkshopEstimatesPage() {
       actions={
         <>
           <button type="button" onClick={() => setD(blank())} className="vs-btn-secondary py-2.5"><RotateCcw className="h-4 w-4" /> New</button>
-          <button type="button" onClick={async () => { await navigator.clipboard.writeText(summary()); toast.success('Summary copied. Paste it into WhatsApp or email.'); }} className="vs-btn-secondary py-2.5"><Copy className="h-4 w-4" /> Copy summary</button>
+          <button type="button" onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(summary());
+                toast.success('Summary copied. Paste it into WhatsApp or email.');
+              } catch {
+                toast.error('Your browser blocked copying. Use Print instead, or allow clipboard access.');
+              }
+            }} className="vs-btn-secondary py-2.5"><Copy className="h-4 w-4" /> Copy summary</button>
           <button type="button" onClick={() => window.print()} className="vs-btn-primary py-2.5"><Printer className="h-4 w-4" /> Print for customer</button>
         </>
       }

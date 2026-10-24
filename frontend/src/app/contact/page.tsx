@@ -5,6 +5,7 @@ import { PublicNavbar } from '@/components/public/PublicNavbar';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { FadeIn, SlideUp } from '@/components/motion/MotionPrimitives';
 import { Mail, CheckCircle, Copy, Send } from 'lucide-react';
+import { BRAND } from '@/lib/brand';
 
 export default function ContactPage() {
   const [copied, setCopied] = useState(false);
@@ -16,12 +17,17 @@ export default function ContactPage() {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const contactEmail = 'sathvikkandukuri202@gmail.com';
+  const contactEmail = BRAND.contactEmail;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(contactEmail);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    // Only claim "copied" when the browser actually allowed it.
+    navigator.clipboard
+      ?.writeText(contactEmail)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      })
+      .catch(() => {});
   };
 
   const handleSubmit = (e: React.FormEvent) => {

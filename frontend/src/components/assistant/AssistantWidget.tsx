@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowUp, BookOpen, Calculator, MessageCircleQuestion, Activity, Sparkles, X, RotateCcw } from 'lucide-react';
+import { ArrowUp, BookOpen, Calculator, MessageCircleQuestion, Activity, X, RotateCcw } from 'lucide-react';
 import { useAssistant } from '@/context/AssistantContext';
 import { answer, AssistantAnswer, needsStatus, StatusSnapshot } from '@/lib/assistantEngine';
 import { LAST_REVIEWED, STARTER_QUESTIONS } from '@/content/assistantKnowledge';
@@ -119,12 +119,12 @@ export function AssistantWidget() {
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-            className="fixed bottom-20 right-4 z-[60] print:hidden lg:bottom-6 lg:right-6 flex items-center gap-2.5 rounded-full bg-navy-900 p-3 text-sm sm:py-3 sm:pl-3.5 sm:pr-5 font-semibold text-white shadow-[0_12px_32px_-8px_rgba(17,26,49,0.6)]"
+            className="fixed bottom-20 right-4 z-[60] print:hidden lg:bottom-6 lg:right-6 flex items-center gap-2.5 rounded-full bg-navy-950 p-3 text-sm sm:py-3 sm:pl-3.5 sm:pr-5 font-semibold text-white shadow-[0_12px_32px_-8px_rgba(17,26,49,0.6)]"
             aria-label="Open the ClearClaim Assistant"
           >
             <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
-              <Sparkles className="h-4 w-4 text-steel-300" aria-hidden="true" />
-              {hasResult && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-steel-400 ring-2 ring-navy-900" />}
+              <MessageCircleQuestion className="h-4 w-4 text-signal" aria-hidden="true" />
+              {hasResult && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-signal ring-2 ring-navy-950" />}
             </span>
             <span className="hidden sm:inline">{hasResult ? 'Explain my result' : 'Ask ClearClaim'}</span>
           </motion.button>

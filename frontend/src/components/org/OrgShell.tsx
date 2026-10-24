@@ -85,7 +85,7 @@ export function OrgShell({ children, title, subtitle, actions }: { children: Rea
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 print:!hidden flex-col bg-navy-950 text-navy-200 lg:flex">
         <Link href={items[0].href} className="flex items-center gap-2.5 px-6 py-5">
           <BrandMark size={30} />
-          <span className="text-[17px] font-semibold text-white">Clear<span className="text-steel-300">Claim</span></span>
+          <span className="font-display text-[17px] font-semibold text-white">Clear<span className="text-signal">Claim</span></span>
         </Link>
         <p className="px-6 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-navy-400">{KIND_LABEL[kind]} workspace</p>
         <nav className="flex-1 space-y-1 px-3" aria-label="Workspace">

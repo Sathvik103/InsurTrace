@@ -50,6 +50,7 @@ export const FALLBACK_SEED_VEHICLES: Vehicle[] = [
     policy_type: 'COMPREHENSIVE',
     policy_expiry: '2026-12-31',
     has_zero_dep: false,
+    od_premium: 14200,
     created_at: '2021-05-10T10:00:00Z',
   },
   {
@@ -69,6 +70,7 @@ export const FALLBACK_SEED_VEHICLES: Vehicle[] = [
     policy_type: 'COMPREHENSIVE_ZERO_DEP',
     policy_expiry: '2027-02-14',
     has_zero_dep: true,
+    od_premium: 21500,
     created_at: '2024-02-14T09:30:00Z',
   },
   {
@@ -88,6 +90,7 @@ export const FALLBACK_SEED_VEHICLES: Vehicle[] = [
     policy_type: 'COMPREHENSIVE',
     policy_expiry: '2026-08-24',
     has_zero_dep: false,
+    od_premium: 7800,
     created_at: '2022-08-20T11:15:00Z',
   },
   {
@@ -107,6 +110,7 @@ export const FALLBACK_SEED_VEHICLES: Vehicle[] = [
     policy_type: 'COMPREHENSIVE',
     policy_expiry: '2027-04-09',
     has_zero_dep: true,
+    od_premium: 11400,
     created_at: '2023-04-05T14:45:00Z',
   },
   {
@@ -229,7 +233,10 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
             // policy details; cars saved only on this device are kept and flagged.
             const seed = new Map(FALLBACK_SEED_VEHICLES.map((v) => [v.id, v]));
             const map = new Map<string, Vehicle>();
-            backendVehicles.forEach((v) => map.set(v.id, v.is_demo ? { ...(seed.get(v.id) || {}), ...v } : v));
+            // Missing values arrive as null; drop them so they read as "not added"
+            // and don't overwrite a demo car's sample policy details.
+            const clean = (v: Vehicle) => Object.fromEntries(Object.entries(v).filter(([, x]) => x !== null)) as Vehicle;
+            backendVehicles.map(clean).forEach((v) => map.set(v.id, v.is_demo ? { ...(seed.get(v.id) || {}), ...v } : v));
             prev.filter((v) => v.is_local_only && !map.has(v.id)).forEach((v) => map.set(v.id, v));
             const merged = Array.from(map.values());
 

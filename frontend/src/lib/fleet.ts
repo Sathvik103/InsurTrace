@@ -2,7 +2,7 @@ import type { Vehicle } from '@/context/VehicleContext';
 import type { FleetVehicle } from '@/lib/triage';
 
 /** Per-vehicle values a fleet manager can set locally when the record lacks them. */
-export type Overrides = Record<string, { premium?: number; deductible?: number }>;
+export type Overrides = Record<string, { premium?: number; deductible?: number; idv?: number }>;
 
 export const FLEET_INCIDENTS_KEY = 'cc_fleet_incidents';
 export const FLEET_OVERRIDES_KEY = 'cc_fleet_overrides';
@@ -23,7 +23,7 @@ export function toFleetVehicle(v: Vehicle, o: Overrides): FleetVehicle {
     label: `${v.make} ${v.model}`,
     registration: v.registration_number,
     ageYears: Math.max(0, new Date().getFullYear() - v.manufacture_year),
-    idv: v.idv || 0,
+    idv: o[v.id]?.idv ?? v.idv ?? 0,
     ncb: v.ncb_percentage ?? 0,
     zeroDep: !!v.has_zero_dep,
     premium: o[v.id]?.premium ?? v.od_premium ?? 0,

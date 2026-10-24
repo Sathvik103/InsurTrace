@@ -141,35 +141,35 @@ class MockDatabaseStore:
                 "id": "11111111-1111-1111-1111-111111111111",
                 "role": "ADMIN",
                 "organization_id": "00000000-0000-0000-0000-000000000001",
-                "email": "demo-admin@verisure.in",
+                "email": "demo-admin@clearclaim.demo",
                 "full_name": "Demo System Administrator"
             },
             {
                 "id": "22222222-2222-2222-2222-222222222222",
                 "role": "POLICYHOLDER",
                 "organization_id": "00000000-0000-0000-0000-000000000002",
-                "email": "demo-policyholder@verisure.in",
+                "email": "demo-policyholder@clearclaim.demo",
                 "full_name": "Rahul Sharma (Demo)"
             },
             {
                 "id": "33333333-3333-3333-3333-333333333333",
                 "role": "GARAGE",
                 "organization_id": "00000000-0000-0000-0000-000000000003",
-                "email": "demo-garage@verisure.in",
+                "email": "demo-garage@clearclaim.demo",
                 "full_name": "Demo Authorized Workshop"
             },
             {
                 "id": "44444444-4444-4444-4444-444444444444",
                 "role": "INSURER",
                 "organization_id": "00000000-0000-0000-0000-000000000004",
-                "email": "demo-insurer@verisure.in",
+                "email": "demo-insurer@clearclaim.demo",
                 "full_name": "Demo Insurer Claims Desk"
             },
             {
                 "id": "55555555-5555-5555-5555-555555555555",
                 "role": "SURVEYOR",
                 "organization_id": "00000000-0000-0000-0000-000000000005",
-                "email": "demo-surveyor@verisure.in",
+                "email": "demo-surveyor@clearclaim.demo",
                 "full_name": "Demo Motor Loss Assessor"
             }
         ]

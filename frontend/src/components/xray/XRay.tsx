@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Lightbulb, Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { AnimatedNumber } from '@/components/motion/AnimatedNumber';
 import { CATEGORY_LABEL, newLine, xray, XCategory, XLine, XPolicy } from '@/lib/xray';
 import { rupees } from '@/lib/claimCheck';
@@ -125,7 +125,7 @@ export function XRay({
                       )}
                     </div>
                     {!compact && l.tip && (
-                      <p className="flex gap-1.5 text-xs leading-relaxed text-navy-500"><Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />{l.tip}</p>
+                      <p className="flex gap-1.5 text-xs leading-relaxed text-navy-500"><span className="mt-px shrink-0 rounded bg-navy-950 px-1 font-mono text-[9px] font-semibold uppercase leading-4 text-signal">Tip</span>{l.tip}</p>
                     )}
                   </div>
                 </motion.li>

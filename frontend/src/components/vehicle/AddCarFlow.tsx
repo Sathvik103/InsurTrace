@@ -7,6 +7,8 @@ import { ArrowLeft, ArrowRight, Car, Check, FileSearch, HelpCircle, Scale, Truck
 import { useVehicle, Vehicle } from '@/context/VehicleContext';
 import { useAssistant } from '@/context/AssistantContext';
 import { NCB_STEPS, rupees } from '@/lib/claimCheck';
+import { BODY_LABEL, bodyTypeOf } from '@/lib/bodyType';
+import { CarSilhouette } from './CarSilhouette';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const MAKES = ['Maruti Suzuki', 'Hyundai', 'Tata', 'Mahindra', 'Kia', 'Toyota', 'Honda', 'MG', 'Skoda', 'Volkswagen', 'Renault', 'Nissan'];
@@ -33,6 +35,7 @@ export function AddCarFlow() {
   const [fuel, setFuel] = useState('Petrol');
   const [commercial, setCommercial] = useState(false);
   const [downtime, setDowntime] = useState('');
+  const previewType = bodyTypeOf({ make, model, usage_type: commercial ? 'GOODS_CARRIER' : 'PERSONAL' });
 
   const [skipPolicy, setSkipPolicy] = useState(false);
   const [idv, setIdv] = useState('');
@@ -87,12 +90,12 @@ export function AddCarFlow() {
     <div className="mx-auto max-w-2xl">
       {step < 2 && (
         <header className="mb-8 space-y-4">
-          <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">{step === 0 ? 'Add your car' : 'Your policy details'}</h1>
+          <h1 className="font-display text-4xl font-semibold tracking-[-0.04em] text-navy-950 sm:text-5xl">{step === 0 ? 'Add your car' : 'Your policy details'}</h1>
           <p className="text-navy-600">{step === 0 ? 'It takes about a minute. You can change anything later.' : 'These make every claim check accurate. They’re on the first page of your policy.'}</p>
           <div className="grid grid-cols-2 gap-2">
             {[0, 1].map((i) => (
               <div key={i} className="h-1.5 overflow-hidden rounded-full bg-navy-100">
-                <motion.div className="h-full rounded-full bg-navy-900" initial={false} animate={{ width: step >= i ? '100%' : '0%' }} transition={{ duration: 0.5, ease: EASE }} />
+                <motion.div className="h-full rounded-full bg-navy-950" initial={false} animate={{ width: step >= i ? '100%' : '0%' }} transition={{ duration: 0.5, ease: EASE }} />
               </div>
             ))}
           </div>
@@ -103,6 +106,15 @@ export function AddCarFlow() {
         <motion.div key={step} custom={dir} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4, ease: EASE }}>
           {step === 0 && (
             <section className="vs-surface space-y-6 p-6 sm:p-8">
+              {/* Live preview: the drawing follows the model typed below */}
+              <div className="rounded-[22px] bg-[#f6f5f0] px-6 pb-2 pt-4">
+                <AnimatePresence mode="wait">
+                  <motion.div key={previewType} initial={reduce ? false : { opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 24 }} transition={{ duration: 0.4, ease: EASE }}>
+                    <CarSilhouette type={previewType} vehicle={{ id: reg || 'new', make, model }} className="mx-auto h-28 w-full max-w-md" />
+                  </motion.div>
+                </AnimatePresence>
+                <p className="pb-2 text-center text-xs text-navy-500">{model.trim() ? `Looks like a ${BODY_LABEL[previewType].toLowerCase()}` : 'Type the model and the drawing follows'}</p>
+              </div>
               {/* Number plate preview */}
               <div className="flex justify-center">
                 <motion.div layout className="flex items-stretch overflow-hidden rounded-xl border-2 border-navy-900 bg-white shadow-md">
@@ -226,11 +238,16 @@ export function AddCarFlow() {
 
           {step === 2 && saved && (
             <section className="vs-surface flex flex-col items-center gap-6 p-10 text-center">
-              <motion.span initial={reduce ? false : { scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 360, damping: 16 }} className="flex h-20 w-20 items-center justify-center rounded-full bg-gain text-white shadow-lg">
-                <motion.span initial={reduce ? false : { pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 1 }} transition={{ delay: 0.25 }}><Check className="h-10 w-10" strokeWidth={3} /></motion.span>
-              </motion.span>
+              <div className="relative w-full max-w-sm">
+                <motion.div initial={reduce ? false : { x: -120, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 1, ease: EASE }}>
+                  <CarSilhouette vehicle={saved} className="w-full" />
+                </motion.div>
+                <motion.span initial={reduce ? false : { scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.8, type: 'spring', stiffness: 360, damping: 16 }} className="absolute -right-2 -top-2 flex h-11 w-11 items-center justify-center rounded-full bg-signal text-navy-950 shadow-lg">
+                  <Check className="h-5 w-5" strokeWidth={3} />
+                </motion.span>
+              </div>
               <div className="space-y-2">
-                <h1 className="text-3xl font-semibold tracking-tight text-navy-900">{saved.make} {saved.model} added</h1>
+                <h1 className="font-display text-3xl font-semibold tracking-tight text-navy-950">{saved.make} {saved.model} added</h1>
                 <p className="text-navy-600">
                   {saved.registration_number}
                   {saved.idv ? ` · IDV ${rupees(saved.idv)}` : ''}

@@ -69,7 +69,8 @@ export default function DataPrivacyPage() {
   }, []);
 
   const car = vehicles.find((v) => v.id === carId);
-  const shareable = (orgs || []).filter((o) => o.type !== 'FLEET_OPERATOR');
+  // Only kinds this page knows how to describe; anything else is skipped rather than crashing.
+  const shareable = (orgs || []).filter((o) => o.type !== 'FLEET_OPERATOR' && o.type in KIND);
   const orgId = pickedOrg || shareable[0]?.id || '';
   const org = shareable.find((o) => o.id === orgId);
   const visibleOrgs = shareable.filter((o) => o.name.toLowerCase().includes(orgQuery.trim().toLowerCase())).slice(0, 9);

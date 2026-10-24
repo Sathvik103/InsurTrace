@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { BadgeCheck, CircleDollarSign, Info, MessageCircleQuestion, Scale, TrendingDown, Wallet } from 'lucide-react';
 import { AnimatedNumber } from '@/components/motion/AnimatedNumber';
+import { nextNcb } from '@/lib/engine';
 import {
   analyzeClaim,
   EngineResult,
@@ -84,7 +85,7 @@ export function ResultView({ result, policy, items }: { result: EngineResult; po
             total: claimTotal,
             lines: [
               { label: 'You pay the workshop now', value: result.immediate_out_of_pocket },
-              { label: `Lost No-Claim Bonus (${policy.ncbPercentage}% → 0%) next year`, value: result.future_ncb_impact },
+              { label: `Next year’s ${nextNcb(policy.ncbPercentage, false)}% No-Claim Bonus, lost`, value: result.future_ncb_impact },
             ],
           },
           {

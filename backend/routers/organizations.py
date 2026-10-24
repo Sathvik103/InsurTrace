@@ -7,6 +7,7 @@ from dependencies import get_current_profile, supabase
 router = APIRouter(prefix="/organizations", tags=["Organisations"])
 
 ShareableType = Literal["GARAGE", "INSURER", "SURVEYOR", "FLEET_OPERATOR"]
+SHAREABLE = ("GARAGE", "INSURER", "SURVEYOR", "FLEET_OPERATOR")
 
 
 @router.get("", response_model=List[dict])
@@ -19,5 +20,8 @@ async def list_organizations(type: Optional[ShareableType] = None, profile: dict
     q = supabase.table("organizations").select("id, name, type")
     if type:
         q = q.eq("type", type)
+    else:
+        # Internal groups (admins, the policyholder pool) are never share targets.
+        q = q.in_("type", list(SHAREABLE))
     rows = q.limit(200).execute().data or []
     return sorted(rows, key=lambda r: str(r.get("name", "")).lower())

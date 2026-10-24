@@ -5,7 +5,7 @@ import {
   User, 
   FileText, 
   Cpu, 
-  Sparkles, 
+  FlaskConical, 
   ShieldCheck, 
   HelpCircle,
   ExternalLink,
@@ -91,7 +91,7 @@ export function TrustBadge({
           title="Experimental machine learning model output (Data-Limited). Not guaranteed."
           className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/80 ${className}`}
         >
-          <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+          <FlaskConical className="w-3 h-3 text-purple-600 dark:text-purple-400" />
           <span>{label || 'ML Estimate (Data-Limited)'}</span>
         </span>
       );

@@ -292,7 +292,7 @@ export function DecisionJourney({ data, className = '' }: DecisionJourneyProps) 
                   onClick={() => setActiveStep(null)}
                   className="text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                 >
-                  ✕ Close
+                  Close
                 </button>
               </div>
 

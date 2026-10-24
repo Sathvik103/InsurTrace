@@ -35,6 +35,10 @@ export interface Incident {
   amount: number;
   material: IncidentMaterial;
   daysOffRoad: number;
+  /** Set once the claim record was saved, so it is never saved twice. */
+  savedAt?: string;
+  /** Loaded from the built-in sample month, not entered by the user. */
+  sample?: boolean;
 }
 
 export interface IncidentPlan {

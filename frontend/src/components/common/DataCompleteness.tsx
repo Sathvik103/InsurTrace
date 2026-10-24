@@ -51,7 +51,7 @@ export function DataCompleteness({
   const totalInsFields = 5;
   if (vehicle.policy_number) insFields++;
   if (vehicle.idv && vehicle.idv > 0) insFields++;
-  if (vehicle.ncb_percentage !== undefined) insFields++;
+  if (vehicle.ncb_percentage != null) insFields++;
   if (vehicle.policy_expiry) insFields++;
   if (vehicle.policy_type) insFields++;
   const insurancePct = Math.round((insFields / totalInsFields) * 100);
