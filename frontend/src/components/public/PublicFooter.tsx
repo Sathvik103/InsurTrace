@@ -67,10 +67,6 @@ export function PublicFooter() {
           <p>© 2026 {BRAND.name}. All rights reserved.</p>
           <p>Estimates use standard motor-insurance rules. Your insurer and surveyor decide the actual settlement.</p>
         </div>
-      </div>
-      <p aria-hidden="true" className="pointer-events-none -mb-[0.22em] select-none text-center font-display text-[22vw] font-semibold leading-none tracking-[-0.06em] text-navy-50">
-        ClearClaim
-      </p>
-    </footer>
+      </div>    </footer>
   );
 }

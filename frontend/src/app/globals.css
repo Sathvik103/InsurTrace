@@ -276,9 +276,6 @@
 }
 @keyframes vs-floor { from { background-position: 0 0; } to { background-position: 0 64px; } }
 
-@keyframes vs-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.vs-marquee { animation: vs-marquee 40s linear infinite; }
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }

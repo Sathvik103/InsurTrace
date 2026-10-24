@@ -42,7 +42,7 @@ export function PageHero({
 
       <div className={`mx-auto grid max-w-6xl items-center gap-12 px-5 ${compact ? 'pb-16 pt-32 lg:pb-20 lg:pt-40' : 'pb-20 pt-32 lg:grid-cols-[1.1fr_0.9fr] lg:pb-28 lg:pt-40'}`}>
         <div>
-          <motion.p {...fade(0.05)} className="font-mono text-xs uppercase tracking-[0.2em] text-white/45">( {eyebrow} )</motion.p>
+          <motion.p {...fade(0.05)} className="text-sm font-semibold text-signal">{eyebrow}</motion.p>
           <h1 className="mt-5 font-display text-[clamp(2.6rem,6.5vw,5rem)] font-semibold leading-[0.95] tracking-[-0.045em]">
             <SplitWords text={title} delay={0.1} stagger={0.04} />
             {accent && (

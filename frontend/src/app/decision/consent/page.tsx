@@ -115,7 +115,7 @@ export default function DataPrivacyPage() {
     <AppShell>
       <div className="mx-auto max-w-4xl space-y-8">
         <header className="space-y-3">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-navy-400">( Data &amp; privacy )</p>
+          <p className="text-sm font-semibold text-steel-700">Data &amp; privacy</p>
           <h1 className="font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-navy-950 sm:text-5xl">Your records. <span className="text-navy-300">Your call.</span></h1>
           <p className="max-w-xl text-base text-navy-500">Nobody sees your records unless you allow it. Access is time-limited and you can take it back at any moment.</p>
         </header>

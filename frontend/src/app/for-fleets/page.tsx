@@ -67,7 +67,7 @@ export default function ForFleetsPage() {
         <section className="bg-[#f6f5f0] px-5 py-24 lg:py-32">
           <div className="mx-auto max-w-6xl">
             <Reveal>
-              <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( How it works )</p>
+              <p className="text-sm font-semibold text-steel-700">How it works</p>
               <h2 className="mt-5 max-w-2xl font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">From maintenance log to claim plan in minutes.</h2>
             </Reveal>
             <div className="mt-14 grid gap-4 md:grid-cols-3">
@@ -90,7 +90,7 @@ export default function ForFleetsPage() {
         <section className="bg-white px-5 py-24 lg:py-32">
           <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr]">
             <Reveal>
-              <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( For operations teams )</p>
+              <p className="text-sm font-semibold text-steel-700">For operations teams</p>
               <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">Fast enough for the daily stand-up.</h2>
               <p className="mt-6 flex items-start gap-2 text-sm text-navy-500"><Share2 className="mt-0.5 h-4 w-4 shrink-0" /> ClearClaim is independent and never files claims. Your insurer and surveyor decide settlements.</p>
             </Reveal>

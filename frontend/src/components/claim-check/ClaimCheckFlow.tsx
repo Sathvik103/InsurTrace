@@ -197,8 +197,8 @@ export function ClaimCheckFlow() {
       {/* Header + progress */}
       <div className="mb-8 space-y-5">
         <div className="space-y-3">
-          <p className={`font-mono text-xs uppercase tracking-[0.18em] ${fromDocument ? 'text-steel-700' : 'text-navy-400'}`}>
-            {fromDocument ? '( Filled in from your document: check each value )' : '( Claim check · about 2 minutes )'}
+          <p className={`text-sm font-semibold ${fromDocument ? 'text-amber-700' : 'text-steel-700'}`}>
+            {fromDocument ? 'Filled in from your document: check each value' : 'Claim check · about 2 minutes'}
           </p>
           <h1 className="font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-navy-950 sm:text-5xl">Claim it, or pay it yourself?</h1>
           <p className="max-w-xl text-base text-navy-500">Answer a few simple questions. We’ll show what your insurer might pay, what you’d pay, and which option costs you less.</p>

@@ -186,7 +186,7 @@ export default function DocumentsPage() {
       <div className="mx-auto max-w-3xl space-y-8">
         <header className="vs-grain relative overflow-hidden rounded-[32px] bg-navy-950 p-7 text-white sm:p-10">
           <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-steel-600/30 blur-[100px]" />
-          <p className="relative font-mono text-xs uppercase tracking-[0.18em] text-white/45">( Documents )</p>
+          <p className="relative text-sm font-semibold text-signal">Documents</p>
           <h1 className="relative mt-4 font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] sm:text-5xl">
             Drop in a PDF.
             <br />

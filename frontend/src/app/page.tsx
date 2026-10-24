@@ -2,80 +2,78 @@
 
 import React, { useRef, useState } from 'react';
 import Link from 'next/link';
-import { AnimatePresence, motion, MotionValue, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, ArrowUpRight, Car, Fingerprint, MessageCircleQuestion, Plus, Scale, Truck, Wrench } from 'lucide-react';
 import { PublicNavbar } from '@/components/public/PublicNavbar';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { QuickCheck } from '@/components/home/QuickCheck';
 import { Hero } from '@/components/home/Hero';
-import { CountUp, EASE, Magnetic, Reveal, SplitWords, Spotlight } from '@/components/home/fx';
+import { CountUp, EASE, Reveal, SplitWords, Spotlight } from '@/components/home/fx';
 import { useAssistant } from '@/context/AssistantContext';
 import { useAuth } from '@/context/AuthContext';
 import { KNOWLEDGE } from '@/content/assistantKnowledge';
-import { NCB_STEPS } from '@/lib/claimCheck';
+import { NCB_STEPS, rupees } from '@/lib/claimCheck';
+import { calculateDecision, RULE_VERSION } from '@/lib/engine';
 
-/* ---------------------------------------------------------------- facts band */
-const FACTS = [
-  'Plastic parts: 50% depreciation',
-  'Glass: 0% depreciation',
-  'Labour: always paid in full',
-  'No-Claim Bonus: up to 50% off your premium',
-  'One claim resets it to 0%',
-  'Metal: 0–50% depending on age',
-  'Rubber & nylon: 50%',
-  'Zero-dep add-on: most of it waived',
-];
+/* ---------------------------------------------------------------- worked example */
+// A fictional example run through the real engine, so every figure below is exact.
+const EXAMPLE = calculateDecision({
+  vehicle: { age_years: 3 },
+  policy: { idv: 600000, deductible: 1000, ncb_percentage: 35, zero_depreciation_addon: false, rule_version: RULE_VERSION },
+  repair_items: [{ category: 'plastic', cost: 12000 }],
+  estimated_base_premium_next_year: 18000,
+});
 
-function FactsBand() {
+function Example() {
+  const claimNow = EXAMPLE.immediate_out_of_pocket;
+  const bonus = EXAMPLE.future_ncb_impact;
+  const claimTotal = EXAMPLE.effective_claim_cost;
+  const payTotal = EXAMPLE.self_pay_cost;
+  const max = Math.max(claimTotal, payTotal);
   return (
-    <div className="relative z-10 overflow-hidden bg-[linear-gradient(to_bottom,#0a1022_50%,#f6f5f0_50%)] py-8">
-      <div className="-rotate-2 bg-signal py-4 text-navy-950 shadow-[0_20px_60px_-20px_rgba(212,242,92,0.6)]">
-        <div className="vs-marquee flex w-max gap-10 whitespace-nowrap font-display text-xl font-semibold tracking-tight sm:text-2xl">
-          {[...FACTS, ...FACTS].map((f, i) => (
-            <span key={i} className="flex items-center gap-10">
-              {f}
-              <Plus className="h-5 w-5 rotate-45" aria-hidden="true" />
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------------------------------------------------------------- scroll-lit statement */
-const STATEMENT =
-  'Insurers don’t pay the number on the quote. Plastic loses half its value. Metal loses more every year your car ages. Then one claim wipes out your No-Claim Bonus at renewal. ClearClaim does that math before you call anyone.';
-const HIGHLIGHT = new Set(['half', 'ages.', 'wipes', 'No-Claim', 'Bonus', 'ClearClaim']);
-
-function Word({ word, progress, range }: { word: string; progress: MotionValue<number>; range: [number, number] }) {
-  const opacity = useTransform(progress, range, [0.12, 1]);
-  return (
-    <motion.span style={{ opacity }} className={HIGHLIGHT.has(word) ? 'text-steel-600' : ''}>
-      {word}{' '}
-    </motion.span>
-  );
-}
-
-function Statement() {
-  const ref = useRef<HTMLParagraphElement>(null);
-  const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 85%', 'end 45%'] });
-  const words = STATEMENT.split(' ');
-  return (
-    <section className="bg-[#f6f5f0] px-5 pb-28 pt-24 lg:pb-40 lg:pt-36">
-      <div className="mx-auto max-w-5xl">
-        <p className="mb-8 font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( The problem )</p>
-        <p ref={ref} className="font-display text-[clamp(1.9rem,4.6vw,3.6rem)] font-medium leading-[1.12] tracking-[-0.03em] text-navy-950">
-          {reduce
-            ? STATEMENT
-            : words.map((w, i) => <Word key={i} word={w} progress={scrollYProgress} range={[i / words.length, (i + 1) / words.length]} />)}
-        </p>
+    <section className="bg-[#f6f5f0] px-5 py-24 lg:py-32">
+      <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+        <Reveal>
+          <p className="text-sm font-semibold text-steel-700">Why it matters</p>
+          <h2 className="mt-4 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">A ₹12,000 bumper can cost more to claim.</h2>
+          <p className="mt-5 max-w-md text-lg leading-relaxed text-navy-500">
+            Insurers deduct 50% on plastic parts, you pay the deductible, and the claim resets your No-Claim Bonus at renewal. Add it up and paying the workshop yourself is often cheaper.
+          </p>
+          <p className="mt-4 text-sm text-navy-400">Example: 3-year-old car, 35% No-Claim Bonus, ₹18,000 renewal premium.</p>
+        </Reveal>
+        <Reveal delay={0.1}>
+          <div className="rounded-[28px] bg-white p-7 ring-1 ring-navy-100 sm:p-9">
+            {[
+              { label: 'If you claim', total: claimTotal, lines: [['You pay the workshop', claimNow], ['Bonus lost at renewal', bonus]] as [string, number][], win: claimTotal < payTotal },
+              { label: 'If you pay yourself', total: payTotal, lines: [['Full repair bill', payTotal]] as [string, number][], win: payTotal <= claimTotal },
+            ].map((o) => (
+              <div key={o.label} className="border-b border-navy-100 py-6 first:pt-0 last:border-0 last:pb-0">
+                <div className="flex items-baseline justify-between gap-4">
+                  <p className="font-medium text-navy-700">{o.label}</p>
+                  <p className={`tabular font-display text-3xl font-semibold tracking-tight ${o.win ? 'text-navy-950' : 'text-navy-400'}`}>{rupees(o.total)}</p>
+                </div>
+                <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-navy-50">
+                  <motion.div className={`h-full rounded-full ${o.win ? 'bg-signal-600' : 'bg-navy-300'}`} initial={{ width: 0 }} whileInView={{ width: `${(o.total / max) * 100}%` }} viewport={{ once: true }} transition={{ duration: 0.9, ease: EASE }} />
+                </div>
+                <dl className="mt-3 space-y-1 text-sm">
+                  {o.lines.map(([k, v]) => (
+                    <div key={k} className="flex justify-between text-navy-500">
+                      <dt>{k}</dt>
+                      <dd className="tabular">{rupees(v)}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ))}
+            <p className="mt-6 rounded-2xl bg-navy-950 px-4 py-3 text-sm text-white">
+              Paying yourself saves about <span className="font-semibold text-signal">{rupees(Math.abs(claimTotal - payTotal))}</span> here. Your own numbers may say the opposite, which is why we check.
+            </p>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
 }
-
 /* ---------------------------------------------------------------- steps */
 const STEPS = [
   { icon: Car, title: 'Pick your car', body: 'A saved car, or just the year it was made. Age decides how much insurers knock off metal parts.' },
@@ -91,7 +89,7 @@ function Steps() {
     <section id="how-it-works" className="scroll-mt-24 bg-white px-5 py-28 lg:py-36">
       <div className="mx-auto grid max-w-6xl gap-14 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="lg:sticky lg:top-32 lg:self-start">
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( How it works )</p>
+          <p className="text-sm font-semibold text-steel-700">How it works</p>
           <h2 className="mt-5 font-display text-5xl font-semibold leading-[0.95] tracking-[-0.04em] text-navy-950 sm:text-6xl">
             <SplitWords text="Three taps." inView />
             <br />
@@ -156,7 +154,7 @@ function Bento() {
     <section className="bg-[#f6f5f0] px-5 py-28 lg:py-36">
       <div className="mx-auto max-w-6xl">
         <Reveal className="max-w-3xl">
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( What you’ll see )</p>
+          <p className="text-sm font-semibold text-steel-700">What you’ll see</p>
           <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-6xl">The numbers insurers use. Finally out loud.</h2>
         </Reveal>
         <div className="mt-14 grid gap-4 md:grid-cols-6">
@@ -211,7 +209,7 @@ function TryIt() {
       <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-steel-600/20 blur-[140px]" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[0.9fr_1.1fr]">
         <Reveal>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/40">( Try it, no sign-up )</p>
+          <p className="text-sm font-semibold text-signal">Try it, no sign-up</p>
           <h2 className="mt-5 font-display text-5xl font-semibold leading-[0.95] tracking-[-0.04em] sm:text-6xl">
             Your quote.
             <br />
@@ -291,7 +289,7 @@ function Honesty() {
     <section className="vs-grain relative overflow-hidden bg-navy-950 px-5 py-28 text-white lg:py-36">
       <div className="relative mx-auto max-w-6xl">
         <Reveal>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/40">( Straight talk )</p>
+          <p className="text-sm font-semibold text-signal">Straight talk</p>
           <h2 className="mt-5 max-w-3xl font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] sm:text-6xl">On your side of the table. Not the insurer’s.</h2>
         </Reveal>
         <div className="mt-16 grid gap-14 md:grid-cols-2">
@@ -328,7 +326,7 @@ function Faq() {
     <section id="questions" className="scroll-mt-24 bg-white px-5 py-28 lg:py-36">
       <div className="mx-auto grid max-w-6xl gap-14 lg:grid-cols-[0.8fr_1.2fr]">
         <Reveal>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( Questions )</p>
+          <p className="text-sm font-semibold text-steel-700">Questions</p>
           <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">Car insurance, minus the jargon.</h2>
           <p className="mt-5 text-navy-500">The assistant answers from the same reviewed guide, and says so when it doesn’t know.</p>
           <button type="button" onClick={() => open()} className="vs-btn-secondary mt-8">
@@ -381,14 +379,12 @@ function FinalCta({ checkHref }: { checkHref: string }) {
           </h2>
           <p className="mx-auto mt-8 max-w-md text-lg text-white/60">Free. Two minutes. No insurer ever sees it unless you share it.</p>
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Magnetic>
               <Link href={checkHref} className="vs-btn-signal group py-4 pl-7 pr-2">
                 Check my claim
                 <span className="ml-2 flex h-9 w-9 items-center justify-center rounded-full bg-navy-950 text-signal transition-transform duration-500 group-hover:rotate-[-45deg]">
                   <ArrowRight className="h-4 w-4" />
                 </span>
               </Link>
-            </Magnetic>
             <Link href="/onboarding" className="vs-btn-ghost-dark py-4">Add my car</Link>
           </div>
         </div>
@@ -405,8 +401,7 @@ export default function HomePage() {
       <PublicNavbar tone="dark" />
       <main>
         <Hero checkHref={checkHref} />
-        <FactsBand />
-        <Statement />
+        <Example />
         <Steps />
         <TryIt />
         <Bento />

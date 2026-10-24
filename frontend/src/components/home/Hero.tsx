@@ -6,7 +6,7 @@ import { animate, AnimatePresence, motion, useMotionValue, useMotionValueEvent, 
 import { ArrowRight, ScanLine } from 'lucide-react';
 import { calculateDecision, lineDepreciation, RULE_VERSION } from '@/lib/engine';
 import { rupees } from '@/lib/claimCheck';
-import { CountUp, EASE, Magnetic, SplitWords } from './fx';
+import { CountUp, EASE, SplitWords } from './fx';
 
 /* ---------------------------------------------------------------- example */
 // A fictional example, run through the same engine as a real check.
@@ -288,14 +288,12 @@ export function Hero({ checkHref }: { checkHref: string }) {
             transition={{ duration: 0.8, delay: 0.9, ease: EASE }}
             className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center"
           >
-            <Magnetic>
               <Link href={checkHref} className="vs-btn-signal group w-full py-4 pl-7 pr-2 sm:w-auto">
                 Check my claim
                 <span className="ml-2 flex h-9 w-9 items-center justify-center rounded-full bg-navy-950 text-signal transition-transform duration-500 group-hover:rotate-[-45deg]">
                   <ArrowRight className="h-4 w-4" />
                 </span>
               </Link>
-            </Magnetic>
             <Link href="/xray" className="vs-btn-ghost-dark py-4">
               X-ray a repair quote <ArrowRight className="h-4 w-4" />
             </Link>

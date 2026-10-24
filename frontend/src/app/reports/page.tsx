@@ -142,7 +142,7 @@ function Passport() {
     <div className="mx-auto max-w-4xl space-y-6">
       <header className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-navy-400">( Vehicle passport )</p>
+          <p className="text-sm font-semibold text-steel-700">Vehicle passport</p>
           <h1 className="mt-3 font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-navy-950 sm:text-5xl">A history you can hand over.</h1>
           <p className="mt-3 max-w-lg text-navy-500">For selling the car, switching insurer or visiting a workshop. Print it, save it as PDF, or download the data.</p>
         </div>

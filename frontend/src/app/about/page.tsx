@@ -52,7 +52,7 @@ export default function AboutPage() {
         <section className="bg-[#f6f5f0] px-5 py-24">
           <div className="mx-auto max-w-6xl">
             <Reveal>
-              <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( How we work )</p>
+              <p className="text-sm font-semibold text-steel-700">How we work</p>
               <h2 className="mt-5 max-w-2xl font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">Four rules we don’t bend.</h2>
             </Reveal>
             <div className="mt-12 grid gap-4 md:grid-cols-2">
@@ -72,7 +72,7 @@ export default function AboutPage() {
         <section id="how-it-is-built" className="scroll-mt-24 bg-white px-5 py-24">
           <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr]">
             <Reveal>
-              <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( Under the hood )</p>
+              <p className="text-sm font-semibold text-steel-700">Under the hood</p>
               <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">How it is built.</h2>
               <p className="mt-5 text-navy-500">The short version, without the buzzwords.</p>
             </Reveal>
