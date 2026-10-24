@@ -16,13 +16,14 @@ import {
   verdictFor,
 } from '@/lib/claimCheck';
 import { useAssistant } from '@/context/AssistantContext';
+import { RepairOrSell } from './RepairOrSell';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 const TONE = {
-  claim: { ring: 'ring-gain/25', bg: 'from-gain-soft to-white', text: 'text-gain', Icon: BadgeCheck },
-  selfpay: { ring: 'ring-steel-500/25', bg: 'from-steel-50 to-white', text: 'text-steel-700', Icon: Wallet },
-  close: { ring: 'ring-amber-500/25', bg: 'from-amber-50 to-white', text: 'text-amber-700', Icon: Scale },
+  claim: { tag: 'Claim it', tagCls: 'bg-signal text-navy-950', text: 'text-signal', Icon: BadgeCheck },
+  selfpay: { tag: 'Pay it yourself', tagCls: 'bg-white text-navy-950', text: 'text-white', Icon: Wallet },
+  close: { tag: 'Close call', tagCls: 'bg-amber-300 text-navy-950', text: 'text-amber-300', Icon: Scale },
 };
 
 export function ResultView({ result, policy, items }: { result: EngineResult; policy: PolicyInputs; items: RepairLine[] }) {
@@ -43,35 +44,32 @@ export function ResultView({ result, policy, items }: { result: EngineResult; po
         initial={reduce ? false : { opacity: 0, y: 24, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.7, ease: EASE }}
-        className={`relative overflow-hidden rounded-[28px] bg-gradient-to-br ${tone.bg} p-6 ring-1 ${tone.ring} sm:p-8`}
+        className="vs-grain relative overflow-hidden rounded-[28px] bg-navy-950 p-6 text-white sm:p-8"
       >
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-signal/10 blur-[90px]" />
+        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="max-w-xl space-y-3">
-            <motion.div
-              initial={reduce ? false : { scale: 0, rotate: -20 }}
-              animate={{ scale: 1, rotate: 0 }}
+            <motion.span
+              initial={reduce ? false : { scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 400, damping: 18 }}
-              className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm ${tone.text}`}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${tone.tagCls}`}
             >
-              <tone.Icon className="h-6 w-6" aria-hidden="true" />
-            </motion.div>
-            <h2 className="text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">{verdict.headline}</h2>
-            <p className="text-base leading-relaxed text-navy-600">{verdict.summary}</p>
+              <tone.Icon className="h-4 w-4" aria-hidden="true" /> {tone.tag}
+            </motion.span>
+            <h2 className="font-display text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">{verdict.headline}</h2>
+            <p className="text-base leading-relaxed text-white/60">{verdict.summary}</p>
           </div>
-          <div className="shrink-0 rounded-3xl bg-white/80 px-6 py-5 text-center shadow-sm ring-1 ring-navy-100 backdrop-blur">
-            <p className="text-xs font-medium uppercase tracking-wider text-navy-500">
-              {better === 'claim' ? 'You save by claiming' : better === 'self' ? 'You save by paying yourself' : 'Difference'}
+          <div className="shrink-0 border-t border-white/10 pt-5 sm:border-l sm:border-t-0 sm:pl-8 sm:pt-0">
+            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-white/45">
+              {better === 'claim' ? 'Claiming saves' : better === 'self' ? 'Paying yourself saves' : 'Difference'}
             </p>
-            <AnimatedNumber value={Math.abs(result.estimated_saving)} className={`mt-1 block text-4xl font-semibold tracking-tight ${tone.text}`} />
-            <p className="mt-1 text-xs text-navy-500">estimated, next 12 months</p>
+            <AnimatedNumber value={Math.abs(result.estimated_saving)} className={`mt-1 block font-display text-5xl font-semibold tracking-tight ${tone.text}`} />
+            <p className="mt-1 text-xs text-white/45">estimated, next 12 months</p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => open('Explain my result')}
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-navy-800 shadow-sm ring-1 ring-navy-100 transition hover:ring-navy-200"
-        >
-          <MessageCircleQuestion className="h-4 w-4 text-steel-600" aria-hidden="true" />
+        <button type="button" onClick={() => open('Explain my result')} className="vs-btn-ghost-dark relative mt-7 py-2.5 text-sm">
+          <MessageCircleQuestion className="h-4 w-4 text-signal" aria-hidden="true" />
           Explain this to me
         </button>
       </motion.section>
@@ -105,24 +103,24 @@ export function ResultView({ result, policy, items }: { result: EngineResult; po
               initial={reduce ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 + i * 0.1, duration: 0.6, ease: EASE }}
-              className={`vs-surface relative p-6 ${winner ? 'ring-2 ring-gain/40' : ''}`}
+              className={`relative rounded-[28px] border bg-white p-6 transition duration-500 ${winner ? 'border-navy-950 shadow-[0_24px_48px_-28px_rgba(10,16,34,0.45)]' : 'border-navy-100'}`}
             >
               {winner && (
                 <motion.span
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.9 }}
-                  className="absolute -top-3 left-6 rounded-full bg-gain px-3 py-1 text-xs font-semibold text-white shadow"
+                  className="absolute -top-3 left-6 rounded-full bg-navy-950 px-3 py-1 text-xs font-semibold text-signal shadow"
                 >
-                  Cheaper option
+                  Cheaper for you
                 </motion.span>
               )}
               <h3 className="text-sm font-semibold text-navy-500">{card.title}</h3>
-              <AnimatedNumber value={card.total} className="mt-1 block text-3xl font-semibold tracking-tight text-navy-900" />
+              <AnimatedNumber value={card.total} className="mt-1 block font-display text-4xl font-semibold tracking-tight text-navy-950" />
               <p className="text-xs text-navy-400">total estimated cost to you</p>
               <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-navy-50">
                 <motion.div
-                  className={`h-full rounded-full ${winner ? 'bg-gain' : 'bg-navy-300'}`}
+                  className={`h-full rounded-full ${winner ? 'bg-signal-600' : 'bg-navy-200'}`}
                   initial={{ width: 0 }}
                   animate={{ width: `${(card.total / max) * 100}%` }}
                   transition={{ delay: 0.4 + i * 0.1, duration: 1, ease: EASE }}
@@ -140,6 +138,14 @@ export function ResultView({ result, policy, items }: { result: EngineResult; po
           );
         })}
       </section>
+
+      <RepairOrSell
+        repairBill={result.total_estimate}
+        idv={policy.idv}
+        deductible={policy.deductible}
+        yourRepairCost={Math.min(result.effective_claim_cost, result.self_pay_cost)}
+        ncbLoss={result.future_ncb_impact}
+      />
 
       <MoneyFlow result={result} policy={policy} />
       <ThreeYearChart result={result} threeYear={threeYear} />

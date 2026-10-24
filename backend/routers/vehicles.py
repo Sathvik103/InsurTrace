@@ -181,7 +181,9 @@ async def get_vehicle_timeline(vehicle_id: str, profile: dict = Depends(get_curr
             "actor": "Policyholder",
             "claim_id": c["id"],
             "ledger_sync_status": ref.get("sync_status", "NOT_COMMITTED"),
-            "blockchain_verified": ref.get("sync_status") == "COMMITTED",
+            # Development-mock rows are never presented as anchored on a ledger.
+            "blockchain_verified": ref.get("sync_status") == "COMMITTED" and ref.get("network_mode") != "MOCK",
+            "ledger_network_mode": ref.get("network_mode"),
             "blockchain_tx_id": ref.get("blockchain_tx_id"),
         })
 

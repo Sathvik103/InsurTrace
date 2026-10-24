@@ -184,15 +184,20 @@ export default function DocumentsPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-3xl space-y-8">
-        <header className="space-y-2">
-          <span className="vs-chip"><FileText className="h-3.5 w-3.5 text-steel-600" /> Documents</span>
-          <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">Read a policy or repair estimate</h1>
-          <p className="text-base text-navy-600">Upload a PDF and ClearClaim picks out the numbers that matter. You check them before anything is used.</p>
+        <header className="vs-grain relative overflow-hidden rounded-[32px] bg-navy-950 p-7 text-white sm:p-10">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-steel-600/30 blur-[100px]" />
+          <p className="relative font-mono text-xs uppercase tracking-[0.18em] text-white/45">( Documents )</p>
+          <h1 className="relative mt-4 font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] sm:text-5xl">
+            Drop in a PDF.
+            <br />
+            <span className="text-signal">Check the numbers.</span>
+          </h1>
+          <p className="relative mt-4 max-w-lg text-white/60">ClearClaim picks out the figures that matter from a policy or a workshop estimate. You review every one before it is used.</p>
         </header>
 
         <AnimatePresence mode="wait">
           {!result && !loading && (
-            <motion.section key="upload" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.4, ease: EASE }} className="vs-surface space-y-6 p-6 sm:p-8">
+            <motion.section key="upload" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.4, ease: EASE }} className="space-y-6 rounded-[28px] border border-navy-100 bg-white p-6 sm:p-8">
               <div className="grid gap-3 sm:grid-cols-2">
                 {([
                   ['ESTIMATE', 'Workshop estimate', 'The repair quote with parts and labour', Wrench],
@@ -203,12 +208,12 @@ export default function DocumentsPage() {
                     type="button"
                     onClick={() => setDocType(t)}
                     aria-pressed={docType === t}
-                    className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition ${docType === t ? 'border-navy-900 bg-navy-900 text-white shadow-lg' : 'border-navy-100 bg-white hover:border-navy-300'}`}
+                    className={`group flex items-center gap-4 rounded-[22px] border p-4 text-left transition duration-300 ${docType === t ? 'border-navy-950 bg-navy-950 text-white shadow-[0_20px_40px_-20px_rgba(10,16,34,0.6)]' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'}`}
                   >
-                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${docType === t ? 'bg-white/10' : 'bg-navy-50 text-navy-600'}`}><Icon className="h-5 w-5" /></span>
-                    <span>
-                      <span className="block font-semibold">{title}</span>
-                      <span className={`block text-xs ${docType === t ? 'text-navy-200' : 'text-navy-500'}`}>{body}</span>
+                    <MiniDoc kind={t} active={docType === t} />
+                    <span className="min-w-0">
+                      <span className="flex items-center gap-2 font-semibold"><Icon className={`h-4 w-4 ${docType === t ? 'text-signal' : 'text-navy-400'}`} /> {title}</span>
+                      <span className={`mt-0.5 block text-xs ${docType === t ? 'text-white/55' : 'text-navy-500'}`}>{body}</span>
                     </span>
                   </button>
                 ))}
@@ -225,12 +230,12 @@ export default function DocumentsPage() {
                   setDragging(false);
                   pick(e.dataTransfer.files?.[0]);
                 }}
-                className={`relative flex flex-col items-center gap-3 rounded-3xl border-2 border-dashed px-6 py-12 text-center transition ${dragging ? 'border-steel-500 bg-steel-50' : 'border-navy-200 bg-navy-50/30'}`}
+                className={`relative flex flex-col items-center gap-3 rounded-[28px] border-2 border-dashed px-6 py-12 text-center transition duration-300 ${dragging ? 'border-signal-600 bg-signal/10 shadow-[0_0_0_6px_rgba(212,242,92,0.25)]' : 'border-navy-200 bg-[#f6f5f0]'}`}
               >
-                <motion.span animate={dragging ? { y: -6, scale: 1.05 } : { y: 0, scale: 1 }} className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-navy-700 shadow-sm ring-1 ring-navy-100">
+                <motion.span animate={dragging ? { y: -8, rotate: -4, scale: 1.08 } : { y: 0, rotate: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }} className={`flex h-16 w-16 items-center justify-center rounded-full transition-colors ${dragging ? 'bg-signal text-navy-950' : 'bg-navy-950 text-signal'}`}>
                   <FileUp className="h-6 w-6" />
                 </motion.span>
-                <p className="font-semibold text-navy-900">Drop your PDF here</p>
+                <p className="font-display text-xl font-semibold text-navy-950">{dragging ? 'Let go to read it' : 'Drop your PDF here'}</p>
                 <p className="text-sm text-navy-500">Text-based PDFs up to 10 MB. Photographed or scanned pages can’t be read yet.</p>
                 <button type="button" onClick={() => inputRef.current?.click()} className="vs-btn-primary mt-2">Choose a file</button>
                 <input ref={inputRef} type="file" accept="application/pdf" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} aria-label="Choose a PDF" />
@@ -248,24 +253,32 @@ export default function DocumentsPage() {
           )}
 
           {loading && (
-            <motion.section key="scan" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="vs-surface flex flex-col items-center gap-6 p-12 text-center" role="status">
-              <div className="relative h-32 w-24 overflow-hidden rounded-xl border border-navy-200 bg-white shadow-sm">
-                {[18, 30, 42, 54, 66, 78, 90].map((y, i) => (
-                  <span key={y} className="absolute left-3 h-1.5 rounded-full bg-navy-100" style={{ top: y, width: i % 3 === 0 ? 48 : 64 }} />
+            <motion.section key="scan" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="vs-grain relative flex flex-col items-center gap-8 overflow-hidden rounded-[28px] bg-navy-950 p-10 text-center text-white sm:flex-row sm:text-left" role="status">
+              <div className="relative h-44 w-32 shrink-0 overflow-hidden rounded-xl bg-white shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)]">
+                {[16, 30, 44, 58, 72, 86, 100, 114, 128, 142].map((y, i) => (
+                  <span key={y} className={`absolute left-3 h-1.5 rounded-full ${i === 3 || i === 6 ? 'bg-signal-600' : 'bg-navy-100'}`} style={{ top: y, width: i % 3 === 0 ? 60 : 92 }} />
                 ))}
-                <motion.span className="absolute inset-x-0 h-8 bg-gradient-to-b from-steel-400/0 via-steel-400/40 to-steel-400/0" animate={{ top: [-32, 128] }} transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }} />
+                <motion.span className="absolute inset-x-0 h-10 bg-gradient-to-b from-signal/0 via-signal/60 to-signal/0" animate={{ top: [-40, 176] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />
               </div>
-              <div>
-                <p className="flex items-center justify-center gap-2 font-semibold text-navy-900"><ScanLine className="h-4 w-4" /> Reading {file?.name}</p>
-                <p className="text-sm text-navy-500">Looking for {docType === 'POLICY' ? 'IDV, No-Claim Bonus and deductible' : 'parts, labour and totals'}…</p>
+              <div className="min-w-0">
+                <p className="flex items-center justify-center gap-2 font-display text-2xl font-semibold sm:justify-start"><ScanLine className="h-5 w-5 text-signal" /> Reading the PDF</p>
+                <p className="mt-1 truncate font-mono text-xs text-white/45">{file?.name}</p>
+                <ul className="mt-5 space-y-2 text-sm">
+                  {(docType === 'POLICY' ? ['IDV', 'No-Claim Bonus', 'Deductible', 'Policy dates'] : ['Parts and materials', 'Labour and paint', 'Totals and GST']).map((f, i) => (
+                    <motion.li key={f} initial={{ opacity: 0.25 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 + i * 0.22 }} className="flex items-center justify-center gap-2 text-white/80 sm:justify-start">
+                      <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3 + i * 0.22, type: 'spring', stiffness: 500, damping: 20 }} className="h-1.5 w-1.5 rounded-full bg-signal" />
+                      Looking for {f === 'IDV' ? 'IDV' : f.toLowerCase().replace('no-claim bonus', 'No-Claim Bonus')}
+                    </motion.li>
+                  ))}
+                </ul>
               </div>
             </motion.section>
           )}
 
           {result && !loading && (
             <motion.section key="review" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: EASE }} className="space-y-5">
-              <div className="vs-surface flex flex-col gap-3 p-5 sm:flex-row sm:items-center">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gain-soft text-gain"><FileCheck2 className="h-5 w-5" /></span>
+              <div className="flex flex-col gap-3 rounded-[22px] border border-navy-100 bg-white p-5 sm:flex-row sm:items-center">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy-950 text-signal"><FileCheck2 className="h-5 w-5" /></span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-navy-900">{result.filename}</p>
                   <p className="text-sm text-navy-500">{result.total_pages} page{result.total_pages > 1 ? 's' : ''} read{isSample ? ' · fictional sample document' : ''}. Check each value below.</p>
@@ -278,7 +291,7 @@ export default function DocumentsPage() {
               )}
 
               {result.document_type === 'POLICY' ? (
-                <div className="vs-surface divide-y divide-navy-50">
+                <div className="divide-y divide-navy-50 overflow-hidden rounded-[28px] border border-navy-100 bg-white">
                   {POLICY_FIELDS.map((f, i) => {
                     const src = result.extracted_fields[f.key];
                     const found = src?.value !== null && src?.value !== undefined;
@@ -306,9 +319,9 @@ export default function DocumentsPage() {
                   })}
                 </div>
               ) : (
-                <div className="vs-surface p-5 sm:p-6">
+                <div className="rounded-[28px] border border-navy-100 bg-white p-5 sm:p-6">
                   <div className="flex items-center justify-between">
-                    <h2 className="font-semibold text-navy-900">Repair items</h2>
+                    <h2 className="font-display text-xl font-semibold tracking-tight text-navy-950">Repair items</h2>
                     <p className="text-sm text-navy-500">Material decides how much insurers deduct.</p>
                   </div>
                   {items.length === 0 && (
@@ -328,7 +341,16 @@ export default function DocumentsPage() {
                           <select value={it.category} onChange={(e) => setItems((all) => all.map((x, k) => (k === idx ? { ...x, category: e.target.value as PartCategory, edited: true } : x)))} className="vs-input py-2 text-sm" aria-label="Material">
                             {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                           </select>
-                          <input value={it.cost} inputMode="numeric" onChange={(e) => setItems((all) => all.map((x, k) => (k === idx ? { ...x, cost: e.target.value.replace(/[^\d.]/g, ''), edited: true } : x)))} className="vs-input tabular py-2 text-sm" aria-label="Cost in rupees" />
+                          <span className="relative block">
+                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-navy-400">₹</span>
+                            <input
+                              value={it.cost ? new Intl.NumberFormat('en-IN').format(Number(it.cost)) : ''}
+                              inputMode="numeric"
+                              onChange={(e) => setItems((all) => all.map((x, k) => (k === idx ? { ...x, cost: e.target.value.replace(/[^\d]/g, '').slice(0, 9), edited: true } : x)))}
+                              className="vs-input tabular py-2 pl-7 text-right text-sm"
+                              aria-label="Cost in rupees"
+                            />
+                          </span>
                           <button type="button" onClick={() => setItems((all) => all.filter((_, k) => k !== idx))} className="justify-self-end rounded-full p-2 text-navy-300 hover:bg-navy-50 hover:text-loss" aria-label={`Remove ${it.label}`}>
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -336,7 +358,7 @@ export default function DocumentsPage() {
                       ))}
                     </AnimatePresence>
                   </ul>
-                  <button type="button" onClick={() => setItems((all) => [...all, { label: '', category: 'metal', cost: '', edited: true }])} className="vs-chip mt-3 hover:border-navy-300"><Plus className="h-3.5 w-3.5" /> Add an item</button>
+                  <button type="button" onClick={() => setItems((all) => [...all, { label: '', category: 'metal', cost: '', edited: true }])} className="vs-btn-secondary mt-3 py-2"><Plus className="h-4 w-4" /> Add an item</button>
                   <div className="mt-5 flex flex-col gap-1 border-t border-navy-100 pt-4 text-sm sm:flex-row sm:justify-between">
                     <span className="text-navy-600">Total of items (before GST)</span>
                     <span className="tabular text-lg font-semibold text-navy-900">{rupees(itemsTotal)}</span>
@@ -345,7 +367,7 @@ export default function DocumentsPage() {
                 
                   {items.some((i) => parseFloat(i.cost) > 0) && (
                     <div className="mt-6 border-t border-navy-100 pt-5">
-                      <h3 className="mb-3 font-semibold text-navy-900">X-ray: who pays for what</h3>
+                      <h3 className="mb-3 font-display text-xl font-semibold tracking-tight text-navy-950">Who pays for what</h3>
                       <XRay
                         editable={false}
                         compact
@@ -377,8 +399,28 @@ export default function DocumentsPage() {
   );
 }
 
+/** Where a value came from. Kept visible so every number stays traceable. */
 function FieldBadge({ found, edited, page }: { found: boolean; edited: boolean; page?: number | null }) {
-  if (edited) return <span className="mt-1 inline-block rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">Edited by you</span>;
-  if (!found) return <span className="mt-1 inline-block rounded-full bg-navy-50 px-2 py-0.5 text-[11px] font-medium text-navy-500">Not found in document</span>;
-  return <span className="mt-1 inline-block rounded-full bg-steel-50 px-2 py-0.5 text-[11px] font-medium text-steel-700">From your document{page ? `, page ${page}` : ''}</span>;
+  const base = 'mt-1.5 inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide';
+  if (edited) return <span className={`${base} bg-amber-100 text-amber-900`}><span className="h-1.5 w-1.5 rounded-full bg-amber-500" />Edited by you</span>;
+  if (!found) return <span className={`${base} border border-dashed border-loss/40 text-loss`}>Not found</span>;
+  return <span className={`${base} bg-navy-950 text-signal`}><span className="h-1.5 w-1.5 rounded-full bg-signal" />{page ? `Page ${page}` : 'From document'}</span>;
+}
+
+/** Tiny drawing of the document type, with the fields we read highlighted. */
+function MiniDoc({ kind, active }: { kind: DocType; active: boolean }) {
+  const hi = active ? 'bg-signal' : 'bg-signal-600/60';
+  const lo = active ? 'bg-white/20' : 'bg-navy-100';
+  return (
+    <span className={`relative h-16 w-12 shrink-0 overflow-hidden rounded-md p-1.5 transition-transform duration-500 group-hover:-rotate-3 ${active ? 'bg-white/10' : 'bg-[#f6f5f0]'}`}>
+      {kind === 'POLICY'
+        ? [0, 1, 2, 3, 4, 5].map((i) => <span key={i} className={`mb-1 block h-1 rounded-full ${i === 2 || i === 3 ? hi : lo}`} style={{ width: i % 2 ? '70%' : '100%' }} />)
+        : [0, 1, 2, 3, 4, 5].map((i) => (
+            <span key={i} className="mb-1 flex gap-0.5">
+              <span className={`h-1 flex-1 rounded-full ${i > 0 && i < 5 ? hi : lo}`} />
+              <span className={`h-1 w-2 rounded-full ${lo}`} />
+            </span>
+          ))}
+    </span>
+  );
 }

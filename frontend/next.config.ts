@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       { source: "/dashboards/policyholder", destination: "/vehicles", permanent: true },
       { source: "/dashboards", destination: "/org", permanent: true },
       { source: "/fleet", destination: "/org/fleet", permanent: true },
+      { source: "/technology", destination: "/about", permanent: true },
     ];
   },
 };

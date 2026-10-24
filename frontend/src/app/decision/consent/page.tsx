@@ -114,10 +114,10 @@ export default function DataPrivacyPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl space-y-8">
-        <header className="space-y-2">
-          <span className="vs-chip"><Lock className="h-3.5 w-3.5 text-steel-600" /> Data & privacy</span>
-          <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">Who can see your car’s records</h1>
-          <p className="text-base text-navy-600">Nobody sees your records unless you allow it. Access is time-limited and you can take it back at any moment.</p>
+        <header className="space-y-3">
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-navy-400">( Data &amp; privacy )</p>
+          <h1 className="font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-navy-950 sm:text-5xl">Your records. <span className="text-navy-300">Your call.</span></h1>
+          <p className="max-w-xl text-base text-navy-500">Nobody sees your records unless you allow it. Access is time-limited and you can take it back at any moment.</p>
         </header>
 
         {/* Grant */}
@@ -145,8 +145,8 @@ export default function DataPrivacyPage() {
                 const k = KIND[p.type];
                 const on = orgId === p.id;
                 return (
-                  <button key={p.id} type="button" onClick={() => setOrgId(p.id)} aria-pressed={on} className={`rounded-2xl border p-4 text-left transition ${on ? 'border-navy-900 bg-navy-900 text-white shadow-lg' : 'border-navy-100 bg-white hover:border-navy-300'}`}>
-                    <k.Icon className={`h-5 w-5 ${on ? 'text-steel-300' : 'text-steel-600'}`} />
+                  <button key={p.id} type="button" onClick={() => setOrgId(p.id)} aria-pressed={on} className={`rounded-[22px] border p-4 text-left transition duration-300 ${on ? 'border-navy-950 bg-navy-950 text-white shadow-[0_20px_40px_-20px_rgba(10,16,34,0.6)]' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'}`}>
+                    <k.Icon className={`h-5 w-5 ${on ? 'text-signal' : 'text-navy-400'}`} />
                     <p className="mt-3 text-sm font-semibold">{p.name}</p>
                     <p className={`text-xs ${on ? 'text-navy-200' : 'text-navy-500'}`}>{k.label} · {k.purpose}</p>
                     {/demo/i.test(p.name) && <p className={`mt-2 text-[10px] font-semibold uppercase tracking-wider ${on ? 'text-amber-200' : 'text-amber-700'}`}>Demo organisation</p>}

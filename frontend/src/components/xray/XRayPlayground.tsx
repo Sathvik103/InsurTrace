@@ -16,15 +16,18 @@ export function XRayPlayground() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center sm:justify-between">
-        <p>{isSample ? 'Showing a fictional sample quote. Replace the lines with your workshop’s quote.' : 'Your quote. Everything is calculated on your device; nothing is uploaded.'}</p>
+      <div className="flex flex-col gap-3 rounded-[22px] border border-navy-100 bg-white p-3 pl-5 text-sm sm:flex-row sm:items-center sm:justify-between">
+        <p className="flex items-center gap-2 text-navy-600">
+          <span className={`shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${isSample ? 'bg-amber-100 text-amber-900' : 'bg-navy-950 text-signal'}`}>{isSample ? 'Sample quote' : 'Your quote'}</span>
+          {isSample ? 'Fictional figures. Replace them with your workshop’s lines.' : 'Calculated on your device. Nothing is uploaded.'}
+        </p>
         <div className="flex shrink-0 gap-2">
           {isSample ? (
-            <button type="button" onClick={() => { setLines([newLine()]); setIsSample(false); }} className="rounded-xl bg-white px-3 py-1.5 font-semibold text-amber-900 ring-1 ring-amber-200">Start with my quote</button>
+            <button type="button" onClick={() => { setLines([newLine()]); setIsSample(false); }} className="vs-btn-secondary py-2">Start with my quote</button>
           ) : (
-            <button type="button" onClick={() => { setLines(sample()); setIsSample(true); }} className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 font-semibold text-amber-900 ring-1 ring-amber-200"><RotateCcw className="h-3.5 w-3.5" /> Load sample</button>
+            <button type="button" onClick={() => { setLines(sample()); setIsSample(true); }} className="vs-btn-secondary py-2"><RotateCcw className="h-3.5 w-3.5" /> Load sample</button>
           )}
-          <Link href="/login?next=%2Fdecision%2Fextract" className="inline-flex items-center gap-1.5 rounded-xl bg-navy-900 px-3 py-1.5 font-semibold text-white"><FileUp className="h-3.5 w-3.5" /> Read a PDF</Link>
+          <Link href="/login?next=%2Fdecision%2Fextract" className="vs-btn-primary py-2"><FileUp className="h-3.5 w-3.5" /> Read a PDF</Link>
         </div>
       </div>
       <XRay lines={lines} onLinesChange={(l) => { setLines(l); setIsSample(false); }} policy={policy} onPolicyChange={setPolicy} />

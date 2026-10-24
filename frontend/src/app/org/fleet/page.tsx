@@ -14,6 +14,7 @@ import { AnimatedNumber } from '@/components/motion/AnimatedNumber';
 import { RULE_VERSION } from '@/lib/engine';
 import { FLEET_INCIDENTS_KEY as STORE, FLEET_OVERRIDES_KEY as OVERRIDES, loadLocal, Overrides, toFleetVehicle } from '@/lib/fleet';
 import { CarSilhouette } from '@/components/vehicle/CarSilhouette';
+import { TOTAL_LOSS_RATIO } from '@/lib/repairOrSell';
 import { NumberPlate } from '@/components/vehicle/NumberPlate';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -350,6 +351,11 @@ function IncidentRow({
           </select>
           {inc.sample && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800 ring-1 ring-amber-200">Sample</span>}
           {inc.savedAt && <span className="inline-flex items-center gap-1 rounded-full bg-gain-soft px-2 py-0.5 text-[10px] font-semibold text-gain"><Check className="h-3 w-3" /> Saved</span>}
+          {vp && vp.vehicle.idv > 0 && inc.amount >= vp.vehicle.idv * TOTAL_LOSS_RATIO && (
+            <span title="Many policies treat repairs above about 75% of the IDV as a total loss. Compare repairing with selling or a total-loss settlement." className="rounded-full bg-ember/15 px-2 py-0.5 text-[10px] font-semibold text-loss">
+              Over 75% of IDV: total-loss territory
+            </span>
+          )}
         </div>
       </div>
       <label className="relative">

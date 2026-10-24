@@ -119,7 +119,7 @@ export function AssistantWidget() {
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-            className="fixed bottom-20 right-4 z-[60] print:hidden lg:bottom-6 lg:right-6 flex items-center gap-2.5 rounded-full bg-navy-950 p-3 text-sm sm:py-3 sm:pl-3.5 sm:pr-5 font-semibold text-white shadow-[0_12px_32px_-8px_rgba(17,26,49,0.6)]"
+            className="fixed bottom-[92px] right-4 z-[60] print:hidden lg:bottom-6 lg:right-6 flex items-center gap-2.5 rounded-full bg-navy-950 p-3 text-sm sm:py-3 sm:pl-3.5 sm:pr-5 font-semibold text-white shadow-[0_12px_32px_-8px_rgba(17,26,49,0.6)]"
             aria-label="Open the ClearClaim Assistant"
           >
             <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-white/10">

@@ -190,7 +190,20 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
       'If the car is stolen, or the repair cost is too high compared with its value, the insurer may treat it as a total loss and pay up to the IDV, minus your deductible.',
       'Many policies treat repairs above about 75% of the IDV as a “constructive total loss”. Your policy wording sets the exact rule.',
     ],
-    followUps: ['What is IDV?'],
+    followUps: ['What is IDV?', 'Should I repair my car or sell it?'],
+  },
+  {
+    id: 'repair-or-sell',
+    topic: 'money',
+    question: 'Should I repair my car or sell it?',
+    keywords: ['sell', 'sell instead', 'repair or sell', 'not worth repairing', 'scrap', 'exchange', 'as is', 'resale', 'too expensive to repair', 'value'],
+    answer: [
+      'Compare what you are left with in each case. Repair and keep: the car’s value once repaired, minus what the repair costs you (on the cheaper of claiming or paying yourself). Sell as it is: the offer for the damaged car.',
+      'So if a buyer offers more than (value after repair − your repair cost), selling comes out ahead. Accident-repaired cars often sell for less than undamaged ones, so use a realistic value.',
+      'When the repair bill passes about 75% of the IDV, many policies treat the car as a total loss: the insurer may pay the IDV minus your deductible and keep the damaged car. That counts as a claim, so the No-Claim Bonus is lost too.',
+      'The claim check shows this comparison automatically when the repair bill is large next to your IDV.',
+    ],
+    followUps: ['What happens if my car is a total loss?', 'What is IDV?'],
   },
   {
     id: 'third-party',

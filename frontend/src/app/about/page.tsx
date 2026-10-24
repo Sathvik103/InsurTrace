@@ -1,141 +1,104 @@
-'use client';
-
-import React from 'react';
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { PublicNavbar } from '@/components/public/PublicNavbar';
 import { PublicFooter } from '@/components/public/PublicFooter';
-import { FadeIn, SlideUp, SectionReveal, StaggerContainer, StaggerItem } from '@/components/motion/MotionPrimitives';
-import { Shield, CheckCircle2, Lock, ArrowRight, Scale, FileText, Cpu, Database } from 'lucide-react';
+import { PageHero } from '@/components/public/PageHero';
+import { Reveal } from '@/components/home/fx';
+import { BRAND } from '@/lib/brand';
+
+const PRINCIPLES = [
+  {
+    n: '01',
+    title: 'Rules, not guesses',
+    body: 'Every rupee is worked out with fixed rules: the standard depreciation schedule for parts, your deductible, the No-Claim Bonus slabs and your IDV. Same inputs, same answer, every time. No AI decides your numbers.',
+  },
+  {
+    n: '02',
+    title: 'Show the working',
+    body: 'Each result breaks down line by line, so you can check it against your policy or show it to a workshop. If a number came from a PDF, it says which page. If you changed it, it says so.',
+  },
+  {
+    n: '03',
+    title: 'Your data stays yours',
+    body: 'Nobody sees your records unless you share them, and sharing is time-limited and can be taken back. You can download everything we hold, or ask us to delete it.',
+  },
+  {
+    n: '04',
+    title: 'Honest about limits',
+    body: 'ClearClaim is not an insurer, does not file or decide claims, and is not connected to insurer systems or VAHAN. Where something is an estimate or a sample, the screen says so.',
+  },
+];
+
+const BUILT = [
+  ['Calculations', 'A deterministic engine that runs in your browser and on our server. 305 test cases check that both give identical answers.'],
+  ['Saved records', 'Each saved check gets a SHA-256 fingerprint. When a ledger is connected, the fingerprint is anchored on a Hyperledger Fabric network, so later edits can be detected. The status page shows whether a ledger is connected right now.'],
+  ['Reading PDFs', 'Text-based policy schedules and estimates are read with fixed rules. The file is processed and not kept. Photographed or scanned pages can’t be read yet.'],
+  ['Hosting', 'Website on Vercel, server on Render (Singapore), database and sign-in on Supabase.'],
+];
 
 export default function AboutPage() {
-  const principles = [
-    {
-      icon: Scale,
-      title: 'Deterministic Over Speculative',
-      description: 'Insurance financial math must never be left to probabilistic guessing or generative language models. Every rupee of deductible, depreciation, and No-Claim Bonus (NCB) loss in ClearClaim is calculated through deterministic, audited arithmetic grounded in standard Indian motor tariff guidelines.'
-    },
-    {
-      icon: Lock,
-      title: 'Cryptographic State Integrity',
-      description: 'Trust in multi-party insurance workflows cannot rely on database honor systems. Saved claim records are canonically hashed using SHA-256 and their fingerprints anchored on a Hyperledger Fabric ledger (development test network), so later changes can be detected.'
-    },
-    {
-      icon: Shield,
-      title: 'DPDP-Aligned Consent Architecture',
-      description: 'Vehicle data, claim histories, and repair documents belong to the policyholder. Built with DPDP-aligned consent patterns, data sharing across insurers, garages, and surveyors requires explicit, time-bounded consent grants.'
-    },
-    {
-      icon: FileText,
-      title: 'Document Provenance & Transparency',
-      description: 'Every extracted value from policy schedules and garage estimates preserves its provenance. The platform transparently tracks whether a figure was extracted by optical parsing, verified by an assessor, or computed by the financial engine.'
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex flex-col">
-      <PublicNavbar />
+    <div className="min-h-screen bg-white">
+      <PublicNavbar tone="dark" />
+      <main>
+        <PageHero
+          compact
+          eyebrow="About"
+          title="Know the numbers"
+          accent="before you call anyone."
+          body="A small car insurance claim can quietly cost more than the repair, once you lose your No-Claim Bonus. ClearClaim exists so car owners, fleets and workshops in India can see that clearly, in plain language, before deciding."
+        />
 
-      <main className="flex-1 pt-24 pb-16">
-        {/* Hero Section */}
-        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16">
-          <FadeIn>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span>Our Purpose & Architecture</span>
+        <section className="bg-[#f6f5f0] px-5 py-24">
+          <div className="mx-auto max-w-6xl">
+            <Reveal>
+              <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( How we work )</p>
+              <h2 className="mt-5 max-w-2xl font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">Four rules we don’t bend.</h2>
+            </Reveal>
+            <div className="mt-12 grid gap-4 md:grid-cols-2">
+              {PRINCIPLES.map((p, i) => (
+                <Reveal key={p.n} delay={i * 0.06}>
+                  <div className="h-full rounded-[28px] bg-white p-8 ring-1 ring-navy-100">
+                    <span className="font-display text-5xl font-semibold text-navy-100">{p.n}</span>
+                    <h3 className="mt-4 font-display text-2xl font-semibold tracking-tight text-navy-950">{p.title}</h3>
+                    <p className="mt-2 leading-relaxed text-navy-500">{p.body}</p>
+                  </div>
+                </Reveal>
+              ))}
             </div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 max-w-3xl leading-tight">
-              Rebuilding trust in motor insurance with verifiable intelligence.
-            </h1>
-            <p className="mt-6 text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
-              ClearClaim is engineered to eliminate the information asymmetry between vehicle owners, insurance underwriters, licensed surveyors, and authorized repair workshops.
-            </p>
-          </FadeIn>
+          </div>
         </section>
 
-        {/* The Problem Narrative */}
-        <SectionReveal className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-zinc-100 dark:border-zinc-900">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-            <div className="md:col-span-4">
-              <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                The Core Problem
-              </h2>
-              <h3 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mt-2">
-                Why motor insurance decisions are broken today
-              </h3>
-            </div>
-            <div className="md:col-span-8 space-y-4 text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-              <p>
-                When a vehicle suffers damage in India, policyholders face an agonizing dilemma: should they file an insurance claim or pay out of pocket? Filing a claim provides immediate repair reimbursement, but often results in the permanent forfeiture of an accumulated No-Claim Bonus (NCB)—frequently leading to higher premium penalties over consecutive renewal years than the immediate reimbursement value.
-              </p>
-              <p>
-                Simultaneously, insurance underwriters struggle with exaggerated repair estimates and lack of historical damage visibility, while workshops struggle with opaque part depreciation rules and prolonged claim settlement cycles.
-              </p>
-              <p>
-                ClearClaim bridges this divide by providing an objective, deterministic financial modeling engine paired with a tamper-evident Hyperledger Fabric ledger that cryptographically records transaction milestones across participating nodes.
-              </p>
-            </div>
-          </div>
-        </SectionReveal>
-
-        {/* Core Principles Grid */}
-        <SectionReveal className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-zinc-100 dark:border-zinc-900">
-          <div className="mb-10">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-              Foundational Principles
-            </h2>
-            <h3 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mt-2">
-              How ClearClaim operates
-            </h3>
-          </div>
-
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {principles.map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <StaggerItem key={idx}>
-                  <div className="h-full p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/40 space-y-3">
-                    <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-800 dark:text-zinc-200">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <h4 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-                      {item.title}
-                    </h4>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                      {item.description}
-                    </p>
+        <section id="how-it-is-built" className="scroll-mt-24 bg-white px-5 py-24">
+          <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+            <Reveal>
+              <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( Under the hood )</p>
+              <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">How it is built.</h2>
+              <p className="mt-5 text-navy-500">The short version, without the buzzwords.</p>
+            </Reveal>
+            <dl className="border-t border-navy-100">
+              {BUILT.map(([k, v], i) => (
+                <Reveal key={k} delay={i * 0.05}>
+                  <div className="grid gap-2 border-b border-navy-100 py-6 sm:grid-cols-[160px_1fr]">
+                    <dt className="font-display text-lg font-semibold text-navy-950">{k}</dt>
+                    <dd className="leading-relaxed text-navy-600">{v}</dd>
                   </div>
-                </StaggerItem>
-              );
-            })}
-          </StaggerContainer>
-        </SectionReveal>
-
-        {/* Engineering Rigor Banner */}
-        <SectionReveal className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 p-8 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-xl">
-              <div className="flex items-center gap-2 text-xs font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>MOTOR TARIFF GUIDELINES & MATHEMATICAL CERTAINTY</span>
-              </div>
-              <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
-                Explore the technical architecture
-              </h3>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Review the dual-peer Hyperledger Fabric consensus model, canonical SHA-256 state hashing, and PostgreSQL Row-Level Security isolation.
-              </p>
-            </div>
-            <Link
-              href="/technology"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shrink-0"
-            >
-              <span>View Tech Specs</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+                </Reveal>
+              ))}
+            </dl>
           </div>
-        </SectionReveal>
-      </main>
+        </section>
 
+        <section className="px-3 pb-3">
+          <div className="vs-grain relative flex flex-col items-start justify-between gap-6 overflow-hidden rounded-[40px] bg-navy-950 px-8 py-14 text-white sm:flex-row sm:items-center sm:px-14">
+            <div>
+              <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Questions, or found a mistake?</h2>
+              <p className="mt-2 text-white/60">We read every message. <a href={`mailto:${BRAND.contactEmail}`} className="text-white underline-offset-2 hover:underline">{BRAND.contactEmail}</a></p>
+            </div>
+            <Link href="/decision" className="vs-btn-signal shrink-0">Try a claim check <ArrowRight className="h-4 w-4" /></Link>
+          </div>
+        </section>
+      </main>
       <PublicFooter />
     </div>
   );

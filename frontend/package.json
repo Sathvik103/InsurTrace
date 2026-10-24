@@ -9,8 +9,9 @@
     "lint": "eslint",
     "test:engine": "node --experimental-strip-types --import ./scripts/alias-loader.mjs scripts/test-engine.mts",
     "test:triage": "node --experimental-strip-types --import ./scripts/alias-loader.mjs scripts/test-triage.mts",
-    "test:unit": "npm run -s test:engine && npm run -s test:triage && npm run test:bodytype",
-    "test:bodytype": "node --experimental-strip-types scripts/test-bodytype.mjs"
+    "test:unit": "npm run -s test:engine && npm run -s test:triage && npm run test:bodytype && npm run -s test:repairsell",
+    "test:bodytype": "node --experimental-strip-types scripts/test-bodytype.mjs",
+    "test:repairsell": "node --experimental-strip-types scripts/test-repairsell.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

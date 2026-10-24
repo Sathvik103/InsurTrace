@@ -124,10 +124,10 @@ function VerifyContent() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <header className="space-y-2">
-        <span className="vs-chip"><ShieldCheck className="h-3.5 w-3.5 text-steel-600" /> Verify a record</span>
-        <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">Has this record been changed?</h1>
-        <p className="text-base text-navy-600">
+      <header className="space-y-3">
+        <p className="font-mono text-xs uppercase tracking-[0.18em] text-navy-400">( Verify a record )</p>
+        <h1 className="font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-navy-950 sm:text-5xl">Has this record <span className="text-navy-300">been changed?</span></h1>
+        <p className="max-w-xl text-base text-navy-500">
           When you save a claim check, ClearClaim anchors its fingerprint on a ledger. Checking it again shows whether the record is still exactly as it was saved.
         </p>
       </header>

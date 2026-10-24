@@ -122,16 +122,17 @@ export default function Shell({ children }: ShellProps) {
   const more = MORE_NAV.filter((i) => !i.roles || i.roles.includes(roleKey));
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-navy-900">
+    <div className="flex min-h-screen flex-col bg-[#f6f5f0] text-navy-900">
       {isDemoActive && (
-        <div className="border-b border-amber-200/70 bg-amber-50 px-4 py-2 text-center text-xs text-amber-900">
-          You’re exploring with <strong>sample cars and policies</strong>. Numbers are calculated for real, but the records are fictional.{' '}
-          <Link href="/onboarding" className="font-semibold underline underline-offset-2">Add your own car</Link>
+        <div className="bg-navy-950 px-4 py-2 text-center text-xs text-white/70">
+          <span className="mr-2 rounded-full bg-amber-300 px-2 py-0.5 font-semibold text-navy-950">Sample data</span>
+          Calculations are real; the cars, policies and records are fictional.{' '}
+          <Link href="/onboarding" className="font-semibold text-white underline-offset-2 hover:underline">Add your own car</Link>
         </div>
       )}
 
-      <header className="sticky top-0 z-40 border-b border-navy-100/80 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
+      <header className="sticky top-0 z-40 px-3 pt-3">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 rounded-full border border-navy-100/80 bg-white/80 pl-4 pr-2 shadow-[0_8px_30px_-14px_rgba(10,16,34,0.25)] backdrop-blur-xl">
           <Link href="/vehicles" className="mr-2 shrink-0" aria-label="ClearClaim home">
             <BrandLogo size="sm" />
           </Link>
@@ -147,7 +148,7 @@ export default function Shell({ children }: ShellProps) {
                   className={`relative whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition-colors xl:px-3.5 ${active ? 'text-white' : 'text-navy-600 hover:text-navy-900'}`}
                 >
                   {active && (
-                    <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-full bg-navy-900" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />
+                    <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-full bg-navy-950" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />
                   )}
                   <span className="relative">{item.label}</span>
                 </Link>
@@ -196,20 +197,20 @@ export default function Shell({ children }: ShellProps) {
       </motion.main>
 
       {/* Mobile bottom navigation */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-navy-100 bg-white/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden" aria-label="Main">
+      <nav className="fixed inset-x-3 bottom-3 z-50 mb-[env(safe-area-inset-bottom)] rounded-full bg-navy-950 p-1.5 shadow-[0_18px_40px_-12px_rgba(10,16,34,0.6)] lg:hidden" aria-label="Main">
         <div className="mx-auto grid max-w-md grid-cols-5">
           {PRIMARY_NAV.map((item) => {
             const active = isActive(item, pathname);
             return (
-              <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className="relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium">
-                {active && <motion.span layoutId="tab-dot" className="absolute top-0 h-0.5 w-8 rounded-full bg-navy-900" />}
-                <item.icon className={`h-5 w-5 ${active ? 'text-navy-900' : 'text-navy-400'}`} />
-                <span className={active ? 'text-navy-900' : 'text-navy-500'}>{item.label.replace('Verify a record', 'Verify').replace('Check a claim', 'Check')}</span>
+              <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className="relative flex flex-col items-center gap-0.5 rounded-full py-2 text-[10px] font-medium">
+                {active && <motion.span layoutId="tab-pill" className="absolute inset-0 rounded-full bg-white/10" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />}
+                <item.icon className={`relative h-5 w-5 ${active ? 'text-signal' : 'text-white/50'}`} />
+                <span className={`relative ${active ? 'text-white' : 'text-white/50'}`}>{item.label.replace('Verify a record', 'Verify').replace('Check a claim', 'Check')}</span>
               </Link>
             );
           })}
-          <button type="button" onClick={() => setMobileMore((v) => !v)} className="flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium text-navy-500" aria-expanded={mobileMore}>
-            <LayoutGrid className="h-5 w-5 text-navy-400" />
+          <button type="button" onClick={() => setMobileMore((v) => !v)} className="flex flex-col items-center gap-0.5 rounded-full py-2 text-[10px] font-medium text-white/50" aria-expanded={mobileMore}>
+            <LayoutGrid className="h-5 w-5" />
             More
           </button>
         </div>
@@ -220,7 +221,7 @@ export default function Shell({ children }: ShellProps) {
           <>
             <motion.div className="fixed inset-0 z-[55] bg-navy-950/20 lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileMore(false)} />
             <motion.div
-              className="fixed inset-x-3 bottom-20 z-[56] rounded-3xl border border-navy-100 bg-white p-2 shadow-2xl lg:hidden"
+              className="fixed inset-x-3 bottom-24 z-[56] rounded-3xl border border-navy-100 bg-white p-2 shadow-2xl lg:hidden"
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 24 }}

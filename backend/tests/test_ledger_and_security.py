@@ -340,3 +340,14 @@ def test_organisation_directory_hides_internal_groups():
     rows = client.get("/api/v1/organizations", headers=PH).json()
     types = {r["type"] for r in rows}
     assert types and types <= {"GARAGE", "INSURER", "SURVEYOR", "FLEET_OPERATOR"}
+
+
+def test_timeline_never_marks_mock_ledger_rows_as_anchored():
+    """Sample (MOCK) ledger rows are fingerprinted locally only; the history must not call them anchored."""
+    vehicles = client.get("/api/v1/vehicles", headers=PH).json()
+    claim_events = []
+    for v in vehicles:
+        events = client.get(f"/api/v1/vehicles/{v['id']}/timeline", headers=PH).json()["timeline"]
+        claim_events += [e for e in events if e["event_type"] == "CLAIM_FILED"]
+    assert claim_events, "expected sample claims in the demo data"
+    assert not any(e["blockchain_verified"] for e in claim_events if e.get("ledger_network_mode") == "MOCK")

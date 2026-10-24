@@ -494,7 +494,7 @@ export function ClaimCheckFlow() {
       </AnimatePresence>
 
       {/* Navigation */}
-      <div className="sticky bottom-0 z-10 -mx-4 mt-8 border-t border-navy-100 bg-background/90 px-4 py-4 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-none">
+      <div className="sticky bottom-[84px] z-10 -mx-4 mt-8 rounded-3xl border border-navy-100 bg-white/90 px-4 py-3 backdrop-blur lg:bottom-0 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-none">
         <div className="flex items-center justify-between gap-3">
           {step > 0 ? (
             <button type="button" onClick={() => go(step - 1)} className="vs-btn-secondary">

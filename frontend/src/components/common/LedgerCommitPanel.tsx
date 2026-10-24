@@ -80,15 +80,15 @@ export function LedgerCommitPanel({ buildPayload, disabled, onSaved }: LedgerCom
   };
 
   return (
-    <div className="space-y-3 rounded-2xl border border-sky-200 bg-sky-50/40 p-5 dark:border-sky-900/40 dark:bg-sky-950/20">
+    <div className="space-y-3 rounded-[28px] border border-navy-100 bg-white p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300">
+          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-950 text-signal">
             <Lock className="h-4 w-4" aria-hidden="true" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Save this claim record</h4>
-            <p className="mt-0.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+            <h4 className="font-display text-lg font-semibold text-navy-950">Save this claim record</h4>
+            <p className="mt-0.5 text-sm leading-relaxed text-navy-500">
               Saves the repair estimate and this calculation to your vehicle history in ClearClaim, then anchors a SHA-256
               fingerprint on the Hyperledger Fabric ledger so later changes can be detected. It is <strong>not</strong> sent to your insurer.
             </p>
@@ -99,7 +99,7 @@ export function LedgerCommitPanel({ buildPayload, disabled, onSaved }: LedgerCom
             type="button"
             onClick={save}
             disabled={saving || disabled}
-            className="flex shrink-0 items-center gap-1.5 rounded-xl bg-sky-700 px-4 py-2 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-sky-800 disabled:opacity-60"
+            className="vs-btn-primary shrink-0 py-2.5"
           >
             {saving ? <RefreshCw className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <Save className="h-3.5 w-3.5" aria-hidden="true" />}
             <span>{saving ? 'Saving…' : 'Save claim record'}</span>
@@ -110,15 +110,15 @@ export function LedgerCommitPanel({ buildPayload, disabled, onSaved }: LedgerCom
       {error != null && !claim && <ApiErrorNotice error={error} onRetry={save} retrying={saving} />}
 
       {claim && (
-        <FadeIn className="mt-2 space-y-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+        <FadeIn className="mt-2 space-y-3 rounded-2xl bg-[#f6f5f0] p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-navy-950">
             <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
             Claim record {claim.claim_number} saved
           </div>
           <LedgerStatusRow ledger={claim.ledger} onRetry={retry} retrying={retrying} />
           <Link
             href={`/verification?claimId=${claim.id}`}
-            className="inline-flex items-center gap-1 text-xs font-medium text-sky-700 hover:underline dark:text-sky-400"
+            className="inline-flex items-center gap-1 text-xs font-medium text-navy-950 underline-offset-2 hover:underline"
           >
             View integrity details <ArrowRight className="h-3 w-3" aria-hidden="true" />
           </Link>
@@ -135,7 +135,7 @@ export function LedgerStatusRow({ ledger, onRetry, retrying }: { ledger: LedgerV
     return (
       <div className="space-y-2 text-xs">
         <p className="flex items-center gap-1.5 font-semibold text-zinc-900 dark:text-zinc-100">
-          <ShieldCheck className="h-4 w-4 text-sky-700 dark:text-sky-400" aria-hidden="true" />
+          <ShieldCheck className="h-4 w-4 text-signal-700" aria-hidden="true" />
           {mode === 'MOCK' ? 'Development mock: not recorded on a ledger' : 'Fingerprint anchored on Hyperledger Fabric'}
         </p>
         <dl className="grid grid-cols-1 gap-1 rounded-lg bg-zinc-50 p-2.5 font-mono text-[11px] text-zinc-600 sm:grid-cols-2 dark:bg-zinc-950 dark:text-zinc-400">

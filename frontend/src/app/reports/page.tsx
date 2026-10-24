@@ -4,14 +4,17 @@ import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Download, FileText, Lock, Printer, ShieldCheck } from 'lucide-react';
+import { Download, Lock, Printer } from 'lucide-react';
 import { AppShell } from '@/components/layout/Shell';
 import { useVehicle } from '@/context/VehicleContext';
 import { apiFetch } from '@/lib/api';
 import { useSystemStatus } from '@/lib/useSystemStatus';
 import { rupees } from '@/lib/claimCheck';
+import { BODY_LABEL, bodyTypeOf } from '@/lib/bodyType';
 import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
-import { BrandLogo } from '@/components/brand/Logo';
+import { BrandMark } from '@/components/brand/Logo';
+import { CarSilhouette } from '@/components/vehicle/CarSilhouette';
+import { NumberPlate } from '@/components/vehicle/NumberPlate';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -27,10 +30,17 @@ interface TimelineEvent {
 }
 
 const PROVENANCE: Record<string, string> = {
-  DEMO_RECORD: 'Demo record',
-  USER_PROVIDED_RECORD: 'Entered by owner',
-  DATABASE_RECORD: 'ClearClaim record',
+  DEMO_RECORD: 'Demo',
+  USER_PROVIDED_RECORD: 'Owner',
+  DATABASE_RECORD: 'ClearClaim',
 };
+
+/** Stable, human-readable document number derived from the vehicle id. */
+function docNumber(id: string) {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619) >>> 0;
+  return `CC-${h.toString(36).toUpperCase().padStart(7, '0').slice(0, 7)}`;
+}
 
 export default function PassportPage() {
   return (
@@ -81,6 +91,7 @@ function Passport() {
     // Only data actually on record; missing fields stay null rather than being filled in.
     const passport = {
       format: 'clearclaim-vehicle-passport/v2',
+      document_number: docNumber(vehicle.id),
       generated_at: generatedAt.toISOString(),
       is_demo: !!vehicle.is_demo,
       vehicle: {
@@ -125,108 +136,176 @@ function Passport() {
     URL.revokeObjectURL(url);
   };
 
+  const commercial = !!vehicle?.usage_type && vehicle.usage_type !== 'PERSONAL';
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <header className="space-y-2 print:hidden">
-        <span className="vs-chip"><FileText className="h-3.5 w-3.5 text-steel-600" /> Vehicle passport</span>
-        <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">A history report you can share</h1>
-        <p className="text-navy-600">Useful when selling the car, renewing with a new insurer, or visiting a workshop. Print it, save it as PDF, or download the data.</p>
-      </header>
-
-      <div className="flex flex-col gap-3 print:hidden sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2">
-          {vehicles.map((v) => (
-            <button key={v.id} type="button" onClick={() => { setPicked(v.id); setSelectedVehicleId(v.id); setEvents(null); }} aria-pressed={vehicleId === v.id} className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${vehicleId === v.id ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-navy-700 hover:border-navy-300'}`}>
-              {v.make} {v.model}
-            </button>
-          ))}
+      <header className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-navy-400">( Vehicle passport )</p>
+          <h1 className="mt-3 font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-navy-950 sm:text-5xl">A history you can hand over.</h1>
+          <p className="mt-3 max-w-lg text-navy-500">For selling the car, switching insurer or visiting a workshop. Print it, save it as PDF, or download the data.</p>
         </div>
         <div className="flex shrink-0 gap-2">
           <button type="button" onClick={() => window.print()} className="vs-btn-secondary py-2.5"><Printer className="h-4 w-4" /> Print / PDF</button>
-          <button type="button" onClick={exportJson} disabled={!vehicle || events === null} className="vs-btn-primary py-2.5"><Download className="h-4 w-4" /> Download data</button>
+          <button type="button" onClick={exportJson} disabled={!vehicle || events === null} className="vs-btn-primary py-2.5"><Download className="h-4 w-4" /> Data</button>
         </div>
-      </div>
+      </header>
+
+      {/* Vehicle picker */}
+      {vehicles.length > 1 && (
+        <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1 print:hidden">
+          {vehicles.map((v) => {
+            const on = vehicleId === v.id;
+            return (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => {
+                  setPicked(v.id);
+                  setSelectedVehicleId(v.id);
+                  setEvents(null);
+                }}
+                aria-pressed={on}
+                className={`w-44 shrink-0 rounded-[20px] border p-3 text-left transition duration-300 ${on ? 'border-navy-950 bg-navy-950 text-white' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'}`}
+              >
+                <div className={`rounded-xl px-2 pt-1 ${on ? 'bg-white/[0.07]' : 'bg-[#f6f5f0]'}`}>
+                  <CarSilhouette vehicle={v} className="h-12 w-full" />
+                </div>
+                <p className="mt-2 truncate text-sm font-semibold">{v.make} {v.model}</p>
+                <p className={`font-mono text-[11px] ${on ? 'text-white/50' : 'text-navy-400'}`}>{v.registration_number}</p>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {error != null && <div className="print:hidden"><ApiErrorNotice error={error} /></div>}
 
       {vehicle && (
-        <motion.article key={vehicle.id} initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="vs-surface overflow-hidden print:rounded-none print:border-0 print:shadow-none">
-          <div className="flex items-center justify-between border-b border-navy-100 bg-navy-50/50 px-8 py-5">
-            <BrandLogo size="sm" />
-            <p className="text-xs text-navy-500">Generated {generatedAt.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p>
-          </div>
-          <div className="space-y-8 p-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <motion.article
+          key={vehicle.id}
+          initial={reduce ? false : { opacity: 0, y: 24, rotateX: 6 }}
+          animate={{ opacity: 1, y: 0, rotateX: 0 }}
+          transition={{ duration: 0.7, ease: EASE }}
+          style={{ transformPerspective: 1400 }}
+          className="overflow-hidden rounded-[32px] border border-navy-100 bg-white shadow-[0_40px_80px_-40px_rgba(10,16,34,0.35)] print:rounded-none print:border-0 print:shadow-none"
+        >
+          {/* Cover */}
+          <div className="vs-grain relative overflow-hidden bg-navy-950 px-7 pb-8 pt-6 text-white print:bg-white print:text-navy-950 sm:px-10">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 opacity-[0.07] print:hidden"
+              style={{ backgroundImage: 'repeating-radial-gradient(circle at 85% 20%, #fff 0 1px, transparent 1px 14px)' }}
+            />
+            <div className="relative flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <BrandMark size={26} />
+                <span className="font-display font-semibold">Clear<span className="text-signal print:text-navy-950">Claim</span></span>
+              </span>
+              <span className="text-right font-mono text-[11px] leading-relaxed text-white/50 print:text-navy-500">
+                No. {docNumber(vehicle.id)}
+                <br />
+                {generatedAt.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+              </span>
+            </div>
+            <div className="relative mt-8 grid items-end gap-6 sm:grid-cols-[1.1fr_0.9fr]">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-navy-400">Vehicle passport</p>
-                <h2 className="mt-1 text-3xl font-semibold tracking-tight text-navy-900">{vehicle.make} {vehicle.model}{vehicle.variant ? ` ${vehicle.variant}` : ''}</h2>
-                <p className="mt-1 font-mono text-sm text-navy-600">{vehicle.registration_number}{vehicle.vin ? ` · VIN ${vehicle.vin}` : ''}</p>
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-signal print:text-navy-500">Vehicle passport</p>
+                <h2 className="mt-2 font-display text-4xl font-semibold tracking-tight">{vehicle.make} {vehicle.model}{vehicle.variant ? ` ${vehicle.variant}` : ''}</h2>
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-white/60 print:text-navy-600">
+                  <NumberPlate value={vehicle.registration_number} commercial={commercial} />
+                  <span>{BODY_LABEL[bodyTypeOf(vehicle)]} · {vehicle.manufacture_year}{vehicle.vin ? ` · VIN ${vehicle.vin}` : ''}</span>
+                </div>
+                {vehicle.is_demo && <span className="mt-4 inline-block rounded-full bg-amber-300 px-3 py-1 text-xs font-semibold text-navy-950">Demo record: fictional</span>}
               </div>
-              <div className="flex flex-col items-start gap-2 sm:items-end">
-                {vehicle.is_demo && <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200">Demo record: fictional</span>}
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${anchored ? 'bg-gain-soft text-gain' : 'bg-navy-50 text-navy-600'}`}>
-                  <ShieldCheck className="h-3.5 w-3.5" /> {events === null ? 'Checking records…' : `${anchored} of ${events.length} records ledger-anchored`}
-                </span>
-              </div>
+              <CarSilhouette vehicle={vehicle} className="w-full drop-shadow-[0_20px_30px_rgba(0,0,0,0.45)] print:drop-shadow-none" />
             </div>
 
-            <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {/* Integrity seal */}
+            {events !== null && (
+              <motion.div
+                initial={reduce ? false : { scale: 1.6, rotate: -30, opacity: 0 }}
+                animate={{ scale: 1, rotate: -12, opacity: 1 }}
+                transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 14 }}
+                className={`absolute right-6 top-20 hidden h-24 w-24 flex-col items-center justify-center rounded-full border-2 border-dashed text-center sm:flex ${anchored ? 'border-signal text-signal' : 'border-white/30 text-white/50'} print:border-navy-400 print:text-navy-500`}
+              >
+                <span className="font-display text-2xl font-semibold leading-none">{anchored}/{events.length}</span>
+                <span className="mt-1 font-mono text-[9px] uppercase leading-tight tracking-wider">records<br />anchored</span>
+              </motion.div>
+            )}
+          </div>
+
+          <div className="space-y-9 p-7 sm:p-10">
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
               {[
                 ['Year', String(vehicle.manufacture_year)],
                 ['Fuel', vehicle.fuel_type || 'Not recorded'],
-                ['Use', vehicle.usage_type && vehicle.usage_type !== 'PERSONAL' ? 'Commercial' : 'Personal'],
-                ['Added to ClearClaim', vehicle.created_at ? new Date(vehicle.created_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : 'Not recorded'],
+                ['Use', commercial ? 'Commercial' : 'Personal'],
+                ['On ClearClaim since', vehicle.created_at ? new Date(vehicle.created_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : 'Not recorded'],
               ].map(([k, v]) => (
-                <div key={k} className="rounded-2xl bg-navy-50/70 p-4">
-                  <dt className="text-xs text-navy-500">{k}</dt>
-                  <dd className="mt-1 font-semibold text-navy-900">{v}</dd>
+                <div key={k} className="border-l-2 border-navy-100 pl-3">
+                  <dt className="text-[11px] uppercase tracking-wide text-navy-400">{k}</dt>
+                  <dd className="mt-1 font-semibold text-navy-950">{v}</dd>
                 </div>
               ))}
             </dl>
 
-            <section>
-              <h3 className="text-sm font-semibold text-navy-900">Policy summary <span className="font-normal text-navy-500">(entered by the owner, not verified with an insurer)</span></h3>
-              <dl className="mt-3 grid gap-4 sm:grid-cols-4">
+            <section className="rounded-[22px] bg-[#f6f5f0] p-5 print:bg-white print:p-0">
+              <h3 className="flex flex-wrap items-baseline gap-2 font-display text-lg font-semibold text-navy-950">
+                Policy summary <span className="font-sans text-xs font-normal text-navy-500">entered by the owner, not verified with an insurer</span>
+              </h3>
+              <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
                 {[
                   ['IDV', vehicle.idv ? rupees(vehicle.idv) : 'Not added'],
                   ['No-Claim Bonus', vehicle.ncb_percentage != null ? `${vehicle.ncb_percentage}%` : 'Not added'],
-                  ['Zero-dep cover', vehicle.has_zero_dep === undefined ? 'Not added' : vehicle.has_zero_dep ? 'Yes' : 'No'],
+                  ['Zero-dep cover', vehicle.has_zero_dep == null ? 'Not added' : vehicle.has_zero_dep ? 'Yes' : 'No'],
                   ['Policy number', vehicle.policy_number || 'Not added'],
                 ].map(([k, v]) => (
                   <div key={k}>
-                    <dt className="text-xs text-navy-500">{k}</dt>
-                    <dd className="mt-0.5 font-medium text-navy-900">{v}</dd>
+                    <dt className="text-[11px] uppercase tracking-wide text-navy-400">{k}</dt>
+                    <dd className={`mt-0.5 break-all font-medium ${v === 'Not added' ? 'text-navy-300' : 'text-navy-950'}`}>{v}</dd>
                   </div>
                 ))}
               </dl>
             </section>
 
             <section>
-              <h3 className="text-sm font-semibold text-navy-900">History</h3>
+              <h3 className="font-display text-lg font-semibold text-navy-950">History</h3>
               {events === null ? (
-                <div className="mt-3 space-y-2">{[0, 1, 2].map((k) => <div key={k} className="vs-shimmer h-12 rounded-xl" />)}</div>
+                <div className="mt-4 space-y-2">{[0, 1, 2].map((k) => <div key={k} className="vs-shimmer h-14 rounded-xl" />)}</div>
               ) : events.length === 0 ? (
                 <p className="mt-3 text-sm text-navy-500">No records yet.</p>
               ) : (
-                <ol className="mt-3 divide-y divide-navy-100 rounded-2xl border border-navy-100">
+                <ol className="relative mt-5 space-y-6 pl-8">
+                  <motion.span
+                    aria-hidden="true"
+                    className="absolute bottom-2 left-[7px] top-2 w-px origin-top bg-navy-200"
+                    initial={reduce ? false : { scaleY: 0 }}
+                    animate={{ scaleY: 1 }}
+                    transition={{ duration: 0.9, ease: EASE }}
+                  />
                   {events.map((e, i) => (
-                    <li key={i} className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="font-medium text-navy-900">{e.title}</p>
-                        <p className="text-sm text-navy-600">{e.description}</p>
+                    <motion.li key={i} initial={reduce ? false : { opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + i * 0.07, ease: EASE }} className="relative">
+                      <span className={`absolute -left-8 top-1 h-[15px] w-[15px] rounded-full border-[3px] border-white ${e.blockchain_verified ? 'bg-signal-600' : 'bg-navy-300'} shadow-[0_0_0_1px_rgba(10,16,34,0.1)]`} />
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                        <div className="min-w-0">
+                          <p className="font-medium text-navy-950">{e.title}</p>
+                          <p className="text-sm text-navy-500">{e.description}</p>
+                        </div>
+                        <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+                          <span className="font-mono text-xs text-navy-400">{e.date ? new Date(e.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</span>
+                          <span className="rounded-md bg-navy-50 px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-navy-600">{PROVENANCE[e.provenance_type] || 'Record'}</span>
+                          {e.blockchain_verified && <span className="rounded-md bg-navy-950 px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-signal">Anchored</span>}
+                        </div>
                       </div>
-                      <div className="flex shrink-0 items-center gap-2 text-xs">
-                        <span className="text-navy-500">{e.date ? new Date(e.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</span>
-                        <span className="rounded-full bg-navy-50 px-2 py-0.5 text-navy-600">{PROVENANCE[e.provenance_type] || 'Record'}</span>
-                        {e.blockchain_verified && <span className="rounded-full bg-gain-soft px-2 py-0.5 font-semibold text-gain">Anchored</span>}
-                      </div>
-                    </li>
+                    </motion.li>
                   ))}
                 </ol>
               )}
             </section>
 
-            <p className="rounded-2xl bg-navy-50 p-4 text-xs leading-relaxed text-navy-600">
+            <p className="border-t border-navy-100 pt-5 text-xs leading-relaxed text-navy-500">
               “Anchored” records have a SHA-256 fingerprint on a Hyperledger Fabric ledger, which shows they are unchanged since they were saved. It does not prove that events happened, and policy details are not verified with any insurer.
               {ledgerStatus && ledgerStatus !== 'CONNECTED' ? ' The ledger is not connected to this deployment right now.' : ''} ClearClaim is not connected to VAHAN or insurer systems.
             </p>
@@ -236,7 +315,7 @@ function Passport() {
 
       <p className="flex items-center gap-2 text-sm text-navy-500 print:hidden">
         <Lock className="h-4 w-4" /> Want a workshop or insurer to see this online instead?{' '}
-        <Link href="/decision/consent" className="font-semibold text-steel-700 hover:underline">Give them time-limited access</Link>
+        <Link href="/decision/consent" className="font-semibold text-navy-950 underline-offset-2 hover:underline">Give them time-limited access</Link>
       </p>
     </div>
   );
