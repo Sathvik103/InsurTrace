@@ -38,7 +38,13 @@ async def request_context(request: Request, call_next):
     request_id = request.headers.get("x-request-id") or uuid.uuid4().hex[:16]
     try:
         response = await call_next(request)
-    except Exception:
+    except Exception as exc:
+        # Postgres "invalid input syntax" (e.g. a non-UUID id in the URL) means
+        # the record cannot exist: answer 404 rather than a server error.
+        if getattr(exc, "code", None) == "22P02" or "22P02" in str(exc)[:300]:
+            response = JSONResponse(status_code=404, content={"detail": "Not found.", "request_id": request_id})
+            response.headers["X-Request-ID"] = request_id
+            return response
         logger.exception("Unhandled error on %s %s [request_id=%s]", request.method, request.url.path, request_id)
         response = JSONResponse(
             status_code=500,

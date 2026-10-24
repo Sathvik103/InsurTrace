@@ -260,3 +260,17 @@ def test_security_headers_and_readiness():
     assert res.status_code == 200 and res.json()["data_mode"] == "DEMO_SANDBOX"
     assert res.headers["x-content-type-options"] == "nosniff"
     assert res.headers["x-frame-options"] == "DENY"
+
+
+def test_invalid_id_from_database_is_404(monkeypatch):
+    import routers.claims as claims_router
+
+    class APIError(Exception):
+        code = "22P02"
+
+    def bad(*a, **k):
+        raise APIError('invalid input syntax for type uuid: "CLM-x"')
+
+    monkeypatch.setattr(claims_router, "accessible_vehicle_ids", bad)
+    res = client.get("/api/v1/claims", headers=PH)
+    assert res.status_code == 404
