@@ -18,6 +18,7 @@ import {
   Wrench,
   X,
   Check,
+  Truck,
 } from 'lucide-react';
 import { PublicNavbar } from '@/components/public/PublicNavbar';
 import { PublicFooter } from '@/components/public/PublicFooter';
@@ -102,7 +103,7 @@ export default function HomePage() {
               transition={{ duration: 0.8, delay: 0.16, ease: EASE }}
               className="max-w-xl text-lg leading-relaxed text-navy-600"
             >
-              A small claim can cost you more than the repair, because you lose your No-Claim Bonus. VeriSure works out what your insurer
+              A small claim can cost you more than the repair, because you lose your No-Claim Bonus. ClearClaim works out what your insurer
               might pay, what you’d pay, and which choice is cheaper, in plain language, before you call anyone.
             </motion.p>
             <motion.div
@@ -170,7 +171,7 @@ export default function HomePage() {
             <p className="text-sm font-semibold text-steel-700">What you’ll understand</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl">The numbers insurers use, finally explained.</h2>
             <p className="mt-4 text-lg leading-relaxed text-navy-600">
-              VeriSure uses the standard motor-insurance rules for depreciation, deductibles and No-Claim Bonus, the same kind of rules surveyors
+              ClearClaim uses the standard motor-insurance rules for depreciation, deductibles and No-Claim Bonus, the same kind of rules surveyors
               apply. Fixed rules, not AI guesses, so the same inputs always give the same answer.
             </p>
             <Link href={checkHref} className="vs-btn-primary mt-8">Start a claim check <ArrowRight className="h-4 w-4" /></Link>
@@ -189,17 +190,76 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Repair-quote X-ray */}
+      <section className="border-y border-navy-100 bg-white py-20 lg:py-28">
+        <div className="mx-auto grid max-w-6xl gap-12 px-4 lg:grid-cols-2 lg:items-center">
+          <Reveal>
+            <p className="text-sm font-semibold text-steel-700">Repair-quote X-ray</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl">Got a quote from the workshop? X-ray it.</h2>
+            <p className="mt-4 text-lg leading-relaxed text-navy-600">
+              Every line of a repair quote is paid differently. Plastic parts lose half their value on replacement, glass and labour lose nothing, and metal depends on your car’s age.
+              The X-ray shows the insurer’s share and yours for each line, and where you could pay less.
+            </p>
+            <Link href="/xray" className="vs-btn-primary mt-8">X-ray a quote, free <ArrowRight className="h-4 w-4" /></Link>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="vs-surface space-y-4 p-6">
+              {[
+                { l: 'Front bumper (plastic)', c: 14800, you: 50 },
+                { l: 'Bonnet (metal, 3-yr-old car)', c: 21500, you: 15 },
+                { l: 'Windshield (glass)', c: 11200, you: 0 },
+                { l: 'Labour and paint', c: 7400, you: 0 },
+              ].map((r) => (
+                <div key={r.l}>
+                  <div className="flex justify-between text-sm"><span className="font-medium text-navy-800">{r.l}</span><span className="tabular text-navy-500">₹{r.c.toLocaleString('en-IN')}</span></div>
+                  <div className="mt-1.5 flex h-2.5 overflow-hidden rounded-full bg-navy-50">
+                    <span className="h-full bg-gain" style={{ width: `${100 - r.you}%` }} />
+                    <span className="h-full bg-loss/70" style={{ width: `${r.you}%` }} />
+                  </div>
+                </div>
+              ))}
+              <p className="flex justify-between border-t border-navy-100 pt-3 text-xs text-navy-500"><span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-gain" />Insurer</span><span>You (depreciation)<span className="ml-1 inline-block h-2 w-2 rounded-full bg-loss/70" /></span></p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Organisations */}
+      <section className="py-20 lg:py-28">
+        <div className="mx-auto max-w-6xl px-4">
+          <Reveal className="max-w-2xl">
+            <p className="text-sm font-semibold text-steel-700">For organisations</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl">A workspace built for how you work.</h2>
+          </Reveal>
+          <div className="mt-10 grid gap-5 md:grid-cols-2">
+            {[
+              { href: '/for-fleets', icon: Truck, title: 'Fleets', body: 'Log incidents across all vehicles and get the claim-or-pay plan with the lowest total cost. NCB is lost once per vehicle, and triage uses that to bundle claims smartly.' },
+              { href: '/for-workshops', icon: Wrench, title: 'Workshops', body: 'Build an estimate and show the customer, line by line, what their insurer will likely cover. Print it or share it, with no surprises at handover.' },
+            ].map((o, i) => (
+              <Reveal key={o.href} delay={i * 0.08}>
+                <Link href={o.href} className="group block h-full rounded-[28px] bg-navy-950 p-8 text-white transition duration-500 hover:-translate-y-1">
+                  <o.icon className="h-7 w-7 text-steel-300" />
+                  <h3 className="mt-6 text-2xl font-semibold">{o.title}</h3>
+                  <p className="mt-2 leading-relaxed text-navy-200">{o.body}</p>
+                  <span className="mt-6 inline-flex items-center gap-1.5 font-semibold text-steel-300">Learn more <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></span>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Honesty */}
       <section className="bg-navy-950 py-20 text-white lg:py-28">
         <div className="mx-auto max-w-6xl px-4">
           <Reveal className="max-w-2xl">
             <p className="text-sm font-semibold text-steel-300">Straight talk</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">What VeriSure is, and isn’t.</h2>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">What ClearClaim is, and isn’t.</h2>
           </Reveal>
           <div className="mt-12 grid gap-6 md:grid-cols-2">
             <Reveal>
               <div className="h-full rounded-[28px] bg-white/5 p-7 ring-1 ring-white/10">
-                <p className="flex items-center gap-2 font-semibold"><ShieldCheck className="h-5 w-5 text-steel-300" /> VeriSure is</p>
+                <p className="flex items-center gap-2 font-semibold"><ShieldCheck className="h-5 w-5 text-steel-300" /> ClearClaim is</p>
                 <ul className="mt-5 space-y-3 text-navy-100">
                   {['An independent calculator that shows every step', 'A tamper-evident history for your car’s records', 'Clear about what’s estimated, extracted or unavailable', 'Built around your consent: you choose who sees your data'].map((t) => (
                     <li key={t} className="flex gap-3"><Check className="mt-0.5 h-5 w-5 shrink-0 text-gain" /> {t}</li>
@@ -209,7 +269,7 @@ export default function HomePage() {
             </Reveal>
             <Reveal delay={0.1}>
               <div className="h-full rounded-[28px] bg-white/5 p-7 ring-1 ring-white/10">
-                <p className="flex items-center gap-2 font-semibold"><X className="h-5 w-5 text-loss" /> VeriSure is not</p>
+                <p className="flex items-center gap-2 font-semibold"><X className="h-5 w-5 text-loss" /> ClearClaim is not</p>
                 <ul className="mt-5 space-y-3 text-navy-100">
                   {['Your insurer: it never approves, rejects or files claims', 'Connected to IRDAI, VAHAN or insurer systems', 'A source of AI fraud or damage scores (those stay off without validated data)', 'A guarantee of the final settlement amount'].map((t) => (
                     <li key={t} className="flex gap-3"><X className="mt-0.5 h-5 w-5 shrink-0 text-navy-400" /> {t}</li>
@@ -227,7 +287,7 @@ export default function HomePage() {
           <Reveal>
             <p className="text-sm font-semibold text-steel-700">Common questions</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl">Car insurance, without the jargon.</h2>
-            <p className="mt-4 text-navy-600">Can’t find your question? The VeriSure Assistant answers from the same reviewed guide, and tells you when it doesn’t know.</p>
+            <p className="mt-4 text-navy-600">Can’t find your question? The ClearClaim Assistant answers from the same reviewed guide, and tells you when it doesn’t know.</p>
             <button type="button" onClick={() => open()} className="vs-btn-secondary mt-6">
               <MessageCircleQuestion className="h-4 w-4" /> Ask the assistant
             </button>

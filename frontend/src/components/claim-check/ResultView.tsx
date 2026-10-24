@@ -147,7 +147,7 @@ export function ResultView({ result, policy, items }: { result: EngineResult; po
       <p className="flex items-start gap-2 rounded-2xl bg-navy-50 p-4 text-xs leading-relaxed text-navy-600">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-navy-400" aria-hidden="true" />
         These are estimates from standard motor-insurance rules (rule set {result.rule_version}), using the numbers you entered.
-        VeriSure is not your insurer and does not approve or reject claims. Your insurer and surveyor decide the actual settlement.
+        ClearClaim is not your insurer and does not approve or reject claims. Your insurer and surveyor decide the actual settlement.
       </p>
     </div>
   );

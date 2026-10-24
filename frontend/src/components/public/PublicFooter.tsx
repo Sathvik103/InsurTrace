@@ -1,132 +1,71 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
-import { Shield, Lock, ExternalLink, Mail } from 'lucide-react';
-import { VeriSureLogo } from '@/components/brand/VeriSureLogo';
+import { BrandLogo } from '@/components/brand/Logo';
+import { BRAND } from '@/lib/brand';
+
+const COLUMNS = [
+  {
+    title: 'Product',
+    links: [
+      { href: '/#how-it-works', label: 'How it works' },
+      { href: '/xray', label: 'Repair-quote X-ray' },
+      { href: '/for-fleets', label: 'For fleets' },
+      { href: '/for-workshops', label: 'For workshops' },
+    ],
+  },
+  {
+    title: 'Learn',
+    links: [
+      { href: '/learn', label: 'Car insurance guide' },
+      { href: '/learn/ncb', label: 'No-Claim Bonus' },
+      { href: '/learn/idv', label: 'IDV explained' },
+      { href: '/learn/claim-or-pay', label: 'Claim or pay yourself?' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { href: '/about', label: 'About' },
+      { href: '/security', label: 'Security' },
+      { href: '/contact', label: 'Contact' },
+    ],
+  },
+  {
+    title: 'Legal',
+    links: [
+      { href: '/privacy', label: 'Privacy' },
+      { href: '/terms', label: 'Terms' },
+      { href: '/disclaimer', label: 'Disclaimer' },
+    ],
+  },
+];
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-zinc-200 bg-zinc-50/50 dark:bg-zinc-950/50 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-          {/* Column 1: Brand & Philosophy */}
-          <div className="md:col-span-2 space-y-4">
-            <VeriSureLogo size="sm" asLink href="/" />
-            <p className="text-xs leading-relaxed max-w-sm text-zinc-500 dark:text-zinc-400">
-              Insurance Intelligence & Verification. Deterministic financial decision engines,
-              multi-party cryptographic audit trails on Hyperledger Fabric, and automated claim adjudication
-              grounded in standard Indian motor tariff guidelines.
-            </p>
-            <div className="flex items-center gap-2 text-zinc-500 text-[11px]">
-              <Lock className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-              <span>Cryptographic state hashes sealed on Hyperledger Fabric Raft consensus (Consortium Test Network).</span>
-            </div>
-          </div>
-
-          {/* Column 2: Architecture & Technology */}
-          <div>
-            <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider text-[11px] mb-3">
-              Architecture
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/technology" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  System Architecture
-                </Link>
-              </li>
-              <li>
-                <Link href="/technology#fabric" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Hyperledger Fabric Ledger
-                </Link>
-              </li>
-              <li>
-                <Link href="/technology#math" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Deterministic Math Engine
-                </Link>
-              </li>
-              <li>
-                <Link href="/security" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  PostgreSQL RLS & RBAC
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 3: Portals & Workspaces */}
-          <div>
-            <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider text-[11px] mb-3">
-              Workspaces
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/decision" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Claim Decision Terminal
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboards/insurer" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Insurer Command Center
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboards/surveyor" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Surveyor Workspace
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboards/garage" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Garage Workshop Portal
-                </Link>
-              </li>
-              <li>
-                <Link href="/verification" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Ledger Verification Console
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 4: Trust & Contact */}
-          <div>
-            <h4 className="font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider text-[11px] mb-3">
-              Governance & Contact
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/privacy" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Privacy Policy (DPDP Aligned)
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link href="/disclaimer" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">
-                  Regulatory Notice
-                </Link>
-              </li>
-              <li>
-                <a
-                  href="mailto:sathvikkandukuri202@gmail.com"
-                  className="flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors text-zinc-600 dark:text-zinc-400"
-                >
-                  <Mail className="w-3 h-3" />
-                  <span>sathvikkandukuri202@gmail.com</span>
-                </a>
-              </li>
-            </ul>
-          </div>
+    <footer className="border-t border-navy-100 bg-white">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-[1.3fr_repeat(4,1fr)]">
+        <div className="space-y-4">
+          <BrandLogo size="sm" asLink href="/" />
+          <p className="max-w-xs text-sm leading-relaxed text-navy-500">{BRAND.descriptor}. Independent: not an insurer and never decides claims.</p>
+          <a href={`mailto:${BRAND.contactEmail}`} className="text-sm font-medium text-steel-700 hover:underline">{BRAND.contactEmail}</a>
         </div>
-
-        {/* Bottom Bar */}
-        <div className="mt-10 pt-6 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-zinc-500">
-          <p>© 2026 VeriSure. All rights reserved.</p>
-          <p className="max-w-xl text-center sm:text-right">
-            VeriSure provides mathematical decision-support and cryptographic verification of recorded events. Blockchain verifies data integrity after commitment; it does not independently verify physical ground truth.
-          </p>
+        {COLUMNS.map((col) => (
+          <nav key={col.title} aria-label={col.title}>
+            <p className="text-sm font-semibold text-navy-900">{col.title}</p>
+            <ul className="mt-3 space-y-2">
+              {col.links.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className="text-sm text-navy-500 transition hover:text-navy-900">{l.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))}
+      </div>
+      <div className="border-t border-navy-100">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-xs text-navy-400 sm:flex-row sm:justify-between">
+          <p>© 2026 {BRAND.name}. All rights reserved.</p>
+          <p>Estimates use standard motor-insurance rules. Your insurer and surveyor decide the actual settlement.</p>
         </div>
       </div>
     </footer>

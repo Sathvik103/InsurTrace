@@ -1,7 +1,8 @@
 import asyncio
 import datetime
+import time
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 
 from config import get_settings
 from dependencies import supabase
@@ -53,15 +54,33 @@ def _financial_status() -> dict:
         return {"status": "UNAVAILABLE", "details": f"Rule engine self-check failed ({type(e).__name__})."}
 
 
+# The engine is pure and deterministic: one self-check at startup is enough.
+_FIN_STATUS = _financial_status()
+_cache: dict = {"at": 0.0, "body": None}
+STATUS_TTL_SECONDS = 30.0
+
+
 @router.get("/status")
-async def get_system_status():
+async def get_system_status(response: Response):
+    """Cached for STATUS_TTL_SECONDS so page loads don't each probe every component."""
+    now = time.monotonic()
+    if _cache["body"] is not None and now - _cache["at"] < STATUS_TTL_SECONDS:
+        response.headers["Cache-Control"] = "public, max-age=30"
+        return _cache["body"]
+    body = await _build_status()
+    _cache.update(at=now, body=body)
+    response.headers["Cache-Control"] = "public, max-age=30"
+    return body
+
+
+async def _build_status():
     """
-    Operational status of VeriSure components. Distinguishes genuinely connected
+    Operational status of ClearClaim components. Distinguishes genuinely connected
     infrastructure from demo, data-limited and not-integrated capabilities.
     """
     settings = get_settings()
     db = _database_status(settings)
-    fin = _financial_status()
+    fin = _FIN_STATUS
     fabric = await asyncio.to_thread(get_fabric_adapter().get_peer_health)
     fabric_status = fabric.get("network_status", "UNAVAILABLE")
 
@@ -75,7 +94,7 @@ async def get_system_status():
                 "badge_variant": BADGE.get(state["status"], "degraded"), "details": state["details"], **extra}
 
     return {
-        "platform": "VeriSure",
+        "platform": "ClearClaim",
         "version": "2.1.0",
         "environment": settings.environment,
         "data_mode": settings.data_mode,

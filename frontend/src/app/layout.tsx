@@ -6,6 +6,7 @@ import { VehicleProvider } from "@/context/VehicleContext";
 import { Toaster } from "sonner";
 import { AssistantProvider } from "@/context/AssistantContext";
 import { AssistantWidget } from "@/components/assistant/AssistantWidget";
+import { BRAND } from "@/lib/brand";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -20,14 +21,53 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VeriSure — Insurance Intelligence & Verification",
-  description: "Deterministic financial modeling, document provenance, and cryptographically verified vehicle records.",
-  openGraph: {
-    title: "VeriSure — Insurance Intelligence & Verification",
-    description: "Deterministic financial modeling, document provenance, and cryptographically verified vehicle records.",
-    siteName: "VeriSure",
-    type: "website",
+  metadataBase: new URL(BRAND.siteUrl),
+  title: {
+    default: `${BRAND.name}: know if a car insurance claim is worth it`,
+    template: `%s · ${BRAND.name}`,
   },
+  description: BRAND.description,
+  applicationName: BRAND.name,
+  keywords: [
+    'car insurance claim calculator',
+    'should I claim car insurance',
+    'no claim bonus calculator India',
+    'NCB loss calculator',
+    'car insurance depreciation',
+    'IDV',
+    'repair estimate insurance',
+    'fleet insurance claims',
+  ],
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    siteName: BRAND.name,
+    locale: 'en_IN',
+    url: '/',
+    title: `${BRAND.name}: know if a car insurance claim is worth it`,
+    description: BRAND.description,
+  },
+  twitter: { card: 'summary_large_image', title: `${BRAND.name}: know if a car insurance claim is worth it`, description: BRAND.description },
+  robots: { index: true, follow: true },
+  formatDetection: { telephone: false },
+};
+
+// Site-wide structured data: what the site is and who runs it (no invented claims).
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    { '@type': 'WebSite', '@id': `${BRAND.siteUrl}/#website`, url: BRAND.siteUrl, name: BRAND.name, description: BRAND.description, inLanguage: 'en-IN' },
+    { '@type': 'Organization', '@id': `${BRAND.siteUrl}/#org`, name: BRAND.name, url: BRAND.siteUrl, logo: `${BRAND.siteUrl}/icon.svg`, email: BRAND.contactEmail },
+    {
+      '@type': 'WebApplication',
+      name: BRAND.name,
+      url: BRAND.siteUrl,
+      applicationCategory: 'FinanceApplication',
+      operatingSystem: 'Any',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
+      description: BRAND.description,
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -38,6 +78,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable} ${geistMono.variable}`}>
       <body className="font-sans antialiased bg-background text-navy-900 selection:bg-steel-200 selection:text-navy-950">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <AuthProvider>
           <VehicleProvider>
             <AssistantProvider>

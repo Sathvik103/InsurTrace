@@ -1,11 +1,11 @@
 /**
  * Claim-check domain model shared by the guided flow, the homepage preview and
  * the assistant. All money figures come from the deterministic backend engine
- * (POST /api/v1/financial/analyze-claim); this module only shapes inputs and
+ * (lib/engine.ts, verified against the Python engine); this module shapes inputs and
  * turns the engine's output into plain language. It never invents numbers.
  */
 
-import { apiFetch } from '@/lib/api';
+import { calculateDecision, RULE_VERSION } from '@/lib/engine';
 
 export type PartCategory = 'metal' | 'plastic' | 'glass' | 'fiberglass' | 'labour';
 
@@ -75,25 +75,25 @@ export interface RepairLine {
   cost: number;
 }
 
+/**
+ * Runs the claim engine on the user's device (lib/engine.ts, kept identical to
+ * the Python engine by golden tests). Instant and free: no server round-trip.
+ * The server engine remains the reference implementation behind
+ * /api/v1/financial/analyze-claim.
+ */
 export async function analyzeClaim(policy: PolicyInputs, items: RepairLine[], signal?: AbortSignal): Promise<EngineResult> {
-  return apiFetch<EngineResult>('/api/v1/financial/analyze-claim', {
-    method: 'POST',
-    anonymous: true,
-    signal,
-    timeoutMs: 60000,
-    body: {
-      vehicle: { age_years: Math.max(0, policy.vehicleAgeYears) },
-      policy: {
-        idv: policy.idv,
-        deductible: policy.deductible,
-        ncb_percentage: policy.ncbPercentage,
-        zero_depreciation_addon: policy.zeroDep,
-        policy_start_date: new Date().toISOString().split('T')[0],
-        rule_version: 'MOTOR_INDIA_2026_V1',
-      },
-      repair_items: items.filter((i) => i.cost > 0),
-      estimated_base_premium_next_year: policy.nextYearPremium,
+  if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+  return calculateDecision({
+    vehicle: { age_years: Math.max(0, policy.vehicleAgeYears) },
+    policy: {
+      idv: policy.idv,
+      deductible: policy.deductible,
+      ncb_percentage: policy.ncbPercentage,
+      zero_depreciation_addon: policy.zeroDep,
+      rule_version: RULE_VERSION,
     },
+    repair_items: items.filter((i) => i.cost > 0),
+    estimated_base_premium_next_year: policy.nextYearPremium,
   });
 }
 

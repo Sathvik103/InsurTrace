@@ -1,5 +1,5 @@
 /**
- * VeriSure Assistant answer engine.
+ * ClearClaim Assistant answer engine.
  *
  * Deterministic and local: answers come from the curated knowledge base, from
  * the result the user is currently viewing (already loaded in the browser, so
@@ -89,7 +89,7 @@ function explainStatus(s: StatusSnapshot): AssistantAnswer {
   if (!s.reachable) {
     return {
       paragraphs: [
-        'I can’t reach the VeriSure server right now, so I can’t check the live status. If the server has been idle it can take up to a minute to wake up. Try again shortly.',
+        'I can’t reach the ClearClaim server right now, so I can’t check the live status. If the server has been idle it can take up to a minute to wake up. Try again shortly.',
       ],
       source: 'system-status',
       links: [{ label: 'System status', href: '/settings?tab=status' }],
@@ -104,7 +104,7 @@ function explainStatus(s: StatusSnapshot): AssistantAnswer {
   const data =
     s.dataMode === 'DEMO_SANDBOX'
       ? 'This deployment runs on the demo sandbox: records are fictional and reset when the server restarts.'
-      : 'Your records are stored in the VeriSure database.';
+      : 'Your records are stored in the ClearClaim database.';
   return {
     paragraphs: [ledger, data, 'Your financial estimates do not depend on the ledger.'],
     source: 'system-status',
@@ -114,7 +114,7 @@ function explainStatus(s: StatusSnapshot): AssistantAnswer {
 
 export function answer(query: string, ctx: AssistantContextData, status?: StatusSnapshot): AssistantAnswer {
   const q = normalise(query);
-  if (!q) return { paragraphs: ['Ask me anything about your car insurance or VeriSure.'], source: 'none' };
+  if (!q) return { paragraphs: ['Ask me anything about your car insurance or ClearClaim.'], source: 'none' };
 
   if (ctx.kind === 'claim-result' && RESULT_INTENT.test(q)) return explainResult(ctx);
   if (status && STATUS_INTENT.test(q)) return explainStatus(status);
@@ -141,9 +141,9 @@ export function answer(query: string, ctx: AssistantContextData, status?: Status
 
   return {
     paragraphs: [
-      'I don’t have a reliable answer to that, and I’d rather not guess. I can help with motor-insurance basics (IDV, NCB, deductibles, depreciation), claims, and how VeriSure works. For anything specific to your policy wording, please check with your insurer.',
+      'I don’t have a reliable answer to that, and I’d rather not guess. I can help with motor-insurance basics (IDV, NCB, deductibles, depreciation), claims, and how ClearClaim works. For anything specific to your policy wording, please check with your insurer.',
     ],
-    followUps: (best ? [best, ...rest] : []).slice(0, 3).map((r) => r.entry.question).concat(best ? [] : ['What is VeriSure and who is it for?']),
+    followUps: (best ? [best, ...rest] : []).slice(0, 3).map((r) => r.entry.question).concat(best ? [] : ['What is ClearClaim and who is it for?']),
     source: 'none',
   };
 }

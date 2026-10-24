@@ -1,5 +1,5 @@
 /**
- * VeriSure API client.
+ * ClearClaim API client.
  *
  * - Resolves the backend base URL from NEXT_PUBLIC_API_URL (baked in at build time).
  *   A production build without it does NOT silently call localhost; requests
@@ -48,12 +48,12 @@ export function describeApiError(err: unknown): { title: string; message: string
     case 'config':
       return {
         title: 'Backend not configured',
-        message: 'This deployment is not connected to the VeriSure API, so calculations, saving and other server features are unavailable.',
+        message: 'This deployment is not connected to the ClearClaim API, so calculations, saving and other server features are unavailable.',
         retryable: false,
       };
     case 'network':
       return {
-        title: 'Cannot reach the VeriSure server',
+        title: 'Cannot reach the ClearClaim server',
         message: 'The server could not be reached. Check your connection; if the server was idle it may take up to a minute to wake up.',
         retryable: true,
       };

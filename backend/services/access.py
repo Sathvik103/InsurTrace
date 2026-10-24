@@ -5,9 +5,9 @@ The backend talks to the database with the service key, which bypasses RLS,
 so every route must check access explicitly. These helpers express the rules:
 
 - ADMIN: all records.
-- POLICYHOLDER: vehicles they own (ownership_history) and their policies/claims.
-- INSURER: vehicles whose policy their organisation issued, or with active consent.
-- SURVEYOR / GARAGE / FLEET_OPERATOR: vehicles with an active consent to their organisation.
+- Everyone: vehicles they registered themselves (ownership_history).
+- INSURER: plus vehicles whose policy their organisation issued, or with active consent.
+- SURVEYOR / GARAGE / FLEET_OPERATOR: plus vehicles with an active consent to their organisation.
 """
 
 import datetime
@@ -30,15 +30,25 @@ def _active_consent_vehicle_ids(org_id: Optional[str]) -> Set[str]:
     return {r["vehicle_id"] for r in rows if r.get("vehicle_id") and str(r.get("valid_until", "")) > now}
 
 
+def _owned_vehicle_ids(profile_id: str) -> Set[str]:
+    rows = supabase.table("ownership_history").select("vehicle_id").eq("owner_profile_id", profile_id).execute().data or []
+    return {r["vehicle_id"] for r in rows}
+
+
 def accessible_vehicle_ids(profile: dict) -> Optional[Set[str]]:
-    """Returns the set of vehicle IDs the profile may read, or None meaning 'all' (admin)."""
+    """
+    The vehicle IDs the profile may read, or None meaning 'all' (admin).
+    Everyone sees vehicles they registered; organisations additionally see
+    vehicles shared with them by an active consent (insurers also see vehicles
+    their organisation insures).
+    """
     role = profile.get("role")
     if role == "ADMIN":
         return None
+    ids = _owned_vehicle_ids(profile["id"])
     if role == "POLICYHOLDER":
-        rows = supabase.table("ownership_history").select("vehicle_id").eq("owner_profile_id", profile["id"]).execute().data or []
-        return {r["vehicle_id"] for r in rows}
-    ids = _active_consent_vehicle_ids(profile.get("organization_id"))
+        return ids
+    ids |= _active_consent_vehicle_ids(profile.get("organization_id"))
     if role == "INSURER" and profile.get("organization_id"):
         pols = supabase.table("policies").select("vehicle_id").eq("organization_id", profile["organization_id"]).execute().data or []
         ids |= {p["vehicle_id"] for p in pols if p.get("vehicle_id")}

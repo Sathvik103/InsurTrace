@@ -3,6 +3,7 @@ import uuid
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -18,8 +19,8 @@ settings = get_settings()
 settings.validate_for_startup()
 
 app = FastAPI(
-    title="VeriSure API",
-    description="Backend API for VeriSure - Insurance Intelligence & Verification",
+    title="ClearClaim API",
+    description="Backend API for ClearClaim - Insurance Intelligence & Verification",
     docs_url=None if settings.is_production else "/docs",
     redoc_url=None,
     openapi_url=None if settings.is_production else "/openapi.json",
@@ -61,6 +62,7 @@ async def request_context(request: Request, call_next):
 
 
 app.add_middleware(SlowAPIMiddleware)
+app.add_middleware(GZipMiddleware, minimum_size=800)
 
 # Added last so it is the outermost middleware: every response, including
 # errors and rate-limit rejections, carries the CORS headers the browser needs
@@ -80,7 +82,7 @@ app.add_middleware(
 @limiter.exempt
 async def root():
     """Friendly landing response instead of a 404 for the bare API URL."""
-    return {"service": "VeriSure API", "status": "ok", "health": "/health", "status_page": "/api/v1/system/status"}
+    return {"service": "ClearClaim API", "status": "ok", "health": "/health", "status_page": "/api/v1/system/status"}
 
 
 @app.get("/health")
@@ -130,9 +132,10 @@ from routers.vision import router as vision_router  # noqa: E402
 from routers.consent import router as consent_router  # noqa: E402
 from routers.profiles import router as profiles_router  # noqa: E402
 from routers.system_status import router as system_status_router  # noqa: E402
+from routers.organizations import router as organizations_router  # noqa: E402
 
 for r in (financial_router, vehicles_router, claims_router, admin_router, documents_router,
-          vision_router, consent_router, profiles_router, system_status_router):
+          vision_router, consent_router, profiles_router, system_status_router, organizations_router):
     app.include_router(r, prefix="/api/v1")
 
 

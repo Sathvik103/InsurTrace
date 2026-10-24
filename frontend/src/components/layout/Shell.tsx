@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useVehicle, Vehicle } from '@/context/VehicleContext';
-import { VeriSureLogo } from '@/components/brand/VeriSureLogo';
+import { BrandLogo } from '@/components/brand/Logo';
 import { AttentionCenter } from '@/components/common/AttentionCenter';
 import { CommandPalette } from '@/components/common/CommandPalette';
 
@@ -50,7 +50,8 @@ export const MORE_NAV: NavItem[] = [
   { label: 'Fleet', href: '/fleet', icon: Truck },
   { label: 'Insurer workspace', href: '/dashboards/insurer', icon: Building2, roles: ['insurer', 'admin'] },
   { label: 'Surveyor workspace', href: '/dashboards/surveyor', icon: FileCheck2, roles: ['surveyor', 'admin'] },
-  { label: 'Workshop workspace', href: '/dashboards/garage', icon: Wrench, roles: ['garage', 'admin'] },
+  { label: 'Workshop workspace', href: '/org/workshop', icon: Wrench, roles: ['garage', 'admin'] },
+  { label: 'Fleet workspace', href: '/org/fleet', icon: Truck, roles: ['fleet_operator', 'admin'] },
 ];
 
 const isActive = (item: NavItem, pathname: string) => (item.match ? item.match(pathname) : pathname === item.href || pathname.startsWith(`${item.href}/`));
@@ -110,7 +111,7 @@ export default function Shell({ children }: ShellProps) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-6">
         <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}>
-          <VeriSureLogo size="lg" />
+          <BrandLogo size="lg" />
         </motion.div>
         <div className="flex items-center gap-2.5 text-sm text-navy-500">
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-steel-500 border-t-transparent" />
@@ -134,8 +135,8 @@ export default function Shell({ children }: ShellProps) {
 
       <header className="sticky top-0 z-40 border-b border-navy-100/80 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
-          <Link href="/vehicles" className="mr-2 shrink-0" aria-label="VeriSure home">
-            <VeriSureLogo size="sm" />
+          <Link href="/vehicles" className="mr-2 shrink-0" aria-label="ClearClaim home">
+            <BrandLogo size="sm" />
           </Link>
 
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">

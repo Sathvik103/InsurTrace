@@ -110,7 +110,7 @@ export function QuickCheck() {
 
       <div className="mt-6 rounded-3xl bg-white p-5 ring-1 ring-navy-100">
         {error && !result ? (
-          <p className="text-sm text-navy-600">{error}. The live preview needs the VeriSure server.</p>
+          <p className="text-sm text-navy-600">{error}. The live preview needs the ClearClaim server.</p>
         ) : result && verdict ? (
           <>
             <AnimatePresence mode="wait">

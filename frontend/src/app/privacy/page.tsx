@@ -32,7 +32,7 @@ export default function PrivacyPage() {
                 1. Purpose & Scope
               </h2>
               <p>
-                VeriSure operates as a digital decision-support and cryptographic verification system for motor insurance claims. We are committed to safeguarding personal information following the principles and patterns of the Digital Personal Data Protection (DPDP) Act, 2023 of India.
+                ClearClaim operates as a digital decision-support and cryptographic verification system for motor insurance claims. We are committed to safeguarding personal information following the principles and patterns of the Digital Personal Data Protection (DPDP) Act, 2023 of India.
               </p>
             </section>
 
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
                 3. Cryptographic Hashing & On-Chain Privacy
               </h2>
               <p>
-                VeriSure enforces cryptographic minimization on the Hyperledger Fabric ledger. Personally Identifiable Information (PII), such as full owner names, phone numbers, and physical residential addresses, is never written directly to distributed ledger blocks. Instead, records are transformed into salted canonical SHA-256 state hashes. The underlying data remains in encrypted PostgreSQL tables shielded by Row-Level Security.
+                ClearClaim enforces cryptographic minimization on the Hyperledger Fabric ledger. Personally Identifiable Information (PII), such as full owner names, phone numbers, and physical residential addresses, is never written directly to distributed ledger blocks. Instead, records are transformed into salted canonical SHA-256 state hashes. The underlying data remains in encrypted PostgreSQL tables shielded by Row-Level Security.
               </p>
             </section>
 

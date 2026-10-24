@@ -1,6 +1,6 @@
-# Deploying VeriSure
+# Deploying ClearClaim
 
-VeriSure has three runtime parts. Each one is deployed separately.
+ClearClaim has three runtime parts. Each one is deployed separately.
 
 | Part | Where it runs | Status |
 |---|---|---|

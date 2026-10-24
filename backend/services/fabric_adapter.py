@@ -1,11 +1,11 @@
 """
 Fabric Adapter Boundary
 
-Decouples VeriSure business logic from how the Hyperledger Fabric network is
+Decouples ClearClaim business logic from how the Hyperledger Fabric network is
 reached. Selected by FABRIC_MODE:
 
 - local_wsl : peer CLI against the local test network (WSL2/Docker or native Linux)
-- gateway   : authenticated HTTPS calls to the VeriSure Fabric gateway service
+- gateway   : authenticated HTTPS calls to the ClearClaim Fabric gateway service
 - disabled  : no ledger connectivity configured (reported honestly, never faked)
 - auto      : gateway if GATEWAY_URL is set, else local peer CLI if a container
               runtime exists on this host, else disabled

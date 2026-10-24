@@ -32,7 +32,7 @@ export default function TermsPage() {
                 1. Acceptance of Terms
               </h2>
               <p>
-                By accessing or utilizing the VeriSure platform, including its decision engines, document intelligence tools, and Hyperledger Fabric verification services, you acknowledge that you have read, understood, and agreed to be bound by these Terms of Service.
+                By accessing or utilizing the ClearClaim platform, including its decision engines, document intelligence tools, and Hyperledger Fabric verification services, you acknowledge that you have read, understood, and agreed to be bound by these Terms of Service.
               </p>
             </section>
 
@@ -41,7 +41,7 @@ export default function TermsPage() {
                 2. Nature of the Service
               </h2>
               <p>
-                VeriSure provides mathematical decision-support, document analysis, and cryptographic record keeping for motor insurance workflows. The platform does not issue insurance policies, assess physical risk as an underwriter, or directly adjudicate insurance contracts.
+                ClearClaim provides mathematical decision-support, document analysis, and cryptographic record keeping for motor insurance workflows. The platform does not issue insurance policies, assess physical risk as an underwriter, or directly adjudicate insurance contracts.
               </p>
             </section>
 

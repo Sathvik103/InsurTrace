@@ -71,6 +71,7 @@ export function ClaimCheckFlow() {
       if (initial.idv) setIdv(String(initial.idv));
       if (initial.ncb_percentage !== undefined && (NCB_STEPS as readonly number[]).includes(initial.ncb_percentage)) setNcb(initial.ncb_percentage);
       if (initial.has_zero_dep !== undefined) setZeroDep(initial.has_zero_dep ? 'yes' : 'no');
+      if (initial.od_premium) setPremium(String(initial.od_premium));
     }
     if (params.get('idv')) setIdv(params.get('idv')!);
     if (params.get('deductible')) setDeductible(params.get('deductible')!);
@@ -250,6 +251,7 @@ export function ClaimCheckFlow() {
                         setIdv(v.idv ? String(v.idv) : '');
                         if (v.ncb_percentage !== undefined && (NCB_STEPS as readonly number[]).includes(v.ncb_percentage)) setNcb(v.ncb_percentage);
                         if (v.has_zero_dep !== undefined) setZeroDep(v.has_zero_dep ? 'yes' : 'no');
+                        if (v.od_premium) setPremium(String(v.od_premium));
                       }}
                       className={`relative flex items-center gap-3 rounded-2xl border p-4 text-left transition ${
                         on ? 'border-navy-900 bg-navy-900 text-white shadow-lg' : 'border-navy-100 bg-white hover:border-navy-300'

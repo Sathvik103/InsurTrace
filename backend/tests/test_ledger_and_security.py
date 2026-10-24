@@ -312,5 +312,24 @@ def test_secret_key_env_alias(monkeypatch):
 
 
 def test_root_endpoint():
-    assert client.get("/").json()["service"] == "VeriSure API"
+    assert client.get("/").json()["service"] == "ClearClaim API"
     assert client.head("/").status_code == 200
+
+
+FLEET = {"Authorization": "Bearer dev-fleet"}
+
+
+def test_fleet_operator_sees_only_its_own_fleet(fabric):
+    ids = {v["id"] for v in client.get("/api/v1/vehicles", headers=FLEET).json()}
+    assert ids == {"V-COMM-201", "V-COMM-202", "V-COMM-203", "V-COMM-204"}
+    assert client.get("/api/v1/vehicles/V-REAL-101", headers=FLEET).status_code == 404
+    res = client.post("/api/v1/claims", headers=FLEET, json={"vehicle_id": "V-COMM-203", "estimated_repair_cost": 52000})
+    assert res.status_code == 200
+    assert client.post("/api/v1/claims", headers=FLEET, json={"vehicle_id": "V-REAL-101", "estimated_repair_cost": 10}).status_code == 404
+
+
+def test_organisation_directory_exposes_identity_only():
+    rows = client.get("/api/v1/organizations?type=GARAGE", headers=PH).json()
+    assert rows and all(set(r) == {"id", "name", "type"} for r in rows)
+    assert all(r["type"] == "GARAGE" for r in rows)
+    assert client.get("/api/v1/organizations?type=ADMIN", headers=PH).status_code == 422

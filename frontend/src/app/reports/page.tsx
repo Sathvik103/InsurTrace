@@ -11,7 +11,7 @@ import { apiFetch } from '@/lib/api';
 import { useSystemStatus } from '@/lib/useSystemStatus';
 import { rupees } from '@/lib/claimCheck';
 import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
-import { VeriSureLogo } from '@/components/brand/VeriSureLogo';
+import { BrandLogo } from '@/components/brand/Logo';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -29,7 +29,7 @@ interface TimelineEvent {
 const PROVENANCE: Record<string, string> = {
   DEMO_RECORD: 'Demo record',
   USER_PROVIDED_RECORD: 'Entered by owner',
-  DATABASE_RECORD: 'VeriSure record',
+  DATABASE_RECORD: 'ClearClaim record',
 };
 
 export default function PassportPage() {
@@ -152,7 +152,7 @@ function Passport() {
       {vehicle && (
         <motion.article key={vehicle.id} initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="vs-surface overflow-hidden print:rounded-none print:border-0 print:shadow-none">
           <div className="flex items-center justify-between border-b border-navy-100 bg-navy-50/50 px-8 py-5">
-            <VeriSureLogo size="sm" />
+            <BrandLogo size="sm" />
             <p className="text-xs text-navy-500">Generated {generatedAt.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p>
           </div>
           <div className="space-y-8 p-8">
@@ -175,7 +175,7 @@ function Passport() {
                 ['Year', String(vehicle.manufacture_year)],
                 ['Fuel', vehicle.fuel_type || 'Not recorded'],
                 ['Use', vehicle.usage_type && vehicle.usage_type !== 'PERSONAL' ? 'Commercial' : 'Personal'],
-                ['Added to VeriSure', vehicle.created_at ? new Date(vehicle.created_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : 'Not recorded'],
+                ['Added to ClearClaim', vehicle.created_at ? new Date(vehicle.created_at).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : 'Not recorded'],
               ].map(([k, v]) => (
                 <div key={k} className="rounded-2xl bg-navy-50/70 p-4">
                   <dt className="text-xs text-navy-500">{k}</dt>
@@ -228,7 +228,7 @@ function Passport() {
 
             <p className="rounded-2xl bg-navy-50 p-4 text-xs leading-relaxed text-navy-600">
               “Anchored” records have a SHA-256 fingerprint on a Hyperledger Fabric ledger, which shows they are unchanged since they were saved. It does not prove that events happened, and policy details are not verified with any insurer.
-              {ledgerStatus && ledgerStatus !== 'CONNECTED' ? ' The ledger is not connected to this deployment right now.' : ''} VeriSure is not connected to VAHAN or insurer systems.
+              {ledgerStatus && ledgerStatus !== 'CONNECTED' ? ' The ledger is not connected to this deployment right now.' : ''} ClearClaim is not connected to VAHAN or insurer systems.
             </p>
           </div>
         </motion.article>

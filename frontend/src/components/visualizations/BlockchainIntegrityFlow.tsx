@@ -146,14 +146,14 @@ export function BlockchainIntegrityFlow({
           <div className="bg-sky-50/50 dark:bg-sky-950/30 p-3.5 rounded-lg border border-sky-200/60 dark:border-sky-800/50 space-y-2">
             <div className="font-bold text-sky-900 dark:text-sky-200 flex items-center gap-1.5">
               <Info className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-              <span>How VeriSure Verifies Record Integrity:</span>
+              <span>How ClearClaim Verifies Record Integrity:</span>
             </div>
             <ol className="list-decimal list-inside space-y-1 text-sky-800 dark:text-sky-300 leading-relaxed text-[11px]">
-              <li>VeriSure generates a standardized, deterministic JSON representation of the record.</li>
+              <li>ClearClaim generates a standardized, deterministic JSON representation of the record.</li>
               <li>A cryptographic SHA-256 fingerprint is calculated from that payload.</li>
               <li>The fingerprint is recorded on the private Hyperledger Fabric network across peer organizations.</li>
               <li>The network validates consensus via Raft ordering and returns an immutable transaction ID.</li>
-              <li>VeriSure compares the live database representation against the ledger to confirm zero tampering.</li>
+              <li>ClearClaim compares the live database representation against the ledger to confirm zero tampering.</li>
             </ol>
 
             {/* Critical Honesty Disclaimer */}

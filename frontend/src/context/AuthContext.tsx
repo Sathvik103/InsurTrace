@@ -51,8 +51,17 @@ export const DEMO_PERSONAS: Persona[] = [
     name: 'Demo Auto Workshop',
     email: 'demo-garage@verisure.in',
     token: 'dev-garage',
-    targetRoute: '/dashboards/garage',
+    targetRoute: '/org/workshop',
     desc: 'Authorized workshop uploading itemized repair estimates and parts invoices.',
+  },
+  {
+    role: 'FLEET_OPERATOR',
+    label: 'Fleet manager',
+    name: 'Demo Fleet Manager',
+    email: 'demo-fleet@clearclaim.example',
+    token: 'dev-fleet',
+    targetRoute: '/org/fleet',
+    desc: 'Runs a taxi and delivery fleet; triages incidents across vehicles to minimise total cost.',
   },
   {
     role: 'ADMIN',

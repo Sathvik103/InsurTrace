@@ -102,13 +102,19 @@ def _ledger_view(row: Optional[dict]) -> dict:
 @router.get("", response_model=List[dict])
 @router.get("/", response_model=List[dict])
 async def list_claims(profile: dict = Depends(get_current_profile)):
+    """Claims the caller may read, with ledger status. Constant number of queries."""
     allowed = accessible_vehicle_ids(profile)
-    rows = supabase.table("claims").select("*").execute().data or []
-    claims = []
-    for c in rows:
-        v_id = claim_vehicle_id(c)
-        if allowed is None or v_id in allowed:
-            claims.append({**c, "vehicle_id": v_id, "ledger": _ledger_view(_ledger_row(c["id"]))})
+    if allowed is None:
+        rows = supabase.table("claims").select("*").limit(500).execute().data or []
+    elif not allowed:
+        return []
+    else:
+        rows = supabase.table("claims").select("*").in_("vehicle_id", list(allowed)).execute().data or []
+    if not rows:
+        return []
+    ledger_rows = supabase.table("ledger_references").select("*").in_("entity_id", [c["id"] for c in rows]).execute().data or []
+    ledger_by_claim = {r["entity_id"]: r for r in ledger_rows}
+    claims = [{**c, "ledger": _ledger_view(ledger_by_claim.get(c["id"]))} for c in rows]
     claims.sort(key=lambda c: str(c.get("created_at", "")), reverse=True)
     return claims
 
@@ -270,7 +276,7 @@ async def get_claim_details(claim_id: str, profile: dict = Depends(get_current_p
         "documents": documents,
         "ml_intelligence_disclosure": {
             "status": "DATA_LIMITED",
-            "reason": "VeriSure does not have access to a validated, licensed claims dataset, so fraud and severity models are not trained. No ML scores are produced.",
+            "reason": "ClearClaim does not have access to a validated, licensed claims dataset, so fraud and severity models are not trained. No ML scores are produced.",
             "integrity_commitment": "Financial figures come from deterministic rules; no synthetic fraud probabilities are presented.",
             "available_features": ["Deterministic depreciation & payout rules", "Rules-based PDF extraction"],
         },

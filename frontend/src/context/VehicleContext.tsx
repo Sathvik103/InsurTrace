@@ -27,6 +27,8 @@ export interface Vehicle {
   has_zero_dep?: boolean;
   /** True when the server could not be reached and the vehicle exists only in this browser. */
   is_local_only?: boolean;
+  /** Own-damage renewal premium before NCB (₹). */
+  od_premium?: number;
   created_at?: string;
 }
 
@@ -172,7 +174,7 @@ const STORAGE_KEY_SELECTED = 'verisure_active_vehicle_id';
 const STORAGE_KEY_CUSTOM = 'verisure_custom_vehicles';
 
 export function VehicleProvider({ children }: { children: React.ReactNode }) {
-  const { token, status } = useAuth();
+  const { token, status, isDemo } = useAuth();
   const [vehicles, setVehicles] = useState<Vehicle[]>(FALLBACK_SEED_VEHICLES);
   const [selectedVehicleId, setSelectedVehicleIdState] = useState<string>('V-REAL-101');
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -183,15 +185,9 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
       const savedSelected = localStorage.getItem(STORAGE_KEY_SELECTED);
       const savedCustom = localStorage.getItem(STORAGE_KEY_CUSTOM);
       
-      let initialVehicles = [...FALLBACK_SEED_VEHICLES];
-      if (savedCustom) {
-        const parsedCustom: Vehicle[] = JSON.parse(savedCustom);
-        const customIds = new Set(parsedCustom.map((v) => v.id));
-        initialVehicles = [
-          ...parsedCustom,
-          ...FALLBACK_SEED_VEHICLES.filter((v) => !customIds.has(v.id)),
-        ];
-      }
+      // Start with vehicles saved on this device only; the server list replaces
+      // them as soon as it arrives. Sample cars are never shown to real accounts.
+      const initialVehicles: Vehicle[] = savedCustom ? (JSON.parse(savedCustom) as Vehicle[]).filter((v) => v.is_local_only) : [];
       setVehicles(initialVehicles);
 
       // Validate saved active vehicle exists
@@ -225,15 +221,14 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
     try {
       {
         const backendVehicles = await apiFetch<Vehicle[]>('/api/v1/vehicles');
-        if (Array.isArray(backendVehicles) && backendVehicles.length > 0) {
+        if (Array.isArray(backendVehicles)) {
           setVehicles((prev) => {
+            // The server is the source of truth. Demo cars keep their sample
+            // policy details; cars saved only on this device are kept and flagged.
+            const seed = new Map(FALLBACK_SEED_VEHICLES.map((v) => [v.id, v]));
             const map = new Map<string, Vehicle>();
-            FALLBACK_SEED_VEHICLES.forEach((v) => map.set(v.id, v));
-            backendVehicles.forEach((v) => {
-              const existing = map.get(v.id) || {};
-              map.set(v.id, { ...existing, ...v });
-            });
-            prev.filter((v) => !v.is_demo).forEach((v) => map.set(v.id, v));
+            backendVehicles.forEach((v) => map.set(v.id, v.is_demo ? { ...(seed.get(v.id) || {}), ...v } : v));
+            prev.filter((v) => v.is_local_only && !map.has(v.id)).forEach((v) => map.set(v.id, v));
             const merged = Array.from(map.values());
 
             // Validate and retain active vehicle selection
@@ -249,9 +244,11 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (err) {
-      console.debug('Using cached/fallback vehicles:', err);
+      // Server unreachable: demo sessions can still explore with the sample cars.
+      if (isDemo) setVehicles((prev) => (prev.some((v) => v.is_demo) ? prev : [...prev, ...FALLBACK_SEED_VEHICLES]));
+      console.debug('Vehicle list unavailable:', err);
     }
-  }, [token, status, selectedVehicleId]);
+  }, [token, status, selectedVehicleId, isDemo]);
 
   useEffect(() => {
     refreshVehicles();
@@ -295,6 +292,7 @@ export function VehicleProvider({ children }: { children: React.ReactNode }) {
           has_zero_dep: newVehicle.has_zero_dep,
           policy_number: newVehicle.policy_number,
           policy_expiry: newVehicle.policy_expiry,
+          od_premium: newVehicle.od_premium,
           is_demo: false,
         },
       });

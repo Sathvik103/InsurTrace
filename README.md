@@ -1,4 +1,4 @@
-# VeriSure
+# ClearClaim
 
 > **Insurance Intelligence & Verification**  
 > Deterministic financial decision modeling, multi-party cryptographic audit trails on Hyperledger Fabric, and automated claim adjudication grounded in IRDAI regulatory guidelines and the Digital Personal Data Protection (DPDP) Act, 2023.
@@ -7,9 +7,9 @@
 
 ## Executive Overview
 
-**VeriSure** is an enterprise InsurTech platform engineered to eliminate information asymmetry, fraudulent claims, and predatory repair estimates in the Indian automotive market.
+**ClearClaim** is an enterprise InsurTech platform engineered to eliminate information asymmetry, fraudulent claims, and predatory repair estimates in the Indian automotive market.
 
-By integrating **deterministic financial modeling**, **document intelligence**, **PostgreSQL Row-Level Security (RLS)**, and a dual-peer **Hyperledger Fabric distributed ledger**, VeriSure provides:
+By integrating **deterministic financial modeling**, **document intelligence**, **PostgreSQL Row-Level Security (RLS)**, and a dual-peer **Hyperledger Fabric distributed ledger**, ClearClaim provides:
 
 1. **Claim vs Self-Pay Decision Terminal**: Instant mathematical evaluation of repair costs vs. depreciation by part material, compulsory/voluntary deductibles, and 3-year projected No-Claim Bonus (NCB) loss.
 2. **Document Intelligence & Provenance Audit**: Transparent extraction of policy schedules and workshop repair estimates with provenance markers (`EXTRACTED`, `MANUAL_CORRECTION`, `CONFIRMED`).
@@ -55,7 +55,7 @@ By integrating **deterministic financial modeling**, **document intelligence**, 
 
 ## Role Workspaces & RBAC Personas
 
-VeriSure enforces strict tenant isolation and role-based access control across 5 distinct operational workspaces:
+ClearClaim enforces strict tenant isolation and role-based access control across 5 distinct operational workspaces:
 
 | Role | Default Demo Identity | Workspace Route | Primary Capabilities |
 | :--- | :--- | :--- | :--- |

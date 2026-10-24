@@ -12,7 +12,7 @@ export default function AboutPage() {
     {
       icon: Scale,
       title: 'Deterministic Over Speculative',
-      description: 'Insurance financial math must never be left to probabilistic guessing or generative language models. Every rupee of deductible, depreciation, and No-Claim Bonus (NCB) loss in VeriSure is calculated through deterministic, audited arithmetic grounded in standard Indian motor tariff guidelines.'
+      description: 'Insurance financial math must never be left to probabilistic guessing or generative language models. Every rupee of deductible, depreciation, and No-Claim Bonus (NCB) loss in ClearClaim is calculated through deterministic, audited arithmetic grounded in standard Indian motor tariff guidelines.'
     },
     {
       icon: Lock,
@@ -47,7 +47,7 @@ export default function AboutPage() {
               Rebuilding trust in motor insurance with verifiable intelligence.
             </h1>
             <p className="mt-6 text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
-              VeriSure is engineered to eliminate the information asymmetry between vehicle owners, insurance underwriters, licensed surveyors, and authorized repair workshops.
+              ClearClaim is engineered to eliminate the information asymmetry between vehicle owners, insurance underwriters, licensed surveyors, and authorized repair workshops.
             </p>
           </FadeIn>
         </section>
@@ -71,7 +71,7 @@ export default function AboutPage() {
                 Simultaneously, insurance underwriters struggle with exaggerated repair estimates and lack of historical damage visibility, while workshops struggle with opaque part depreciation rules and prolonged claim settlement cycles.
               </p>
               <p>
-                VeriSure bridges this divide by providing an objective, deterministic financial modeling engine paired with a tamper-evident Hyperledger Fabric ledger that cryptographically records transaction milestones across participating nodes.
+                ClearClaim bridges this divide by providing an objective, deterministic financial modeling engine paired with a tamper-evident Hyperledger Fabric ledger that cryptographically records transaction milestones across participating nodes.
               </p>
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function AboutPage() {
               Foundational Principles
             </h2>
             <h3 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mt-2">
-              How VeriSure operates
+              How ClearClaim operates
             </h3>
           </div>
 

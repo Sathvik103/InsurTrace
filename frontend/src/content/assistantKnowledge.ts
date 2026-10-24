@@ -1,5 +1,5 @@
 /**
- * Curated knowledge base for the VeriSure Assistant.
+ * Curated knowledge base for the ClearClaim Assistant.
  *
  * General explanations of Indian private-car insurance concepts written for
  * non-experts. They describe common practice, not any specific policy: the
@@ -46,7 +46,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     keywords: ['ncb', 'no claim bonus', 'no-claim bonus', 'no claim discount', 'bonus', 'discount', 'claim free', 'lose ncb', 'ncb reset'],
     answer: [
       'NCB is a discount on the own-damage part of your premium, earned for every year you do not make a claim. The usual steps are 20% after 1 claim-free year, then 25%, 35%, 45% and a maximum of 50% after 5 years.',
-      'If you make a claim, the NCB usually drops to 0% at your next renewal. Losing a 35–50% discount can cost more than a small repair, which is why VeriSure compares claiming with paying yourself.',
+      'If you make a claim, the NCB usually drops to 0% at your next renewal. Losing a 35–50% discount can cost more than a small repair, which is why ClearClaim compares claiming with paying yourself.',
       'NCB belongs to you, not the car. You can usually carry it to a new car or a new insurer. Third-party premium is not discounted by NCB.',
     ],
     followUps: ['Should I claim or pay myself?', 'What is NCB protection?'],
@@ -106,7 +106,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     answer: [
       'Claiming makes sense when the insurer’s payout is clearly larger than what claiming costs you. That cost is your deductible, the depreciation you pay, and the No-Claim Bonus discount you lose at renewal.',
       'For small repairs, losing a 35–50% NCB often costs more than the repair itself, so paying yourself can be cheaper.',
-      'VeriSure’s claim check works this out with your own numbers and shows every step. Open it from “Check a claim”.',
+      'ClearClaim’s claim check works this out with your own numbers and shows every step. Open it from “Check a claim”.',
     ],
     links: [{ label: 'Check a claim', href: '/decision' }],
     followUps: ['How does No-Claim Bonus (NCB) work?', 'How was my estimated payout calculated?'],
@@ -117,7 +117,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     question: 'How was my estimated payout calculated?',
     keywords: ['how calculated', 'calculation', 'estimated payout', 'payout', 'how much will insurer pay', 'insurer pay', 'formula', 'breakdown'],
     answer: [
-      'VeriSure starts from your total repair bill. It subtracts depreciation on the parts (based on material and car age, unless you have zero-dep), then your deductible, and caps the result at your IDV.',
+      'ClearClaim starts from your total repair bill. It subtracts depreciation on the parts (based on material and car age, unless you have zero-dep), then your deductible, and caps the result at your IDV.',
       'That gives the estimated insurer payout. Your out-of-pocket cost is the bill minus that payout.',
       'It then adds the No-Claim Bonus discount you would lose next year to compare claiming with paying yourself. These are fixed published rules, not AI guesses. The final settlement is always decided by your insurer and surveyor.',
     ],
@@ -129,7 +129,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     question: 'Is this the amount my insurer will pay?',
     keywords: ['trust', 'reliable', 'exact', 'guaranteed', 'final amount', 'will insurer pay', 'accurate', 'approve', 'approval', 'reject', 'settlement'],
     answer: [
-      'No. VeriSure gives an estimate using standard rules so that you can decide what to do. It does not approve or reject claims and is not connected to any insurer.',
+      'No. ClearClaim gives an estimate using standard rules so that you can decide what to do. It does not approve or reject claims and is not connected to any insurer.',
       'Your insurer’s surveyor inspects the damage and settles the claim under your exact policy wording. Actual amounts can differ, for example because of add-ons, policy exclusions or the surveyor’s assessment of parts.',
     ],
     followUps: ['What does a surveyor do?'],
@@ -156,7 +156,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
       '2. Take photos and do not repair the car before the insurer allows it.',
       '3. A surveyor inspects the damage.',
       '4. The workshop repairs the car. In a cashless claim the insurer pays the workshop directly; otherwise you pay and get reimbursed.',
-      'VeriSure does not file claims for you. Use it beforehand to check whether claiming is worth it.',
+      'ClearClaim does not file claims for you. Use it beforehand to check whether claiming is worth it.',
     ],
     followUps: ['What documents do I need for a claim?', 'Should I claim or pay myself?'],
   },
@@ -200,7 +200,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     answer: [
       'Third-party cover pays for injury or damage you cause to other people or their property. It is mandatory by law in India.',
       'Own-damage cover pays for damage to your own car. A comprehensive policy includes both.',
-      'NCB, deductible and depreciation apply to own-damage claims. VeriSure’s claim check is about own-damage repairs.',
+      'NCB, deductible and depreciation apply to own-damage claims. ClearClaim’s claim check is about own-damage repairs.',
     ],
   },
   {
@@ -210,7 +210,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     keywords: ['premium', 'next year premium', 'renewal', 'base premium', 'how much premium', 'own damage premium'],
     answer: [
       'Use the own-damage premium before NCB from your current policy schedule, or a recent renewal quote. That is the amount the NCB discount is taken from.',
-      'If you are not sure, your total premium is a reasonable starting point, but the estimate will be less precise. VeriSure does not look this up for you.',
+      'If you are not sure, your total premium is a reasonable starting point, but the estimate will be less precise. ClearClaim does not look this up for you.',
     ],
   },
   {
@@ -219,7 +219,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     question: 'What does blockchain verification mean?',
     keywords: ['blockchain', 'ledger', 'fabric', 'hyperledger', 'verified', 'verification', 'tamper', 'fingerprint', 'hash', 'anchored', 'transaction'],
     answer: [
-      'When you save a claim record, VeriSure creates a SHA-256 “fingerprint” of it and anchors that fingerprint on a Hyperledger Fabric ledger. Later, anyone you share the record with can check that it has not been changed since it was saved.',
+      'When you save a claim record, ClearClaim creates a SHA-256 “fingerprint” of it and anchors that fingerprint on a Hyperledger Fabric ledger. Later, anyone you share the record with can check that it has not been changed since it was saved.',
       'It proves the record is unchanged. It does not prove that the accident or damage really happened; that is for your insurer and surveyor to assess. The ledger is a private development network, not a public blockchain.',
     ],
     links: [{ label: 'Verify a record', href: '/verification' }],
@@ -231,21 +231,47 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     question: 'Why is the ledger not connected?',
     keywords: ['ledger offline', 'not connected', 'pending', 'anchoring pending', 'ledger unavailable', 'why pending', 'retry'],
     answer: [
-      'The integrity ledger runs on separate infrastructure. When it is not reachable from this deployment, VeriSure still saves your record and marks its fingerprint as “pending”. You can use “Retry anchoring” later.',
+      'The integrity ledger runs on separate infrastructure. When it is not reachable from this deployment, ClearClaim still saves your record and marks its fingerprint as “pending”. You can use “Retry anchoring” later.',
       'Your financial estimate is not affected. The status page shows the current state of every component.',
     ],
     links: [{ label: 'System status', href: '/settings?tab=status' }],
   },
   {
-    id: 'what-is-verisure',
+    id: 'what-is-clearclaim',
     topic: 'verisure',
-    question: 'What is VeriSure and who is it for?',
-    keywords: ['what is verisure', 'about', 'who are you', 'what can you do', 'help', 'what does this do', 'verisure'],
+    question: 'What is ClearClaim and who is it for?',
+    keywords: ['what is clearclaim', 'about', 'who are you', 'what can you do', 'help', 'what does this do', 'clearclaim', 'verisure'],
     answer: [
-      'VeriSure helps car owners in India understand their motor insurance before they act. It estimates what your insurer might pay, what you would pay, and whether claiming or paying yourself is cheaper over the next few years.',
-      'It also keeps a tamper-evident history of your vehicle’s records. It is independent: it is not an insurer, not an IRDAI service, and not connected to VAHAN or insurer systems.',
+      'ClearClaim tells you, before you call your insurer, whether a car insurance claim is worth it: what the insurer might pay, what you’d pay, and how your No-Claim Bonus would be affected.',
+      'Car owners use the claim check and the repair-quote X-ray. Fleets use claim triage to decide across many vehicles at once. Workshops use it to show customers what their insurance is likely to cover.',
+      'It is independent: not an insurer, not an IRDAI service, and not connected to VAHAN or insurer systems.',
     ],
     followUps: ['Should I claim or pay myself?', 'What does blockchain verification mean?'],
+  },
+  {
+    id: 'repair-quote-xray',
+    topic: 'verisure',
+    question: 'What is the repair-quote X-ray?',
+    keywords: ['x-ray', 'xray', 'repair quote', 'workshop quote', 'estimate breakdown', 'line by line', 'which parts', 'who pays'],
+    answer: [
+      'The X-ray takes a workshop quote and splits every line into what the insurer would likely pay and what you would pay, based on the part’s material and your car’s age.',
+      'It highlights the lines costing you the most and points out where a repair instead of a replacement, or zero-dep cover, could reduce your share. It runs on your device and is free without signing up.',
+    ],
+    links: [{ label: 'Open the X-ray', href: '/xray' }],
+    followUps: ['How does depreciation reduce my claim?', 'What is zero depreciation cover?'],
+  },
+  {
+    id: 'fleet-triage',
+    topic: 'verisure',
+    question: 'How does fleet claim triage work?',
+    keywords: ['fleet', 'many vehicles', 'multiple claims', 'triage', 'taxi', 'logistics', 'company cars', 'bulk'],
+    answer: [
+      'Fleet triage looks at all your incidents together and decides which to claim and which to pay directly, so the fleet’s total cost is lowest.',
+      'No-Claim Bonus is lost once per vehicle, however many claims you make on it. So if one incident on a vehicle is already worth claiming, a smaller incident on the same vehicle can be claimed too at no extra NCB cost. Triage finds these combinations automatically.',
+      'You can import incidents from a CSV, export the plan, and save the claims as records.',
+    ],
+    links: [{ label: 'For fleets', href: '/for-fleets' }],
+    followUps: ['How does No-Claim Bonus (NCB) work?'],
   },
   {
     id: 'demo',
@@ -253,7 +279,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     question: 'What are “demo records”?',
     keywords: ['demo', 'sample', 'fake', 'example', 'demo record', 'sandbox', 'test data'],
     answer: [
-      'Records labelled “Demo” are fictional sample vehicles and policies, there to let you explore VeriSure. They are not real customers and not insurer data, even when they use real insurer names for realism.',
+      'Records labelled “Demo” are fictional sample vehicles and policies, there to let you explore ClearClaim. They are not real customers and not insurer data, even when they use real insurer names for realism.',
       'Add your own vehicle to see estimates for your car.',
     ],
     links: [{ label: 'Add my vehicle', href: '/onboarding' }],
@@ -264,7 +290,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     question: 'How does policy upload work?',
     keywords: ['upload', 'pdf', 'extract', 'scan', 'policy document', 'estimate pdf', 'read my policy', 'document'],
     answer: [
-      'You can upload a text-based PDF of your policy schedule or a workshop estimate. VeriSure reads fields such as IDV, NCB, deductible and repair totals using fixed rules (not AI), and shows them for you to check and correct before they are used.',
+      'You can upload a text-based PDF of your policy schedule or a workshop estimate. ClearClaim reads fields such as IDV, NCB, deductible and repair totals using fixed rules (not AI), and shows them for you to check and correct before they are used.',
       'Scanned images without text cannot be read yet. Extracted values are labelled “Document extracted” so you always know where a number came from.',
     ],
     links: [{ label: 'Upload a document', href: '/decision/extract' }],
@@ -276,18 +302,18 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     keywords: ['privacy', 'data', 'who can see', 'share', 'consent', 'revoke', 'dpdp', 'personal data', 'delete'],
     answer: [
       'Only you, unless you grant access. You can give a workshop, insurer or assessor time-limited access (30, 60 or 90 days) to a vehicle’s records and revoke it at any time from Data & Privacy.',
-      'VeriSure follows DPDP-aligned principles of consent and data minimisation. The assistant does not send your data anywhere: it answers from this guide and from what is on your screen.',
+      'ClearClaim follows DPDP-aligned principles of consent and data minimisation. The assistant does not send your data anywhere: it answers from this guide and from what is on your screen.',
     ],
     links: [{ label: 'Data & Privacy', href: '/decision/consent' }],
   },
   {
     id: 'ai-scores',
     topic: 'verisure',
-    question: 'Does VeriSure use AI to score my claim?',
+    question: 'Does ClearClaim use AI to score my claim?',
     keywords: ['ai', 'machine learning', 'ml', 'fraud score', 'fraud', 'severity', 'model', 'damage detection', 'photo analysis'],
     answer: [
       'Not for money. All payout figures come from fixed, published rules that you can inspect step by step.',
-      'Machine-learning features such as fraud or severity scores are switched off, because VeriSure does not have access to a validated claims dataset. Showing made-up scores would be misleading.',
+      'Machine-learning features such as fraud or severity scores are switched off, because ClearClaim does not have access to a validated claims dataset. Showing made-up scores would be misleading.',
     ],
   },
 ];

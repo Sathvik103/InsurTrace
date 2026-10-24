@@ -32,6 +32,8 @@ class VehicleBase(BaseModel):
     has_zero_dep: Optional[bool] = None
     policy_number: Optional[str] = Field(default=None, max_length=100)
     policy_expiry: Optional[str] = Field(default=None, max_length=20)
+    # Own-damage renewal premium before NCB; prices the NCB loss of a claim.
+    od_premium: Optional[float] = Field(default=None, ge=0, le=10_000_000)
 
     @field_validator("registration_number")
     @classmethod
@@ -76,7 +78,9 @@ async def create_vehicle(vehicle: VehicleBase, profile: dict = Depends(get_curre
     if existing:
         raise HTTPException(status_code=409, detail="A vehicle with this registration number is already registered.")
 
-    data = vehicle.model_dump()
+    # Omit unset fields so the insert works on databases that haven't added the
+    # newest optional columns yet (e.g. od_premium before migration 003).
+    data = vehicle.model_dump(exclude_none=True)
     # Only administrators may create seeded demo records.
     data["is_demo"] = bool(vehicle.is_demo) and profile.get("role") == "ADMIN"
     v_data = supabase.table("vehicles").insert(data).execute().data[0]
@@ -122,7 +126,7 @@ async def get_vehicle_timeline(vehicle_id: str, profile: dict = Depends(get_curr
     events.append({
         "date": _day(vehicle.get("created_at")),
         "event_type": "REGISTRATION",
-        "title": "Vehicle added to VeriSure",
+        "title": "Vehicle added to ClearClaim",
         "description": f"{vehicle['make']} {vehicle['model']} ({vehicle['manufacture_year']}), registration {vehicle['registration_number']}",
         "provenance_type": "DEMO_RECORD" if demo else "USER_PROVIDED_RECORD",
         "actor": "Owner",
@@ -135,10 +139,10 @@ async def get_vehicle_timeline(vehicle_id: str, profile: dict = Depends(get_curr
         events.append({
             "date": _day(o.get("start_date")),
             "event_type": "OWNERSHIP",
-            "title": "Ownership recorded in VeriSure",
+            "title": "Ownership recorded in ClearClaim",
             "description": f"Linked to {owner_name}",
             "provenance_type": "DEMO_RECORD" if demo else "DATABASE_RECORD",
-            "actor": "VeriSure account",
+            "actor": "ClearClaim account",
             "blockchain_verified": False,
         })
 
@@ -161,9 +165,13 @@ async def get_vehicle_timeline(vehicle_id: str, profile: dict = Depends(get_curr
     p_ids = [p["id"] for p in pols]
     if p_ids:
         claims += [c for c in (supabase.table("claims").select("*").in_("policy_id", p_ids).execute().data or []) if c["id"] not in known]
+    ledger_rows = (
+        supabase.table("ledger_references").select("entity_id, blockchain_tx_id, sync_status")
+        .in_("entity_id", [c["id"] for c in claims]).execute().data or []
+    ) if claims else []
+    ledger_by_claim = {r["entity_id"]: r for r in ledger_rows}
     for c in claims:
-        ledger = supabase.table("ledger_references").select("blockchain_tx_id, sync_status").eq("entity_id", c["id"]).execute().data
-        ref = ledger[0] if ledger else {}
+        ref = ledger_by_claim.get(c["id"], {})
         events.append({
             "date": _day(c.get("created_at")),
             "event_type": "CLAIM_FILED",

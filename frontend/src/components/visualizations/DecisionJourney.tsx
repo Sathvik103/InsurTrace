@@ -187,7 +187,7 @@ export function DecisionJourney({ data, className = '' }: DecisionJourneyProps) 
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
-              How VeriSure Worked This Out
+              How ClearClaim Worked This Out
             </h3>
             <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-300 dark:border-sky-800">
               Interactive Decision Flow

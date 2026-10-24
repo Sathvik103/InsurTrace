@@ -1,8 +1,8 @@
-# Render Blueprint for the VeriSure API (FastAPI).
+# Render Blueprint for the ClearClaim API (FastAPI).
 # Secrets marked sync:false are entered in the Render dashboard, never committed.
 services:
   - type: web
-    name: verisure-api
+    name: clearclaim-api
     runtime: docker
     rootDir: backend
     dockerfilePath: ./Dockerfile

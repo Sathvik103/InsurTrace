@@ -10,6 +10,9 @@ import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
 import { PartCategory, rupees } from '@/lib/claimCheck';
 import { saveHandoff } from '@/lib/extractHandoff';
 import { useAssistant } from '@/context/AssistantContext';
+import { useVehicle } from '@/context/VehicleContext';
+import { XRay } from '@/components/xray/XRay';
+import { XCategory } from '@/lib/xray';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 type DocType = 'POLICY' | 'ESTIMATE';
@@ -69,6 +72,7 @@ export default function DocumentsPage() {
   const router = useRouter();
   const reduce = useReducedMotion();
   const { open } = useAssistant();
+  const { selectedVehicle } = useVehicle();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [docType, setDocType] = useState<DocType>('ESTIMATE');
@@ -183,7 +187,7 @@ export default function DocumentsPage() {
         <header className="space-y-2">
           <span className="vs-chip"><FileText className="h-3.5 w-3.5 text-steel-600" /> Documents</span>
           <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">Read a policy or repair estimate</h1>
-          <p className="text-base text-navy-600">Upload a PDF and VeriSure picks out the numbers that matter. You check them before anything is used.</p>
+          <p className="text-base text-navy-600">Upload a PDF and ClearClaim picks out the numbers that matter. You check them before anything is used.</p>
         </header>
 
         <AnimatePresence mode="wait">
@@ -235,7 +239,7 @@ export default function DocumentsPage() {
               {error != null && <ApiErrorNotice error={error} onRetry={file ? () => run(file, docType, isSample) : undefined} />}
 
               <div className="flex flex-col gap-3 border-t border-navy-100 pt-5 text-sm sm:flex-row sm:items-center sm:justify-between">
-                <p className="flex items-center gap-2 text-navy-500"><Lock className="h-4 w-4" /> Read on the VeriSure server and not stored.</p>
+                <p className="flex items-center gap-2 text-navy-500"><Lock className="h-4 w-4" /> Read on the ClearClaim server and not stored.</p>
                 <button type="button" onClick={trySample} className="font-semibold text-steel-700 hover:underline">
                   No document handy? Try a sample {docType === 'POLICY' ? 'policy' : 'estimate'} →
                 </button>
@@ -338,6 +342,24 @@ export default function DocumentsPage() {
                     <span className="tabular text-lg font-semibold text-navy-900">{rupees(itemsTotal)}</span>
                   </div>
                   {result.extracted_fields.gst ? <p className="mt-1 text-xs text-navy-500">The document also lists GST of {rupees(result.extracted_fields.gst)}. Insurers usually reimburse GST on admissible amounts.</p> : null}
+                
+                  {items.some((i) => parseFloat(i.cost) > 0) && (
+                    <div className="mt-6 border-t border-navy-100 pt-5">
+                      <h3 className="mb-3 font-semibold text-navy-900">X-ray: who pays for what</h3>
+                      <XRay
+                        editable={false}
+                        compact
+                        lines={items.map((it, k) => ({ id: `x${k}`, label: it.label, category: (it.category === 'fiberglass' ? 'fiberglass' : it.category) as XCategory, cost: parseFloat(it.cost) || 0 }))}
+                        policy={{
+                          ageYears: selectedVehicle ? Math.max(0, new Date().getFullYear() - selectedVehicle.manufacture_year) : 3,
+                          deductible: 1000,
+                          zeroDep: !!selectedVehicle?.has_zero_dep,
+                          idv: selectedVehicle?.idv || 1_000_000,
+                        }}
+                      />
+                      <p className="mt-2 text-xs text-navy-500">Based on {selectedVehicle ? `your ${selectedVehicle.make} ${selectedVehicle.model}` : 'a 3-year-old car'} with a ₹1,000 deductible. Use the claim check for your exact policy.</p>
+                    </div>
+                  )}
                 </div>
               )}
 

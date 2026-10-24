@@ -40,6 +40,7 @@ export function AddCarFlow() {
   const [zeroDep, setZeroDep] = useState<boolean | null>(null);
   const [policyNo, setPolicyNo] = useState('');
   const [expiry, setExpiry] = useState('');
+  const [premium, setPremium] = useState('');
 
   const carError =
     reg.length < 6 ? 'Enter the registration number from your number plate.' : !make ? 'Choose the make.' : !model.trim() ? 'Enter the model.' : !(Number(year) >= 1980 && Number(year) <= YEAR + 1) ? 'Enter the year it was made.' : null;
@@ -64,7 +65,7 @@ export function AddCarFlow() {
         is_demo: false,
         ...(skipPolicy
           ? {}
-          : { idv: Number(idv), ncb_percentage: ncb ?? undefined, has_zero_dep: !!zeroDep, policy_number: policyNo.trim() || undefined, policy_expiry: expiry || undefined }),
+          : { idv: Number(idv), ncb_percentage: ncb ?? undefined, has_zero_dep: !!zeroDep, policy_number: policyNo.trim() || undefined, policy_expiry: expiry || undefined, od_premium: Number(premium) || undefined }),
       });
       setSelectedVehicleId(v.id);
       setSaved(v);
@@ -199,6 +200,14 @@ export function AddCarFlow() {
                       <button key={String(z)} type="button" onClick={() => setZeroDep(z)} aria-pressed={zeroDep === z} className={`rounded-2xl border py-3 text-sm font-semibold transition ${zeroDep === z ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-navy-800 hover:border-navy-300'}`}>{z ? 'Yes' : 'No / not sure'}</button>
                     ))}
                   </div>
+                </div>
+                <div>
+                  <label htmlFor="odp" className="flex items-center gap-2 text-sm font-medium text-navy-800">Renewal premium, own damage (optional) <button type="button" onClick={() => open('What should I enter as next year’s premium?')} aria-label="Which premium?" className="text-navy-400 hover:text-steel-600"><HelpCircle className="h-4 w-4" /></button></label>
+                  <div className="relative mt-1.5">
+                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-navy-400">₹</span>
+                    <input id="odp" value={premium ? new Intl.NumberFormat('en-IN').format(Number(premium)) : ''} onChange={(e) => setPremium(digits(e.target.value).slice(0, 8))} inputMode="numeric" placeholder="e.g. 15,200" className="vs-input tabular pl-8" />
+                  </div>
+                  <p className="mt-1 text-xs text-navy-500">Lets us price your No-Claim Bonus without asking each time.</p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>

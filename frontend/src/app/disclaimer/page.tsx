@@ -30,7 +30,7 @@ export default function DisclaimerPage() {
             <div className="p-4 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/50 dark:bg-amber-950/20 text-amber-900 dark:text-amber-300">
               <div className="font-bold mb-1">Important Notice:</div>
               <p>
-                VeriSure is a technology decision-support tool. It is NOT an insurance company, licensed insurance broker, corporate agent, or underwriting authority under the Insurance Regulatory and Development Authority of India (IRDAI).
+                ClearClaim is a technology decision-support tool. It is NOT an insurance company, licensed insurance broker, corporate agent, or underwriting authority under the Insurance Regulatory and Development Authority of India (IRDAI).
               </p>
             </div>
 

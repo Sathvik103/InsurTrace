@@ -74,7 +74,7 @@ export default function SettingsPage() {
   const handleDownloadPassport = () => {
     setDownloaded(true);
     const exportData = {
-      product: 'VeriSure — Insurance Intelligence & Verification',
+      product: 'ClearClaim — Know if a car insurance claim is worth it',
       user: user?.email || 'demo-policyholder@verisure.in',
       role: role || 'POLICYHOLDER',
       vehicles_count: vehicles.length,

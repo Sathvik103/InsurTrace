@@ -1,8 +1,8 @@
 /**
- * VeriSure Fabric gateway.
+ * ClearClaim Fabric gateway.
  *
  * A small authenticated HTTP service that sits next to a Fabric peer network
- * and exposes RecordEvent / VerifyEvent / GetVehicleHistory to the VeriSure API.
+ * and exposes RecordEvent / VerifyEvent / GetVehicleHistory to the ClearClaim API.
  * It is called server-to-server only (no browser CORS), requires the
  * X-Gateway-Key header, and runs the peer CLI via execFile (no shell), so request
  * values can never be interpreted as shell syntax.

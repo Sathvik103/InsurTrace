@@ -167,12 +167,21 @@ class MockDatabaseStore:
         ]
 
         # 2. Organizations
+        self.tables["profiles"].append({
+            "id": "66666666-6666-6666-6666-666666666666",
+            "role": "FLEET_OPERATOR",
+            "organization_id": "00000000-0000-0000-0000-000000000006",
+            "email": "demo-fleet@clearclaim.example",
+            "full_name": "Demo Fleet Manager",
+        })
+
         self.tables["organizations"] = [
-            {"id": "00000000-0000-0000-0000-000000000001", "name": "VeriSure Consortium Governance", "type": "ADMIN"},
+            {"id": "00000000-0000-0000-0000-000000000001", "name": "ClearClaim Consortium Governance", "type": "ADMIN"},
             {"id": "00000000-0000-0000-0000-000000000002", "name": "Demo Policyholders Group", "type": "POLICYHOLDER"},
             {"id": "00000000-0000-0000-0000-000000000003", "name": "Quality Auto Care Workshop", "type": "GARAGE"},
             {"id": "00000000-0000-0000-0000-000000000004", "name": "Demo General Insurance Ltd", "type": "INSURER"},
-            {"id": "00000000-0000-0000-0000-000000000005", "name": "Demo Independent Assessors Guild", "type": "SURVEYOR"}
+            {"id": "00000000-0000-0000-0000-000000000005", "name": "Demo Independent Assessors Guild", "type": "SURVEYOR"},
+            {"id": "00000000-0000-0000-0000-000000000006", "name": "Demo City Cabs (fleet)", "type": "FLEET_OPERATOR"}
         ]
 
         # 3. Vehicles (Multi-Segment Fleet)
@@ -243,6 +252,7 @@ class MockDatabaseStore:
                 "fitness_valid_until": "2027-04-30",
                 "downtime_cost_per_day": 3500.0,
                 "is_demo": True,
+                "idv": 580000.0, "ncb_percentage": 20, "has_zero_dep": False, "od_premium": 16800.0,
                 "created_at": "2023-06-12T08:00:00Z"
             },
             {
@@ -259,7 +269,36 @@ class MockDatabaseStore:
                 "fitness_valid_until": "2026-12-15",
                 "downtime_cost_per_day": 2200.0,
                 "is_demo": True,
+                "idv": 620000.0, "ncb_percentage": 0, "has_zero_dep": True, "od_premium": 15400.0,
                 "created_at": "2024-01-20T10:00:00Z"
+            },
+            {
+                "id": "V-COMM-203",
+                "registration_number": "KA03AB2203",
+                "make": "Toyota",
+                "model": "Innova Crysta",
+                "variant": "GX Taxi",
+                "manufacture_year": 2021,
+                "fuel_type": "Diesel",
+                "usage_type": "PASSENGER_COMMERCIAL",
+                "downtime_cost_per_day": 4200.0,
+                "is_demo": True,
+                "idv": 1150000.0, "ncb_percentage": 35, "has_zero_dep": False, "od_premium": 31500.0,
+                "created_at": "2021-09-02T08:00:00Z"
+            },
+            {
+                "id": "V-COMM-204",
+                "registration_number": "KA51CD7704",
+                "make": "Tata",
+                "model": "Ace Gold",
+                "variant": "Petrol CX",
+                "manufacture_year": 2022,
+                "fuel_type": "Petrol",
+                "usage_type": "GOODS_CARRIER",
+                "downtime_cost_per_day": 1800.0,
+                "is_demo": True,
+                "idv": 390000.0, "ncb_percentage": 25, "has_zero_dep": False, "od_premium": 9800.0,
+                "created_at": "2022-03-15T08:00:00Z"
             }
         ]
 
@@ -296,16 +335,19 @@ class MockDatabaseStore:
             {
                 "id": "OWN-005",
                 "vehicle_id": "V-COMM-201",
-                "owner_profile_id": "22222222-2222-2222-2222-222222222222",
+                "owner_profile_id": "66666666-6666-6666-6666-666666666666",
                 "start_date": "2023-06-12",
                 "created_at": "2023-06-12T08:05:00Z"
             },
             {
                 "id": "OWN-006",
                 "vehicle_id": "V-COMM-202",
-                "owner_profile_id": "22222222-2222-2222-2222-222222222222",
+                "owner_profile_id": "66666666-6666-6666-6666-666666666666",
                 "start_date": "2024-01-20",
                 "created_at": "2024-01-20T10:05:00Z"
+            },
+            {"id": "OWN-007", "vehicle_id": "V-COMM-203", "owner_profile_id": "66666666-6666-6666-6666-666666666666", "start_date": "2021-09-02", "created_at": "2021-09-02T08:00:00Z"},
+            {"id": "OWN-008", "vehicle_id": "V-COMM-204", "owner_profile_id": "66666666-6666-6666-6666-666666666666", "start_date": "2022-03-15", "created_at": "2022-03-15T08:00:00Z"
             }
         ]
 

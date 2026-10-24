@@ -71,7 +71,7 @@ export default function TechnologyPage() {
               Enterprise-grade infrastructure built for absolute auditability.
             </h1>
             <p className="mt-6 text-lg text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
-              VeriSure combines deterministic arithmetic, relational integrity, and distributed ledger technology to create a zero-trust insurance intelligence network.
+              ClearClaim combines deterministic arithmetic, relational integrity, and distributed ledger technology to create a zero-trust insurance intelligence network.
             </p>
           </FadeIn>
         </section>
@@ -137,7 +137,7 @@ export default function TechnologyPage() {
                 Net Cost (Self-Pay) = Total Garage Estimate - Direct Workshop Discount
               </p>
               <p className="text-zinc-500 font-sans text-xs pt-2">
-                If Net Cost (Claim) &gt; Net Cost (Self-Pay), VeriSure advises self-funding the repair to protect multi-year NCB discount accumulation.
+                If Net Cost (Claim) &gt; Net Cost (Self-Pay), ClearClaim advises self-funding the repair to protect multi-year NCB discount accumulation.
               </p>
             </div>
           </div>

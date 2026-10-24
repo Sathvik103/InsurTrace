@@ -43,7 +43,7 @@ const EVENT_ICON: Record<string, typeof Car> = {
 const PROVENANCE: Record<string, string> = {
   DEMO_RECORD: 'Demo record',
   USER_PROVIDED_RECORD: 'Entered by owner',
-  DATABASE_RECORD: 'VeriSure record',
+  DATABASE_RECORD: 'ClearClaim record',
   COMPUTED_RECORD: 'Calculated',
 };
 
@@ -150,7 +150,7 @@ export default function VehicleHistoryPage() {
           <section className="space-y-4">
             <div>
               <h2 className="text-xl font-semibold text-navy-900">History</h2>
-              <p className="text-sm text-navy-500">Everything recorded about this car in VeriSure, newest first.</p>
+              <p className="text-sm text-navy-500">Everything recorded about this car in ClearClaim, newest first.</p>
             </div>
             {error != null && <ApiErrorNotice error={error} onRetry={load} />}
             {!data && error == null && <div className="space-y-3">{[0, 1, 2].map((k) => <div key={k} className="vs-shimmer h-20 rounded-2xl" />)}</div>}

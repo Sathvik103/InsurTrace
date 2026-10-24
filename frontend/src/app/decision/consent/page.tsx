@@ -20,12 +20,18 @@ interface ConsentItem {
   organizations?: { name: string };
 }
 
-// Fictional demo organisations seeded in the demo sandbox.
-const PARTNERS = [
-  { id: '00000000-0000-0000-0000-000000000003', name: 'Quality Auto Care Workshop', kind: 'Workshop', purpose: 'To prepare a repair estimate', Icon: Wrench },
-  { id: '00000000-0000-0000-0000-000000000004', name: 'Demo General Insurance Ltd', kind: 'Insurer', purpose: 'To assess a claim', Icon: Building2 },
-  { id: '00000000-0000-0000-0000-000000000005', name: 'Demo Independent Assessors Guild', kind: 'Surveyor', purpose: 'To inspect the damage', Icon: ClipboardCheck },
-];
+interface Org {
+  id: string;
+  name: string;
+  type: 'GARAGE' | 'INSURER' | 'SURVEYOR' | 'FLEET_OPERATOR';
+}
+
+const KIND: Record<Org['type'], { label: string; purpose: string; Icon: typeof Wrench }> = {
+  GARAGE: { label: 'Workshop', purpose: 'To prepare a repair estimate', Icon: Wrench },
+  INSURER: { label: 'Insurer', purpose: 'To assess a claim', Icon: Building2 },
+  SURVEYOR: { label: 'Surveyor', purpose: 'To inspect the damage', Icon: ClipboardCheck },
+  FLEET_OPERATOR: { label: 'Fleet', purpose: 'To manage the vehicle', Icon: Building2 },
+};
 
 const DURATIONS = [30, 60, 90];
 const fmtDate = (d: Date | string) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -37,7 +43,9 @@ export default function DataPrivacyPage() {
   const [loadError, setLoadError] = useState<unknown>(null);
   const [pickedCar, setCarId] = useState('');
   const carId = pickedCar || selectedVehicleId || vehicles[0]?.id || '';
-  const [orgId, setOrgId] = useState(PARTNERS[0].id);
+  const [orgs, setOrgs] = useState<Org[] | null>(null);
+  const [pickedOrg, setOrgId] = useState('');
+  const [orgQuery, setOrgQuery] = useState('');
   const [days, setDays] = useState(30);
   const [now] = useState(() => Date.now());
   const [granting, setGranting] = useState(false);
@@ -57,17 +65,21 @@ export default function DataPrivacyPage() {
 
   useEffect(() => {
     load();
+    apiFetch<Org[]>('/api/v1/organizations').then(setOrgs).catch(() => setOrgs([]));
   }, []);
 
   const car = vehicles.find((v) => v.id === carId);
-  const org = PARTNERS.find((p) => p.id === orgId)!;
+  const shareable = (orgs || []).filter((o) => o.type !== 'FLEET_OPERATOR');
+  const orgId = pickedOrg || shareable[0]?.id || '';
+  const org = shareable.find((o) => o.id === orgId);
+  const visibleOrgs = shareable.filter((o) => o.name.toLowerCase().includes(orgQuery.trim().toLowerCase())).slice(0, 9);
   const until = new Date(now + days * 86400000);
 
   const grant = async () => {
     setGranting(true);
     try {
       await apiFetch('/api/v1/consents', { method: 'POST', body: { vehicle_id: carId, requesting_org_id: orgId, valid_until: until.toISOString() } });
-      toast.success(`${org.name} can now view this car’s records until ${fmtDate(until)}.`);
+      toast.success(`${org?.name} can now view this car’s records until ${fmtDate(until)}.`);
       await load();
     } catch (e) {
       const { title, message } = describeApiError(e);
@@ -123,16 +135,24 @@ export default function DataPrivacyPage() {
           </div>
 
           <div className="space-y-3">
-            <p className="text-sm font-medium text-navy-800">2. Who should see it?</p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-medium text-navy-800">2. Who should see it?</p>
+              {shareable.length > 6 && <input value={orgQuery} onChange={(e) => setOrgQuery(e.target.value)} placeholder="Search by name" aria-label="Search organisations" className="vs-input max-w-xs py-2 text-sm" />}
+            </div>
             <div className="grid gap-3 sm:grid-cols-3">
-              {PARTNERS.map((p) => (
-                <button key={p.id} type="button" onClick={() => setOrgId(p.id)} aria-pressed={orgId === p.id} className={`rounded-2xl border p-4 text-left transition ${orgId === p.id ? 'border-navy-900 bg-navy-900 text-white shadow-lg' : 'border-navy-100 bg-white hover:border-navy-300'}`}>
-                  <p.Icon className={`h-5 w-5 ${orgId === p.id ? 'text-steel-300' : 'text-steel-600'}`} />
-                  <p className="mt-3 text-sm font-semibold">{p.name}</p>
-                  <p className={`text-xs ${orgId === p.id ? 'text-navy-200' : 'text-navy-500'}`}>{p.kind} · {p.purpose}</p>
-                  <p className={`mt-2 text-[10px] font-semibold uppercase tracking-wider ${orgId === p.id ? 'text-amber-200' : 'text-amber-700'}`}>Demo organisation</p>
-                </button>
-              ))}
+              {visibleOrgs.map((p) => {
+                const k = KIND[p.type];
+                const on = orgId === p.id;
+                return (
+                  <button key={p.id} type="button" onClick={() => setOrgId(p.id)} aria-pressed={on} className={`rounded-2xl border p-4 text-left transition ${on ? 'border-navy-900 bg-navy-900 text-white shadow-lg' : 'border-navy-100 bg-white hover:border-navy-300'}`}>
+                    <k.Icon className={`h-5 w-5 ${on ? 'text-steel-300' : 'text-steel-600'}`} />
+                    <p className="mt-3 text-sm font-semibold">{p.name}</p>
+                    <p className={`text-xs ${on ? 'text-navy-200' : 'text-navy-500'}`}>{k.label} · {k.purpose}</p>
+                    {/demo/i.test(p.name) && <p className={`mt-2 text-[10px] font-semibold uppercase tracking-wider ${on ? 'text-amber-200' : 'text-amber-700'}`}>Demo organisation</p>}
+                  </button>
+                );
+              })}
+              {orgs !== null && shareable.length === 0 && <p className="text-sm text-navy-500 sm:col-span-3">No workshops, insurers or surveyors have joined yet.</p>}
             </div>
           </div>
 
@@ -150,10 +170,10 @@ export default function DataPrivacyPage() {
 
           <div className="flex flex-col gap-4 rounded-3xl bg-steel-50/60 p-5 ring-1 ring-steel-100 sm:flex-row sm:items-center">
             <p className="flex-1 text-sm leading-relaxed text-navy-700">
-              <strong>{org.name}</strong> will be able to view the history of your <strong>{car ? `${car.make} ${car.model}` : 'car'}</strong> until{' '}
+              <strong>{org?.name || 'The organisation'}</strong> will be able to view the history of your <strong>{car ? `${car.make} ${car.model}` : 'car'}</strong> until{' '}
               <strong>{fmtDate(until)}</strong>. They can’t change anything, and you can revoke this at any time.
             </p>
-            <button type="button" onClick={grant} disabled={!carId || granting} className="vs-btn-primary shrink-0">
+            <button type="button" onClick={grant} disabled={!carId || !orgId || granting} className="vs-btn-primary shrink-0">
               {granting ? 'Granting…' : 'Give access'}
             </button>
           </div>
@@ -212,7 +232,7 @@ export default function DataPrivacyPage() {
 
         <section className="vs-surface grid gap-5 p-6 sm:grid-cols-3">
           {[
-            { Icon: Eye, title: 'What they see', body: 'The car’s VeriSure history: policy details on file, saved claim checks and their ledger status.' },
+            { Icon: Eye, title: 'What they see', body: 'The car’s ClearClaim history: policy details on file, saved claim checks and their ledger status.' },
             { Icon: ShieldCheck, title: 'What they can’t do', body: 'Change your records, see your other cars, or keep access after it expires or you revoke it.' },
             { Icon: Check, title: 'Every change is logged', body: 'Granting and revoking are recorded in an audit log, following DPDP-aligned consent principles.' },
           ].map((x) => (

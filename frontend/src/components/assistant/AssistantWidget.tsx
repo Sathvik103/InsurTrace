@@ -9,7 +9,7 @@ import { answer, AssistantAnswer, needsStatus, StatusSnapshot } from '@/lib/assi
 import { LAST_REVIEWED, STARTER_QUESTIONS } from '@/content/assistantKnowledge';
 import { apiFetch } from '@/lib/api';
 import type { SystemStatus } from '@/lib/useSystemStatus';
-import { VeriSureMark } from '@/components/brand/VeriSureLogo';
+import { BrandMark } from '@/components/brand/Logo';
 
 interface Message {
   id: number;
@@ -21,7 +21,7 @@ interface Message {
 const STORAGE_KEY = 'verisure_assistant_thread';
 
 const SOURCE_LABEL: Record<AssistantAnswer['source'], { label: string; Icon: typeof BookOpen }> = {
-  guide: { label: `VeriSure insurance guide · reviewed ${LAST_REVIEWED}`, Icon: BookOpen },
+  guide: { label: `ClearClaim insurance guide · reviewed ${LAST_REVIEWED}`, Icon: BookOpen },
   'your-result': { label: 'Calculated from your result on this page', Icon: Calculator },
   'system-status': { label: 'Live system status', Icon: Activity },
   none: { label: 'No matching guide entry', Icon: MessageCircleQuestion },
@@ -119,14 +119,14 @@ export function AssistantWidget() {
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-            className="fixed bottom-20 right-4 z-[60] lg:bottom-6 lg:right-6 flex items-center gap-2.5 rounded-full bg-navy-900 p-3 text-sm sm:py-3 sm:pl-3.5 sm:pr-5 font-semibold text-white shadow-[0_12px_32px_-8px_rgba(17,26,49,0.6)]"
-            aria-label="Open the VeriSure Assistant"
+            className="fixed bottom-20 right-4 z-[60] print:hidden lg:bottom-6 lg:right-6 flex items-center gap-2.5 rounded-full bg-navy-900 p-3 text-sm sm:py-3 sm:pl-3.5 sm:pr-5 font-semibold text-white shadow-[0_12px_32px_-8px_rgba(17,26,49,0.6)]"
+            aria-label="Open the ClearClaim Assistant"
           >
             <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
               <Sparkles className="h-4 w-4 text-steel-300" aria-hidden="true" />
               {hasResult && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-steel-400 ring-2 ring-navy-900" />}
             </span>
-            <span className="hidden sm:inline">{hasResult ? 'Explain my result' : 'Ask VeriSure'}</span>
+            <span className="hidden sm:inline">{hasResult ? 'Explain my result' : 'Ask ClearClaim'}</span>
           </motion.button>
         )}
       </AnimatePresence>
@@ -145,7 +145,7 @@ export function AssistantWidget() {
             <motion.section
               key="panel"
               role="dialog"
-              aria-label="VeriSure Assistant"
+              aria-label="ClearClaim Assistant"
               aria-modal="false"
               initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -157,10 +157,10 @@ export function AssistantWidget() {
               {/* Header */}
               <header className="relative flex items-center gap-3 border-b border-navy-100 bg-gradient-to-b from-navy-50 to-white px-5 py-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-navy-100">
-                  <VeriSureMark size={24} />
+                  <BrandMark size={24} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-[15px] font-semibold text-navy-900">VeriSure Assistant</h2>
+                  <h2 className="text-[15px] font-semibold text-navy-900">ClearClaim Assistant</h2>
                   <p className="truncate text-xs text-navy-500">Plain-language help · not your insurer</p>
                 </div>
                 {messages.length > 0 && (
@@ -192,7 +192,7 @@ export function AssistantWidget() {
                       <p className="text-sm leading-relaxed text-navy-600">
                         {hasResult
                           ? 'I can walk you through the result on your screen, line by line, or explain any insurance term.'
-                          : 'Ask about claims, No-Claim Bonus, IDV, deductibles, or how VeriSure works. I answer from VeriSure’s insurance guide and never guess.'}
+                          : 'Ask about claims, No-Claim Bonus, IDV, deductibles, or how ClearClaim works. I answer from ClearClaim’s insurance guide and never guess.'}
                       </p>
                     </div>
                     <div className="flex flex-col gap-2">

@@ -89,7 +89,7 @@ export function LedgerCommitPanel({ buildPayload, disabled, onSaved }: LedgerCom
           <div>
             <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Save this claim record</h4>
             <p className="mt-0.5 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-              Saves the repair estimate and this calculation to your vehicle history in VeriSure, then anchors a SHA-256
+              Saves the repair estimate and this calculation to your vehicle history in ClearClaim, then anchors a SHA-256
               fingerprint on the Hyperledger Fabric ledger so later changes can be detected. It is <strong>not</strong> sent to your insurer.
             </p>
           </div>

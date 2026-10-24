@@ -28,7 +28,7 @@ export default function ContactPage() {
     e.preventDefault();
     setSubmitted(true);
     const mailto = `mailto:${contactEmail}?subject=${encodeURIComponent(
-      `[VeriSure] ${formState.subject}: ${formState.name}`
+      `[ClearClaim] ${formState.subject}: ${formState.name}`
     )}&body=${encodeURIComponent(
       `Name: ${formState.name}\nEmail: ${formState.email}\n\nMessage:\n${formState.message}`
     )}`;
@@ -47,7 +47,7 @@ export default function ContactPage() {
               <span>Direct Engineering Communication</span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 max-w-2xl leading-tight">
-              Get in touch with the VeriSure team.
+              Get in touch with the ClearClaim team.
             </h1>
             <p className="mt-6 text-lg text-zinc-600 dark:text-zinc-400 max-w-xl leading-relaxed">
               Have questions about enterprise deployment, Hyperledger Fabric integration, or motor insurance financial modeling? We welcome technical collaboration.

@@ -128,7 +128,7 @@ function VerifyContent() {
         <span className="vs-chip"><ShieldCheck className="h-3.5 w-3.5 text-steel-600" /> Verify a record</span>
         <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">Has this record been changed?</h1>
         <p className="text-base text-navy-600">
-          When you save a claim check, VeriSure anchors its fingerprint on a ledger. Checking it again shows whether the record is still exactly as it was saved.
+          When you save a claim check, ClearClaim anchors its fingerprint on a ledger. Checking it again shows whether the record is still exactly as it was saved.
         </p>
       </header>
 

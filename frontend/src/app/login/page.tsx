@@ -4,11 +4,11 @@ import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, Building2, Car, ChevronDown, ClipboardCheck, Eye, EyeOff, ShieldCheck, Wrench } from 'lucide-react';
+import { ArrowRight, Building2, Car, ChevronDown, ClipboardCheck, Eye, EyeOff, ShieldCheck, Truck, Wrench } from 'lucide-react';
 import { supabase, setAuthToken } from '@/lib/supabase';
 import { useAuth, DEMO_PERSONAS, Persona } from '@/context/AuthContext';
 import { apiFetch, describeApiError } from '@/lib/api';
-import { VeriSureLogo } from '@/components/brand/VeriSureLogo';
+import { BrandLogo } from '@/components/brand/Logo';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -16,11 +16,12 @@ const ROLE_ROUTES: Record<string, string> = {
   POLICYHOLDER: '/vehicles',
   INSURER: '/dashboards/insurer',
   SURVEYOR: '/dashboards/surveyor',
-  GARAGE: '/dashboards/garage',
+  GARAGE: '/org/workshop',
+  FLEET_OPERATOR: '/org/fleet',
   ADMIN: '/verification',
 };
 
-const PERSONA_ICON: Record<string, typeof Car> = { POLICYHOLDER: Car, INSURER: Building2, SURVEYOR: ClipboardCheck, GARAGE: Wrench, ADMIN: ShieldCheck };
+const PERSONA_ICON: Record<string, typeof Car> = { POLICYHOLDER: Car, INSURER: Building2, SURVEYOR: ClipboardCheck, GARAGE: Wrench, FLEET_OPERATOR: Truck, ADMIN: ShieldCheck };
 
 export default function LoginPage() {
   return (
@@ -41,6 +42,8 @@ function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [accountType, setAccountType] = useState<'POLICYHOLDER' | 'FLEET_OPERATOR' | 'GARAGE'>('POLICYHOLDER');
+  const [orgName, setOrgName] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +68,7 @@ function LoginContent() {
     try {
       const cleanEmail = email.trim().toLowerCase();
       if (mode === 'signup') {
-        const { data, error: err } = await supabase.auth.signUp({ email: cleanEmail, password, options: { data: { full_name: name.trim() } } });
+        const { data, error: err } = await supabase.auth.signUp({ email: cleanEmail, password, options: { data: { full_name: name.trim(), account_type: accountType, organization_name: orgName.trim() || undefined } } });
         if (err) throw err;
         if (!data.session) {
           setNotice('Check your email to confirm your account, then sign in.');
@@ -73,7 +76,7 @@ function LoginContent() {
           return;
         }
         setAuthToken(data.session.access_token);
-        router.push(safeNext('/onboarding'));
+        router.push(safeNext(accountType === 'FLEET_OPERATOR' ? '/org/fleet' : accountType === 'GARAGE' ? '/org/workshop' : '/onboarding'));
         return;
       }
       const { data, error: err } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
@@ -111,7 +114,7 @@ function LoginContent() {
       <aside className="relative hidden overflow-hidden bg-gradient-to-br from-navy-950 via-navy-900 to-steel-800 p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="vs-grid-bg pointer-events-none absolute inset-0 opacity-25" aria-hidden="true" />
         <motion.div aria-hidden="true" className="absolute -bottom-40 -left-20 h-[460px] w-[460px] rounded-full bg-steel-500/30 blur-3xl" animate={reduce ? undefined : { scale: [1, 1.12, 1] }} transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }} />
-        <Link href="/" className="relative w-fit rounded-2xl bg-white px-3 py-2"><VeriSureLogo size="sm" /></Link>
+        <Link href="/" className="relative w-fit rounded-2xl bg-white px-3 py-2"><BrandLogo size="sm" /></Link>
         <div className="relative space-y-6">
           <h2 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">Understand your car insurance before you make a call.</h2>
           <ul className="space-y-3 text-navy-100">
@@ -123,13 +126,13 @@ function LoginContent() {
             ))}
           </ul>
         </div>
-        <p className="relative text-xs text-navy-300">VeriSure is independent. It is not an insurer and never files or decides claims.</p>
+        <p className="relative text-xs text-navy-300">ClearClaim is independent. It is not an insurer and never files or decides claims.</p>
       </aside>
 
       {/* Form */}
       <main className="flex items-center justify-center px-4 py-12 sm:px-8">
         <motion.div initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }} className="w-full max-w-md space-y-8">
-          <div className="space-y-3 lg:hidden"><Link href="/"><VeriSureLogo size="md" /></Link></div>
+          <div className="space-y-3 lg:hidden"><Link href="/"><BrandLogo size="md" /></Link></div>
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold tracking-tight text-navy-900">{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h1>
             <p className="text-navy-600">{mode === 'signin' ? 'Sign in to see your cars and saved checks.' : 'Free. Takes less than a minute.'}</p>
@@ -147,9 +150,27 @@ function LoginContent() {
           <form onSubmit={submit} className="space-y-4">
             <AnimatePresence initial={false}>
               {mode === 'signup' && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                  <label htmlFor="name" className="text-sm font-medium text-navy-800">Your name</label>
-                  <input id="name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required={mode === 'signup'} className="vs-input mt-1.5" />
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-4 overflow-hidden">
+                  <fieldset>
+                    <legend className="text-sm font-medium text-navy-800">I’m signing up as</legend>
+                    <div className="mt-1.5 grid grid-cols-3 gap-2">
+                      {([['POLICYHOLDER', 'Car owner', Car], ['FLEET_OPERATOR', 'Fleet', Truck], ['GARAGE', 'Workshop', Wrench]] as const).map(([v, l, Icon]) => (
+                        <button key={v} type="button" onClick={() => setAccountType(v)} aria-pressed={accountType === v} className={`flex flex-col items-center gap-1 rounded-2xl border px-2 py-3 text-xs font-semibold transition ${accountType === v ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-navy-700 hover:border-navy-300'}`}>
+                          <Icon className="h-4 w-4" /> {l}
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
+                  <div>
+                    <label htmlFor="name" className="text-sm font-medium text-navy-800">Your name</label>
+                    <input id="name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" required={mode === 'signup'} className="vs-input mt-1.5" />
+                  </div>
+                  {accountType !== 'POLICYHOLDER' && (
+                    <div>
+                      <label htmlFor="org" className="text-sm font-medium text-navy-800">{accountType === 'GARAGE' ? 'Workshop name' : 'Company / fleet name'}</label>
+                      <input id="org" value={orgName} onChange={(e) => setOrgName(e.target.value)} autoComplete="organization" required className="vs-input mt-1.5" />
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -185,7 +206,7 @@ function LoginContent() {
                 <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-steel-50 text-steel-700"><Car className="h-5 w-5" /></span>
                 <span className="flex-1">
                   <span className="block font-semibold text-navy-900">Explore with sample data</span>
-                  <span className="block text-sm text-navy-500">Try VeriSure as a car owner with fictional cars and policies</span>
+                  <span className="block text-sm text-navy-500">Try ClearClaim as a car owner with fictional cars and policies</span>
                 </span>
                 <ArrowRight className="h-4 w-4 text-navy-300 transition group-hover:translate-x-0.5 group-hover:text-navy-700" />
               </button>

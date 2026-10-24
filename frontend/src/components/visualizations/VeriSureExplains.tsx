@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, HelpCircle, Code, ShieldCheck, Cpu, Info } from 'lucide-react';
 import { formatINR } from '@/lib/formatters';
 
-interface VeriSureExplainsProps {
+interface ClearClaimExplainsProps {
   totalRepairCost: number;
   estimatedPayout: number;
   deductible: number;
@@ -18,7 +18,7 @@ interface VeriSureExplainsProps {
   className?: string;
 }
 
-export function VeriSureExplains({
+export function ClearClaimExplains({
   totalRepairCost,
   estimatedPayout,
   deductible,
@@ -30,7 +30,7 @@ export function VeriSureExplains({
   txId,
   canonicalHash,
   className = '',
-}: VeriSureExplainsProps) {
+}: ClearClaimExplainsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showTechnical, setShowTechnical] = useState(false);
 
@@ -50,7 +50,7 @@ export function VeriSureExplains({
           </div>
           <div>
             <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
-              VeriSure Explains: Why this recommendation?
+              ClearClaim Explains: Why this recommendation?
             </span>
             <span className="text-[10px] text-zinc-500 ml-2 hidden sm:inline">
               Click to view step-by-step reasoning
