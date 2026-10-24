@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { PublicNavbar } from '@/components/public/PublicNavbar';
+import { PageHero } from '@/components/public/PageHero';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { KNOWLEDGE, LAST_REVIEWED } from '@/content/assistantKnowledge';
 
@@ -31,21 +32,23 @@ export default function LearnHub() {
   };
   return (
     <div className="min-h-screen bg-background">
-      <PublicNavbar />
+      <PublicNavbar tone="dark" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faq) }} />
-      <main className="mx-auto max-w-5xl px-4 pb-20 pt-10">
-        <header className="max-w-2xl space-y-3">
-          <p className="text-sm font-semibold text-steel-700">Car insurance guide</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-navy-950 sm:text-5xl">Indian car insurance, explained simply.</h1>
-          <p className="text-lg text-navy-600">Short answers to the questions people actually ask before making a claim. Reviewed {LAST_REVIEWED}.</p>
-        </header>
+      <PageHero
+        compact
+        eyebrow="Car insurance guide"
+        title="Indian car insurance,"
+        accent="explained simply."
+        body={`Short answers to the questions people actually ask before making a claim. Reviewed ${LAST_REVIEWED}.`}
+      />
+      <main className="mx-auto max-w-5xl px-4 pb-20 pt-6">
         <div className="mt-12 space-y-12">
           {TOPICS.map((t) => {
             const entries = KNOWLEDGE.filter((k) => k.topic === t.key);
             if (!entries.length) return null;
             return (
               <section key={t.key}>
-                <h2 className="text-xl font-semibold text-navy-900">{t.title}</h2>
+                <h2 className="font-display text-3xl font-semibold tracking-tight text-navy-950">{t.title}</h2>
                 <ul className="mt-4 grid gap-3 sm:grid-cols-2">
                   {entries.map((k) => (
                     <li key={k.id}>

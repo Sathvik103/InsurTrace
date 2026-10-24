@@ -1,342 +1,420 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import {
-  ArrowRight,
-  BadgeCheck,
-  Calculator,
-  Car,
-  ChevronDown,
-  FileText,
-  Fingerprint,
-  MessageCircleQuestion,
-  Scale,
-  ShieldCheck,
-  TrendingDown,
-  Wrench,
-  X,
-  Check,
-  Truck,
-} from 'lucide-react';
+import { AnimatePresence, motion, MotionValue, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { ArrowRight, ArrowUpRight, Car, Fingerprint, MessageCircleQuestion, Plus, Scale, Truck, Wrench } from 'lucide-react';
 import { PublicNavbar } from '@/components/public/PublicNavbar';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { QuickCheck } from '@/components/home/QuickCheck';
-import { LedgerStatusBadge } from '@/components/common/LedgerStatusBadge';
+import { Hero } from '@/components/home/Hero';
+import { CountUp, EASE, Magnetic, Reveal, SplitWords, Spotlight } from '@/components/home/fx';
 import { useAssistant } from '@/context/AssistantContext';
 import { useAuth } from '@/context/AuthContext';
 import { KNOWLEDGE } from '@/content/assistantKnowledge';
+import { NCB_STEPS } from '@/lib/claimCheck';
 
-const EASE = [0.16, 1, 0.3, 1] as const;
+/* ---------------------------------------------------------------- facts band */
+const FACTS = [
+  'Plastic parts: 50% depreciation',
+  'Glass: 0% depreciation',
+  'Labour: always paid in full',
+  'No-Claim Bonus: up to 50% off your premium',
+  'One claim resets it to 0%',
+  'Metal: 0–50% depending on age',
+  'Rubber & nylon: 50%',
+  'Zero-dep add-on: most of it waived',
+];
 
-function Reveal({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const reduce = useReducedMotion();
+function FactsBand() {
   return (
-    <motion.div
-      initial={reduce ? false : { opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.7, delay, ease: EASE }}
-      className={className}
-    >
-      {children}
-    </motion.div>
+    <div className="relative z-10 overflow-hidden bg-[linear-gradient(to_bottom,#0a1022_50%,#f6f5f0_50%)] py-8">
+      <div className="-rotate-2 bg-signal py-4 text-navy-950 shadow-[0_20px_60px_-20px_rgba(212,242,92,0.6)]">
+        <div className="vs-marquee flex w-max gap-10 whitespace-nowrap font-display text-xl font-semibold tracking-tight sm:text-2xl">
+          {[...FACTS, ...FACTS].map((f, i) => (
+            <span key={i} className="flex items-center gap-10">
+              {f}
+              <Plus className="h-5 w-5 rotate-45" aria-hidden="true" />
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
-const STEPS = [
-  { icon: Car, title: 'Pick your car', body: 'Choose a saved car or just enter the year it was made. Its age decides how much insurers deduct for wear.' },
-  { icon: Wrench, title: 'Tap what’s damaged', body: 'Point at the bumper, door or windshield on a simple diagram and enter what the workshop quoted.' },
-  { icon: Scale, title: 'Get a clear answer', body: 'See what your insurer might pay, what you’d pay, and whether claiming or paying yourself costs less over three years.' },
-];
+/* ---------------------------------------------------------------- scroll-lit statement */
+const STATEMENT =
+  'Insurers don’t pay the number on the quote. Plastic loses half its value. Metal loses more every year your car ages. Then one claim wipes out your No-Claim Bonus at renewal. ClearClaim does that math before you call anyone.';
+const HIGHLIGHT = new Set(['half', 'ages.', 'wipes', 'No-Claim', 'Bonus', 'ClearClaim']);
 
-const OUTCOMES = [
-  { icon: Calculator, title: 'What your insurer might pay', body: 'After depreciation on parts and your deductible, capped at your IDV.' },
-  { icon: TrendingDown, title: 'What claiming really costs', body: 'Including the No-Claim Bonus discount you’d lose at renewal, and how it recovers.' },
-  { icon: BadgeCheck, title: 'Which option is cheaper', body: 'A plain verdict with the reasoning shown line by line. No black boxes.' },
-  { icon: Fingerprint, title: 'A record you can prove', body: 'Save the result; its fingerprint is anchored so later changes can be detected.' },
-];
-
-const FAQ_IDS = ['claim-or-pay', 'ncb', 'idv', 'not-final', 'ledger', 'privacy'];
-
-export default function HomePage() {
-  const reduce = useReducedMotion();
-  const { open } = useAssistant();
-  const { status: authStatus } = useAuth();
-  const checkHref = authStatus === 'authenticated' ? '/decision' : '/login?next=%2Fdecision';
-  const [openFaq, setOpenFaq] = useState<string | null>('claim-or-pay');
-  const faqs = FAQ_IDS.map((id) => KNOWLEDGE.find((k) => k.id === id)!).filter(Boolean);
-
+function Word({ word, progress, range }: { word: string; progress: MotionValue<number>; range: [number, number] }) {
+  const opacity = useTransform(progress, range, [0.12, 1]);
   return (
-    <div className="min-h-screen bg-background">
-      <PublicNavbar />
+    <motion.span style={{ opacity }} className={HIGHLIGHT.has(word) ? 'text-steel-600' : ''}>
+      {word}{' '}
+    </motion.span>
+  );
+}
 
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="vs-grid-bg pointer-events-none absolute inset-0" aria-hidden="true" />
-        <motion.div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-40 -top-40 h-[520px] w-[520px] rounded-full bg-steel-200/50 blur-3xl"
-          animate={reduce ? undefined : { scale: [1, 1.08, 1], opacity: [0.6, 0.85, 0.6] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-12 lg:grid-cols-[1.1fr_0.9fr] lg:pb-28 lg:pt-20">
-          <div className="space-y-7">
-            <motion.div initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }} className="flex flex-wrap items-center gap-2">
-              <span className="vs-chip">For car owners in India</span>
-              <span className="vs-chip text-navy-500"><LedgerStatusBadge /></span>
-            </motion.div>
-            <motion.h1
-              initial={reduce ? false : { opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.08, ease: EASE }}
-              className="text-[2.6rem] font-semibold leading-[1.05] tracking-tight text-navy-950 sm:text-6xl"
-            >
-              Had a dent or a scrape?
-              <br />
-              <span className="bg-gradient-to-r from-steel-600 to-steel-400 bg-clip-text text-transparent">Know if claiming is worth it.</span>
-            </motion.h1>
-            <motion.p
-              initial={reduce ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.16, ease: EASE }}
-              className="max-w-xl text-lg leading-relaxed text-navy-600"
-            >
-              A small claim can cost you more than the repair, because you lose your No-Claim Bonus. ClearClaim works out what your insurer
-              might pay, what you’d pay, and which choice is cheaper, in plain language, before you call anyone.
-            </motion.p>
-            <motion.div
-              initial={reduce ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.24, ease: EASE }}
-              className="flex flex-col gap-3 sm:flex-row"
-            >
-              <Link href={checkHref} className="vs-btn-primary px-6 py-3.5 text-base">
-                Check my claim <ArrowRight className="h-4 w-4" />
-              </Link>
-              <button type="button" onClick={() => open()} className="vs-btn-secondary px-6 py-3.5 text-base">
-                <MessageCircleQuestion className="h-4 w-4" /> Ask a question
-              </button>
-            </motion.div>
-            <motion.ul
-              initial={reduce ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-navy-500"
-            >
-              {['Free, no paperwork', 'Every number explained', 'Not an insurer: no sales calls'].map((t) => (
-                <li key={t} className="flex items-center gap-1.5"><Check className="h-4 w-4 text-gain" /> {t}</li>
-              ))}
-            </motion.ul>
-          </div>
+function Statement() {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 85%', 'end 45%'] });
+  const words = STATEMENT.split(' ');
+  return (
+    <section className="bg-[#f6f5f0] px-5 pb-28 pt-24 lg:pb-40 lg:pt-36">
+      <div className="mx-auto max-w-5xl">
+        <p className="mb-8 font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( The problem )</p>
+        <p ref={ref} className="font-display text-[clamp(1.9rem,4.6vw,3.6rem)] font-medium leading-[1.12] tracking-[-0.03em] text-navy-950">
+          {reduce
+            ? STATEMENT
+            : words.map((w, i) => <Word key={i} word={w} progress={scrollYProgress} range={[i / words.length, (i + 1) / words.length]} />)}
+        </p>
+      </div>
+    </section>
+  );
+}
 
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: 40, rotate: 1.5 }}
-            animate={{ opacity: 1, y: 0, rotate: 0 }}
-            transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
-          >
-            <QuickCheck />
-          </motion.div>
+/* ---------------------------------------------------------------- steps */
+const STEPS = [
+  { icon: Car, title: 'Pick your car', body: 'A saved car, or just the year it was made. Age decides how much insurers knock off metal parts.' },
+  { icon: Wrench, title: 'Tap what’s damaged', body: 'Point at the bumper, door or windshield on a diagram and type the workshop’s quote. Or upload the PDF.' },
+  { icon: Scale, title: 'Get a straight answer', body: 'What the insurer pays, what you pay, the bonus you’d lose, and which choice costs less over three years.' },
+];
+
+function Steps() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 70%', 'end 60%'] });
+  const line = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  return (
+    <section id="how-it-works" className="scroll-mt-24 bg-white px-5 py-28 lg:py-36">
+      <div className="mx-auto grid max-w-6xl gap-14 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="lg:sticky lg:top-32 lg:self-start">
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( How it works )</p>
+          <h2 className="mt-5 font-display text-5xl font-semibold leading-[0.95] tracking-[-0.04em] text-navy-950 sm:text-6xl">
+            <SplitWords text="Three taps." inView />
+            <br />
+            <SplitWords text="One answer." inView delay={0.15} className="text-navy-300" />
+          </h2>
+          <p className="mt-6 max-w-sm text-lg text-navy-500">No insurance vocabulary needed. Unsure about a word? The assistant explains it in one line.</p>
         </div>
-      </section>
-
-      {/* How it works */}
-      <section id="how-it-works" className="scroll-mt-20 border-y border-navy-100 bg-white py-20 lg:py-28">
-        <div className="mx-auto max-w-6xl px-4">
-          <Reveal className="max-w-2xl">
-            <p className="text-sm font-semibold text-steel-700">How it works</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl">Three questions. One clear answer.</h2>
-            <p className="mt-3 text-lg text-navy-600">No insurance vocabulary needed. If a word is unfamiliar, tap the question mark and the assistant explains it.</p>
-          </Reveal>
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
+        <div ref={ref} className="relative pl-10 sm:pl-14">
+          <div className="absolute bottom-4 left-[15px] top-4 w-px bg-navy-100 sm:left-[19px]" />
+          <motion.div style={{ scaleY: line }} className="absolute bottom-4 left-[15px] top-4 w-px origin-top bg-navy-950 sm:left-[19px]" />
+          <div className="space-y-16 sm:space-y-24">
             {STEPS.map((s, i) => (
-              <Reveal key={s.title} delay={i * 0.1}>
-                <div className="group relative h-full rounded-[28px] border border-navy-100 bg-gradient-to-b from-navy-50/60 to-white p-7 transition duration-500 hover:-translate-y-1 hover:shadow-[0_24px_48px_-24px_rgba(17,26,49,0.25)]">
-                  <span className="absolute right-6 top-6 text-6xl font-semibold text-navy-100 transition group-hover:text-steel-100">{i + 1}</span>
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-navy-900 text-white shadow-lg"><s.icon className="h-5 w-5" /></span>
-                  <h3 className="mt-6 text-xl font-semibold text-navy-900">{s.title}</h3>
-                  <p className="mt-2 leading-relaxed text-navy-600">{s.body}</p>
-                </div>
+              <Reveal key={s.title} className="relative">
+                <span className="absolute -left-10 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-navy-950 font-mono text-xs font-semibold text-signal ring-8 ring-white sm:-left-14 sm:h-10 sm:w-10">
+                  0{i + 1}
+                </span>
+                <s.icon className="h-7 w-7 text-steel-600" />
+                <h3 className="mt-4 font-display text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl">{s.title}</h3>
+                <p className="mt-3 max-w-md text-lg leading-relaxed text-navy-500">{s.body}</p>
               </Reveal>
             ))}
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* Outcomes */}
-      <section className="py-20 lg:py-28">
-        <div className="mx-auto grid max-w-6xl gap-12 px-4 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <Reveal>
-            <p className="text-sm font-semibold text-steel-700">What you’ll understand</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl">The numbers insurers use, finally explained.</h2>
-            <p className="mt-4 text-lg leading-relaxed text-navy-600">
-              ClearClaim uses the standard motor-insurance rules for depreciation, deductibles and No-Claim Bonus, the same kind of rules surveyors
-              apply. Fixed rules, not AI guesses, so the same inputs always give the same answer.
-            </p>
-            <Link href={checkHref} className="vs-btn-primary mt-8">Start a claim check <ArrowRight className="h-4 w-4" /></Link>
+/* ---------------------------------------------------------------- bento */
+function NcbLadder() {
+  const reduce = useReducedMotion();
+  const steps = NCB_STEPS.slice(1); // 20 … 50
+  return (
+    <div className="flex h-40 items-end gap-2">
+      {steps.map((s, i) => (
+        <motion.div
+          key={s}
+          className="relative flex-1 rounded-t-lg bg-navy-950"
+          initial={reduce ? false : { height: 0 }}
+          whileInView={{ height: `${(s / 50) * 100}%` }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.9, delay: 0.1 * i, ease: EASE }}
+        >
+          <span className="absolute -top-6 left-1/2 -translate-x-1/2 font-mono text-[11px] text-navy-500">{s}%</span>
+        </motion.div>
+      ))}
+      <motion.div
+        className="relative flex-1 rounded-t-lg bg-loss"
+        initial={reduce ? false : { height: '100%' }}
+        whileInView={{ height: '4%' }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, delay: 1.2, ease: [0.7, 0, 0.84, 0] }}
+      >
+        <span className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono text-[11px] font-semibold text-loss">0%</span>
+      </motion.div>
+    </div>
+  );
+}
+
+function Bento() {
+  return (
+    <section className="bg-[#f6f5f0] px-5 py-28 lg:py-36">
+      <div className="mx-auto max-w-6xl">
+        <Reveal className="max-w-3xl">
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( What you’ll see )</p>
+          <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-6xl">The numbers insurers use. Finally out loud.</h2>
+        </Reveal>
+        <div className="mt-14 grid gap-4 md:grid-cols-6">
+          <Reveal className="md:col-span-4">
+            <div className="h-full rounded-[32px] bg-white p-7 ring-1 ring-navy-100 sm:p-9">
+              <div className="flex items-start justify-between gap-6">
+                <div>
+                  <h3 className="font-display text-2xl font-semibold tracking-tight text-navy-950">Your No-Claim Bonus, climbing for years</h3>
+                  <p className="mt-2 max-w-md text-navy-500">Each claim-free year raises the discount. One claim drops it to zero. ClearClaim prices that loss in rupees.</p>
+                </div>
+                <span className="hidden shrink-0 rounded-full bg-loss/10 px-3 py-1 text-xs font-semibold text-loss sm:inline">after a claim</span>
+              </div>
+              <div className="mt-10"><NcbLadder /></div>
+            </div>
           </Reveal>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {OUTCOMES.map((o, i) => (
-              <Reveal key={o.title} delay={i * 0.08}>
-                <div className="vs-surface h-full p-6 transition duration-500 hover:-translate-y-1">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-steel-50 text-steel-700"><o.icon className="h-5 w-5" /></span>
-                  <h3 className="mt-5 font-semibold text-navy-900">{o.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-navy-600">{o.body}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
+          <Reveal className="md:col-span-2" delay={0.08}>
+            <div className="flex h-full flex-col justify-between rounded-[32px] bg-navy-950 p-7 text-white sm:p-9">
+              <p className="font-mono text-xs uppercase tracking-[0.16em] text-white/40">Plastic bumper, ₹10,000 quote</p>
+              <div>
+                <p className="font-display text-6xl font-semibold tracking-tight text-signal">
+                  <CountUp value={5000} />
+                </p>
+                <p className="mt-2 text-white/60">is yours to pay. Plastic parts lose 50% on replacement.</p>
+              </div>
+            </div>
+          </Reveal>
+          <Reveal className="md:col-span-3" delay={0.05}>
+            <div className="h-full rounded-[32px] bg-signal p-7 text-navy-950 sm:p-9">
+              <Scale className="h-7 w-7" />
+              <h3 className="mt-6 font-display text-3xl font-semibold tracking-tight">A verdict, with the working shown</h3>
+              <p className="mt-2 text-navy-800">Claim, pay yourself, or too close to call, and every rule behind it. Fixed rules, not AI guesses: same inputs, same answer.</p>
+            </div>
+          </Reveal>
+          <Reveal className="md:col-span-3" delay={0.12}>
+            <div className="h-full overflow-hidden rounded-[32px] bg-white p-7 ring-1 ring-navy-100 sm:p-9">
+              <Fingerprint className="h-7 w-7 text-steel-600" />
+              <h3 className="mt-6 font-display text-3xl font-semibold tracking-tight text-navy-950">A record you can prove later</h3>
+              <p className="mt-2 text-navy-500">Saved checks get a fingerprint. If anyone edits the record afterwards, the mismatch shows.</p>
+              <p className="mt-6 truncate rounded-xl bg-navy-50 px-3 py-2 font-mono text-xs text-navy-500">sha256 · 9f2c4e1a7b…d03e8c55</p>
+            </div>
+          </Reveal>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* Repair-quote X-ray */}
-      <section className="border-y border-navy-100 bg-white py-20 lg:py-28">
-        <div className="mx-auto grid max-w-6xl gap-12 px-4 lg:grid-cols-2 lg:items-center">
+/* ---------------------------------------------------------------- try it */
+function TryIt() {
+  return (
+    <section className="vs-grain relative overflow-hidden bg-navy-950 px-5 py-28 text-white lg:py-36">
+      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-steel-600/20 blur-[140px]" />
+      <div className="relative mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[0.9fr_1.1fr]">
+        <Reveal>
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/40">( Try it, no sign-up )</p>
+          <h2 className="mt-5 font-display text-5xl font-semibold leading-[0.95] tracking-[-0.04em] sm:text-6xl">
+            Your quote.
+            <br />
+            <span className="text-signal">Your answer.</span>
+          </h2>
+          <p className="mt-6 max-w-md text-lg text-white/60">Enter what the workshop quoted. Everything runs in your browser; nothing is sent anywhere.</p>
+        </Reveal>
+        <Reveal delay={0.1}>
+          <QuickCheck />
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------------- orgs */
+function Orgs() {
+  const items = [
+    { href: '/for-fleets', icon: Truck, tag: 'Fleet triage', title: 'Run a fleet?', body: 'Log every incident. Get the claim-or-pay plan with the lowest total cost. The bonus is lost once per vehicle, so triage bundles claims to match.' },
+    { href: '/for-workshops', icon: Wrench, tag: 'Estimates', title: 'Run a workshop?', body: 'Build the estimate and show the customer, line by line, what their insurer will likely cover. No surprises at handover.' },
+  ];
+  return (
+    <section className="bg-white px-5 py-28 lg:py-36">
+      <div className="mx-auto max-w-6xl">
+        <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <h2 className="max-w-2xl font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-6xl">Built for the people who handle the most claims.</h2>
+          <p className="max-w-xs text-navy-500">Separate workspaces for fleets and workshops, designed around how each actually works.</p>
+        </Reveal>
+        <div className="mt-14 grid gap-4 md:grid-cols-2">
+          {items.map((o, i) => (
+            <Reveal key={o.href} delay={i * 0.08}>
+              <Spotlight className="h-full rounded-[32px] bg-navy-950 text-white">
+                <Link href={o.href} className="relative flex h-full min-h-[340px] flex-col justify-between p-8 sm:p-10">
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-full border border-white/15 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-white/60">{o.tag}</span>
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 transition duration-500 group-hover:rotate-45 group-hover:bg-signal group-hover:text-navy-950">
+                      <ArrowUpRight className="h-5 w-5" />
+                    </span>
+                  </div>
+                  <div>
+                    <o.icon className="h-8 w-8 text-signal" />
+                    <h3 className="mt-5 font-display text-4xl font-semibold tracking-tight">{o.title}</h3>
+                    <p className="mt-3 max-w-md leading-relaxed text-white/60">{o.body}</p>
+                  </div>
+                </Link>
+              </Spotlight>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------------- honesty */
+function StrikeItem({ text, delay }: { text: string; delay: number }) {
+  const reduce = useReducedMotion();
+  // A background stroke on an inline span follows the text across wrapped lines.
+  return (
+    <li className="py-1">
+      <motion.span
+        className="bg-no-repeat text-white/40"
+        style={{ backgroundImage: 'linear-gradient(#ff9b6a, #ff9b6a)', backgroundPosition: '0 58%' }}
+        initial={reduce ? { backgroundSize: '100% 2px' } : { backgroundSize: '0% 2px' }}
+        whileInView={{ backgroundSize: '100% 2px' }}
+        viewport={{ once: true, margin: '-60px' }}
+        transition={{ duration: 0.7, delay, ease: EASE }}
+      >
+        {text}
+      </motion.span>
+    </li>
+  );
+}
+
+function Honesty() {
+  return (
+    <section className="vs-grain relative overflow-hidden bg-navy-950 px-5 py-28 text-white lg:py-36">
+      <div className="relative mx-auto max-w-6xl">
+        <Reveal>
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-white/40">( Straight talk )</p>
+          <h2 className="mt-5 max-w-3xl font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] sm:text-6xl">On your side of the table. Not the insurer’s.</h2>
+        </Reveal>
+        <div className="mt-16 grid gap-14 md:grid-cols-2">
           <Reveal>
-            <p className="text-sm font-semibold text-steel-700">Repair-quote X-ray</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl">Got a quote from the workshop? X-ray it.</h2>
-            <p className="mt-4 text-lg leading-relaxed text-navy-600">
-              Every line of a repair quote is paid differently. Plastic parts lose half their value on replacement, glass and labour lose nothing, and metal depends on your car’s age.
-              The X-ray shows the insurer’s share and yours for each line, and where you could pay less.
-            </p>
-            <Link href="/xray" className="vs-btn-primary mt-8">X-ray a quote, free <ArrowRight className="h-4 w-4" /></Link>
+            <p className="font-mono text-xs uppercase tracking-[0.16em] text-signal">ClearClaim is</p>
+            <ul className="mt-6 space-y-4 font-display text-2xl font-medium tracking-tight sm:text-3xl">
+              {['An independent calculator', 'A tamper-evident record of your car', 'Clear about what’s estimated', 'Built on your consent'].map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ul>
           </Reveal>
           <Reveal delay={0.1}>
-            <div className="vs-surface space-y-4 p-6">
-              {[
-                { l: 'Front bumper (plastic)', c: 14800, you: 50 },
-                { l: 'Bonnet (metal, 3-yr-old car)', c: 21500, you: 15 },
-                { l: 'Windshield (glass)', c: 11200, you: 0 },
-                { l: 'Labour and paint', c: 7400, you: 0 },
-              ].map((r) => (
-                <div key={r.l}>
-                  <div className="flex justify-between text-sm"><span className="font-medium text-navy-800">{r.l}</span><span className="tabular text-navy-500">₹{r.c.toLocaleString('en-IN')}</span></div>
-                  <div className="mt-1.5 flex h-2.5 overflow-hidden rounded-full bg-navy-50">
-                    <span className="h-full bg-gain" style={{ width: `${100 - r.you}%` }} />
-                    <span className="h-full bg-loss/70" style={{ width: `${r.you}%` }} />
-                  </div>
-                </div>
+            <p className="font-mono text-xs uppercase tracking-[0.16em] text-ember">ClearClaim is not</p>
+            <ul className="mt-6 space-y-4 font-display text-2xl font-medium tracking-tight sm:text-3xl">
+              {['Your insurer, or a broker', 'Approving or rejecting claims', 'Guessing with AI fraud scores', 'A guarantee of the payout'].map((t, i) => (
+                <StrikeItem key={t} text={t} delay={0.3 + i * 0.15} />
               ))}
-              <p className="flex justify-between border-t border-navy-100 pt-3 text-xs text-navy-500"><span><span className="mr-1 inline-block h-2 w-2 rounded-full bg-gain" />Insurer</span><span>You (depreciation)<span className="ml-1 inline-block h-2 w-2 rounded-full bg-loss/70" /></span></p>
-            </div>
+            </ul>
           </Reveal>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* Organisations */}
-      <section className="py-20 lg:py-28">
-        <div className="mx-auto max-w-6xl px-4">
-          <Reveal className="max-w-2xl">
-            <p className="text-sm font-semibold text-steel-700">For organisations</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl">A workspace built for how you work.</h2>
-          </Reveal>
-          <div className="mt-10 grid gap-5 md:grid-cols-2">
-            {[
-              { href: '/for-fleets', icon: Truck, title: 'Fleets', body: 'Log incidents across all vehicles and get the claim-or-pay plan with the lowest total cost. NCB is lost once per vehicle, and triage uses that to bundle claims smartly.' },
-              { href: '/for-workshops', icon: Wrench, title: 'Workshops', body: 'Build an estimate and show the customer, line by line, what their insurer will likely cover. Print it or share it, with no surprises at handover.' },
-            ].map((o, i) => (
-              <Reveal key={o.href} delay={i * 0.08}>
-                <Link href={o.href} className="group block h-full rounded-[28px] bg-navy-950 p-8 text-white transition duration-500 hover:-translate-y-1">
-                  <o.icon className="h-7 w-7 text-steel-300" />
-                  <h3 className="mt-6 text-2xl font-semibold">{o.title}</h3>
-                  <p className="mt-2 leading-relaxed text-navy-200">{o.body}</p>
-                  <span className="mt-6 inline-flex items-center gap-1.5 font-semibold text-steel-300">Learn more <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></span>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+/* ---------------------------------------------------------------- faq */
+const FAQ_IDS = ['claim-or-pay', 'ncb', 'idv', 'not-final', 'ledger', 'privacy'];
 
-      {/* Honesty */}
-      <section className="bg-navy-950 py-20 text-white lg:py-28">
-        <div className="mx-auto max-w-6xl px-4">
-          <Reveal className="max-w-2xl">
-            <p className="text-sm font-semibold text-steel-300">Straight talk</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">What ClearClaim is, and isn’t.</h2>
-          </Reveal>
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
-            <Reveal>
-              <div className="h-full rounded-[28px] bg-white/5 p-7 ring-1 ring-white/10">
-                <p className="flex items-center gap-2 font-semibold"><ShieldCheck className="h-5 w-5 text-steel-300" /> ClearClaim is</p>
-                <ul className="mt-5 space-y-3 text-navy-100">
-                  {['An independent calculator that shows every step', 'A tamper-evident history for your car’s records', 'Clear about what’s estimated, extracted or unavailable', 'Built around your consent: you choose who sees your data'].map((t) => (
-                    <li key={t} className="flex gap-3"><Check className="mt-0.5 h-5 w-5 shrink-0 text-gain" /> {t}</li>
-                  ))}
-                </ul>
-              </div>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <div className="h-full rounded-[28px] bg-white/5 p-7 ring-1 ring-white/10">
-                <p className="flex items-center gap-2 font-semibold"><X className="h-5 w-5 text-loss" /> ClearClaim is not</p>
-                <ul className="mt-5 space-y-3 text-navy-100">
-                  {['Your insurer: it never approves, rejects or files claims', 'Connected to IRDAI, VAHAN or insurer systems', 'A source of AI fraud or damage scores (those stay off without validated data)', 'A guarantee of the final settlement amount'].map((t) => (
-                    <li key={t} className="flex gap-3"><X className="mt-0.5 h-5 w-5 shrink-0 text-navy-400" /> {t}</li>
-                  ))}
-                </ul>
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* Questions */}
-      <section id="questions" className="scroll-mt-20 py-20 lg:py-28">
-        <div className="mx-auto grid max-w-6xl gap-12 px-4 lg:grid-cols-[0.8fr_1.2fr]">
-          <Reveal>
-            <p className="text-sm font-semibold text-steel-700">Common questions</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl">Car insurance, without the jargon.</h2>
-            <p className="mt-4 text-navy-600">Can’t find your question? The ClearClaim Assistant answers from the same reviewed guide, and tells you when it doesn’t know.</p>
-            <button type="button" onClick={() => open()} className="vs-btn-secondary mt-6">
-              <MessageCircleQuestion className="h-4 w-4" /> Ask the assistant
-            </button>
-          </Reveal>
-          <div className="divide-y divide-navy-100 rounded-[28px] border border-navy-100 bg-white">
-            {faqs.map((f) => {
-              const isOpen = openFaq === f.id;
-              return (
-                <div key={f.id}>
-                  <button type="button" onClick={() => setOpenFaq(isOpen ? null : f.id)} aria-expanded={isOpen} className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left">
-                    <span className="font-semibold text-navy-900">{f.question}</span>
-                    <ChevronDown className={`h-5 w-5 shrink-0 text-navy-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.35, ease: EASE }} className="overflow-hidden">
-                        <div className="space-y-3 px-6 pb-6 text-[15px] leading-relaxed text-navy-600">
-                          {f.answer.map((p, i) => <p key={i} className="whitespace-pre-line">{p}</p>)}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="px-4 pb-20">
-        <Reveal className="relative mx-auto max-w-6xl overflow-hidden rounded-[36px] bg-gradient-to-br from-navy-900 via-navy-800 to-steel-800 px-8 py-14 text-center text-white sm:px-16">
-          <div className="vs-grid-bg pointer-events-none absolute inset-0 opacity-30" aria-hidden="true" />
-          <div className="relative">
-            <FileText className="mx-auto h-10 w-10 text-steel-300" />
-            <h2 className="mx-auto mt-5 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">Got a workshop quote? Find out in two minutes.</h2>
-            <p className="mx-auto mt-3 max-w-xl text-navy-200">Use a sample account to explore, or add your own car. No payment, no insurer contact.</p>
-            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link href={checkHref} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 font-semibold text-navy-900 transition hover:bg-navy-50">
-                Check my claim <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link href="/onboarding" className="inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3.5 font-semibold text-white ring-1 ring-white/30 transition hover:bg-white/10">
-                Add my car
-              </Link>
-            </div>
-          </div>
+function Faq() {
+  const { open } = useAssistant();
+  const [openFaq, setOpenFaq] = useState<string | null>('claim-or-pay');
+  const faqs = FAQ_IDS.map((id) => KNOWLEDGE.find((k) => k.id === id)!).filter(Boolean);
+  return (
+    <section id="questions" className="scroll-mt-24 bg-white px-5 py-28 lg:py-36">
+      <div className="mx-auto grid max-w-6xl gap-14 lg:grid-cols-[0.8fr_1.2fr]">
+        <Reveal>
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( Questions )</p>
+          <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">Car insurance, minus the jargon.</h2>
+          <p className="mt-5 text-navy-500">The assistant answers from the same reviewed guide, and says so when it doesn’t know.</p>
+          <button type="button" onClick={() => open()} className="vs-btn-secondary mt-8">
+            <MessageCircleQuestion className="h-4 w-4" /> Ask the assistant
+          </button>
         </Reveal>
-      </section>
+        <div className="border-t border-navy-100">
+          {faqs.map((f) => {
+            const isOpen = openFaq === f.id;
+            return (
+              <div key={f.id} className="border-b border-navy-100">
+                <button type="button" onClick={() => setOpenFaq(isOpen ? null : f.id)} aria-expanded={isOpen} className="group flex w-full items-center justify-between gap-6 py-6 text-left">
+                  <span className="font-display text-xl font-medium tracking-tight text-navy-950 transition group-hover:translate-x-1 sm:text-2xl">{f.question}</span>
+                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-500 ${isOpen ? 'rotate-45 bg-navy-950 text-signal' : 'bg-navy-50 text-navy-700 group-hover:bg-navy-100'}`}>
+                    <Plus className="h-5 w-5" />
+                  </span>
+                </button>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.45, ease: EASE }} className="overflow-hidden">
+                      <div className="max-w-2xl space-y-3 pb-7 text-[16px] leading-relaxed text-navy-600">
+                        {f.answer.map((p, i) => <p key={i} className="whitespace-pre-line">{p}</p>)}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
 
+/* ---------------------------------------------------------------- final cta */
+function FinalCta({ checkHref }: { checkHref: string }) {
+  return (
+    <section className="bg-white px-3 pb-3">
+      <div className="vs-grain relative overflow-hidden rounded-[40px] bg-navy-950 px-6 py-24 text-center text-white sm:py-32">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-[-20%] bottom-[-30%] h-[80%] opacity-60">
+          <div className="vs-floor h-full w-full" />
+        </div>
+        <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-[400px] w-[700px] -translate-x-1/2 rounded-full bg-signal/15 blur-[120px]" />
+        <div className="relative">
+          <h2 className="mx-auto max-w-5xl font-display text-[clamp(3rem,10vw,8rem)] font-semibold leading-[0.9] tracking-[-0.05em]">
+            <SplitWords text="Know before" inView />
+            <br />
+            <SplitWords text="you claim." inView delay={0.15} className="text-signal" />
+          </h2>
+          <p className="mx-auto mt-8 max-w-md text-lg text-white/60">Free. Two minutes. No insurer ever sees it unless you share it.</p>
+          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Magnetic>
+              <Link href={checkHref} className="vs-btn-signal group py-4 pl-7 pr-2">
+                Check my claim
+                <span className="ml-2 flex h-9 w-9 items-center justify-center rounded-full bg-navy-950 text-signal transition-transform duration-500 group-hover:rotate-[-45deg]">
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+              </Link>
+            </Magnetic>
+            <Link href="/onboarding" className="vs-btn-ghost-dark py-4">Add my car</Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function HomePage() {
+  const { status } = useAuth();
+  const checkHref = status === 'authenticated' ? '/decision' : '/login?next=%2Fdecision';
+  return (
+    <div className="min-h-screen bg-white">
+      <PublicNavbar tone="dark" />
+      <main>
+        <Hero checkHref={checkHref} />
+        <FactsBand />
+        <Statement />
+        <Steps />
+        <TryIt />
+        <Bento />
+        <Orgs />
+        <Honesty />
+        <Faq />
+        <FinalCta checkHref={checkHref} />
+      </main>
       <PublicFooter />
     </div>
   );

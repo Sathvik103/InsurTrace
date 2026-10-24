@@ -34,8 +34,15 @@
   --color-gain-soft: #e6f5ee;
   --color-loss: #c2410c;
   --color-loss-soft: #fdf0e8;
+  --color-ember: #ff9b6a;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-display);
+  --font-display: var(--font-display);
+  /* Signal: the brand accent. Used sparingly for the one thing to look at. */
+  --color-signal: #d4f25c;
+  --color-signal-300: #e6f89d;
+  --color-signal-600: #a9cc28;
+  --color-signal-700: #7e9a17;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -196,7 +203,7 @@
 
 /* ------------------------------------------------------------------ VeriSure */
 @layer base {
-  h1, h2, h3 { letter-spacing: -0.022em; }
+  h1, h2, h3 { letter-spacing: -0.022em; font-family: var(--font-display), var(--font-sans), sans-serif; }
   .tabular { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
   :focus-visible { outline: 2px solid #2283c1; outline-offset: 2px; }
 }
@@ -211,12 +218,25 @@
   .vs-chip {
     @apply inline-flex items-center gap-1.5 rounded-full border border-navy-100 bg-white px-3 py-1 text-xs font-medium text-navy-700;
   }
+  /* Buttons: a lit top edge, a lift on hover, and a press. Arrows inside slide on hover. */
   .vs-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-navy-900 px-5 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(17,26,49,0.55)] transition-all duration-300 hover:bg-navy-800 hover:shadow-[0_12px_28px_-8px_rgba(17,26,49,0.6)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-navy-950 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 ease-out-expo hover:-translate-y-0.5 hover:bg-navy-900 active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 1px 2px rgba(10,16,34,0.3), 0 10px 24px -10px rgba(10,16,34,0.6);
   }
+  .vs-btn-primary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 4px rgba(10,16,34,0.3), 0 18px 34px -12px rgba(10,16,34,0.65); }
+  .vs-btn-signal {
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-signal px-6 py-3.5 text-base font-semibold text-navy-950 transition-all duration-300 ease-out-expo hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98];
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -2px 0 rgba(126,154,23,0.35), 0 0 0 1px rgba(169,204,40,0.5), 0 14px 40px -12px rgba(212,242,92,0.55);
+  }
+  .vs-btn-signal:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(126,154,23,0.35), 0 0 0 1px rgba(169,204,40,0.6), 0 20px 50px -12px rgba(212,242,92,0.75); }
   .vs-btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-navy-200 bg-white px-5 py-3 text-sm font-semibold text-navy-800 transition-all duration-300 hover:border-navy-300 hover:bg-navy-50 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-navy-200 bg-white px-5 py-3 text-sm font-semibold text-navy-800 transition-all duration-300 ease-out-expo hover:-translate-y-0.5 hover:border-navy-300 hover:shadow-[0_10px_24px_-12px_rgba(17,26,49,0.25)] active:translate-y-0 active:scale-[0.98];
   }
+  .vs-btn-ghost-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-base font-semibold text-white ring-1 ring-white/20 backdrop-blur transition-all duration-300 ease-out-expo hover:-translate-y-0.5 hover:bg-white/10 hover:ring-white/40 active:translate-y-0 active:scale-[0.98];
+  }
+  .vs-btn-primary svg, .vs-btn-signal svg, .vs-btn-secondary svg, .vs-btn-ghost-dark svg { transition: transform 0.3s var(--ease-out-expo); }
+  .vs-btn-primary:hover svg:last-child, .vs-btn-signal:hover svg:last-child, .vs-btn-ghost-dark:hover svg:last-child { transform: translateX(3px); }
   .vs-input {
     @apply w-full rounded-2xl border border-navy-200 bg-white px-4 py-3 text-base text-navy-900 transition placeholder:text-navy-300 focus:border-steel-500 focus:outline-none focus:ring-4 focus:ring-steel-500/15;
   }
@@ -236,6 +256,28 @@
   background-size: 200% 100%;
   animation: vs-shimmer 1.6s linear infinite;
 }
+
+/* Film grain for dark sections: keeps large dark areas from looking flat. */
+.vs-grain::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.08; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Perspective grid floor that drifts towards the viewer. */
+.vs-floor {
+  background-image:
+    linear-gradient(to right, rgba(127,192,230,0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(127,192,230,0.16) 1px, transparent 1px);
+  background-size: 64px 64px;
+  transform: perspective(600px) rotateX(62deg);
+  transform-origin: center top;
+  mask-image: linear-gradient(to bottom, black 0%, transparent 85%);
+  animation: vs-floor 4s linear infinite;
+}
+@keyframes vs-floor { from { background-position: 0 0; } to { background-position: 0 64px; } }
+
+@keyframes vs-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.vs-marquee { animation: vs-marquee 40s linear infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }

@@ -42,7 +42,7 @@ const COLUMNS = [
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-navy-100 bg-white">
+    <footer className="overflow-hidden bg-white">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-[1.3fr_repeat(4,1fr)]">
         <div className="space-y-4">
           <BrandLogo size="sm" asLink href="/" />
@@ -68,6 +68,9 @@ export function PublicFooter() {
           <p>Estimates use standard motor-insurance rules. Your insurer and surveyor decide the actual settlement.</p>
         </div>
       </div>
+      <p aria-hidden="true" className="pointer-events-none -mb-[0.22em] select-none text-center font-display text-[22vw] font-semibold leading-none tracking-[-0.06em] text-navy-50">
+        ClearClaim
+      </p>
     </footer>
   );
 }

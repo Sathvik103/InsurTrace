@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { PublicNavbar } from '@/components/public/PublicNavbar';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { XRayPlayground } from '@/components/xray/XRayPlayground';
+import { PageHero } from '@/components/public/PageHero';
 
 export const metadata: Metadata = {
   title: 'Repair-quote X-ray: what your insurer pays vs what you pay',
@@ -12,17 +13,16 @@ export const metadata: Metadata = {
 
 export default function XRayPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <PublicNavbar />
-      <main className="mx-auto max-w-5xl space-y-8 px-4 pb-20 pt-10">
-        <header className="max-w-2xl space-y-3">
-          <p className="text-sm font-semibold text-steel-700">Repair-quote X-ray</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-navy-950 sm:text-5xl">See exactly what you’ll pay on a repair quote.</h1>
-          <p className="text-lg text-navy-600">
-            Insurers don’t pay the full price of replaced parts. Each line of your quote loses value depending on the material and your car’s age.
-            The X-ray shows the split line by line, and where you could pay less.
-          </p>
-        </header>
+    <div className="min-h-screen bg-[#f6f5f0]">
+      <PublicNavbar tone="dark" />
+      <PageHero
+        compact
+        eyebrow="Repair-quote X-ray"
+        title="See exactly what you’ll pay"
+        accent="on a repair quote."
+        body="Insurers don’t pay the full price of replaced parts. Each line loses value depending on the material and your car’s age. The X-ray shows the split line by line, and where you could pay less."
+      />
+      <main className="relative z-10 mx-auto -mt-8 max-w-5xl px-4 pb-24">
         <XRayPlayground />
       </main>
       <PublicFooter />

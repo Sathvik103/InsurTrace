@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { VehicleProvider } from "@/context/VehicleContext";
@@ -11,6 +11,13 @@ import { BRAND } from "@/lib/brand";
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+// Display face for headlines: characterful, so the brand doesn't read as a template.
+const display = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -76,8 +83,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geist.variable} ${geistMono.variable}`}>
-      <body className="font-sans antialiased bg-background text-navy-900 selection:bg-steel-200 selection:text-navy-950">
+    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${display.variable}`}>
+      <body className="font-sans antialiased bg-background text-navy-900 selection:bg-signal selection:text-navy-950">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <AuthProvider>
           <VehicleProvider>

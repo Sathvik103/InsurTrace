@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { ArrowRight, Check, Printer, ScanSearch, Share2, Wrench } from 'lucide-react';
 import { PublicNavbar } from '@/components/public/PublicNavbar';
 import { PublicFooter } from '@/components/public/PublicFooter';
+import { PageHero } from '@/components/public/PageHero';
+import { Reveal } from '@/components/home/fx';
 
 export const metadata: Metadata = {
   title: 'For workshops: show customers what insurance will cover',
@@ -11,50 +13,71 @@ export const metadata: Metadata = {
   alternates: { canonical: '/for-workshops' },
 };
 
+const FLOW = [
+  { icon: Wrench, title: 'Build the estimate', body: 'Parts with their material, plus labour and paint.' },
+  { icon: ScanSearch, title: 'X-ray it live', body: 'Insurer vs customer share per line, with the biggest costs flagged.' },
+  { icon: Printer, title: 'Print or share', body: 'A clean summary for the counter or WhatsApp.' },
+];
+
+const WHY = [
+  'Customers decide faster when they see their real share upfront',
+  'Suggest repair over replacement where it saves the customer money',
+  'Customers can share their car’s history with you, time-limited, for faster estimates',
+  'Free to use; nothing is sent to insurers on your behalf',
+];
+
+function Flow() {
+  return (
+    <ol className="space-y-3">
+      {FLOW.map((x, i) => (
+        <li key={x.title} className="flex items-start gap-4 rounded-[24px] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-signal text-navy-950"><x.icon className="h-5 w-5" /></span>
+          <span>
+            <span className="block font-mono text-[11px] uppercase tracking-[0.14em] text-white/40">Step 0{i + 1}</span>
+            <span className="mt-0.5 block font-display text-xl font-semibold tracking-tight">{x.title}</span>
+            <span className="text-sm text-white/55">{x.body}</span>
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 export default function ForWorkshopsPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <PublicNavbar />
+    <div className="min-h-screen bg-white">
+      <PublicNavbar tone="dark" />
       <main>
-        <section className="mx-auto grid max-w-6xl gap-12 px-4 pb-16 pt-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div className="space-y-6">
-            <p className="text-sm font-semibold text-steel-700">For workshops</p>
-            <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight text-navy-950 sm:text-5xl">No more “why is my share so high?” at handover.</h1>
-            <p className="text-lg leading-relaxed text-navy-600">
-              Customers expect insurance to pay the whole bill. Show them upfront, line by line, what their insurer is likely to cover after depreciation and deductible, and what they will pay.
-            </p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Link href="/login?next=%2Forg%2Fworkshop" className="vs-btn-primary px-6 py-3.5 text-base">Open the workshop workspace <ArrowRight className="h-4 w-4" /></Link>
-              <Link href="/xray" className="vs-btn-secondary px-6 py-3.5 text-base">Try the X-ray</Link>
-            </div>
-          </div>
-          <div className="grid gap-3">
-            {[
-              { icon: Wrench, title: 'Build the estimate', body: 'Parts with their material, plus labour and paint.' },
-              { icon: ScanSearch, title: 'X-ray it live', body: 'Insurer vs customer share per line, with the biggest costs flagged.' },
-              { icon: Printer, title: 'Print or share', body: 'A clean, branded summary for the counter or WhatsApp.' },
-            ].map((x) => (
-              <div key={x.title} className="vs-surface flex items-start gap-4 p-5">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-steel-50 text-steel-700"><x.icon className="h-5 w-5" /></span>
-                <span><span className="block font-semibold text-navy-900">{x.title}</span><span className="text-sm text-navy-600">{x.body}</span></span>
-              </div>
-            ))}
-          </div>
-        </section>
-        <section className="border-t border-navy-100 bg-white py-16">
-          <div className="mx-auto max-w-6xl px-4">
-            <h2 className="text-2xl font-semibold text-navy-950">Why workshops use it</h2>
-            <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-              {[
-                'Customers decide faster when they see their real share upfront',
-                'Suggest repair over replacement where it saves the customer money',
-                'Customers can share their car’s history with you, time-limited, for faster estimates',
-                'Free to use; nothing is sent to insurers on your behalf',
-              ].map((t) => (
-                <li key={t} className="flex gap-3 rounded-2xl border border-navy-100 p-4 text-navy-700"><Check className="mt-0.5 h-5 w-5 shrink-0 text-gain" /> {t}</li>
+        <PageHero
+          eyebrow="For workshops"
+          title="No more “why is my share so high?”"
+          accent="at handover."
+          body="Customers expect insurance to pay the whole bill. Show them upfront, line by line, what their insurer is likely to cover after depreciation and deductible, and what they will pay."
+          actions={
+            <>
+              <Link href="/login?next=%2Forg%2Fworkshop" className="vs-btn-signal">Open the workshop workspace <ArrowRight className="h-4 w-4" /></Link>
+              <Link href="/xray" className="vs-btn-ghost-dark">Try the X-ray</Link>
+            </>
+          }
+          aside={<Flow />}
+        />
+
+        <section className="bg-white px-5 py-24 lg:py-32">
+          <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+            <Reveal>
+              <p className="font-mono text-xs uppercase tracking-[0.2em] text-navy-400">( Why workshops use it )</p>
+              <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">Fewer arguments at the counter.</h2>
+              <p className="mt-6 flex items-start gap-2 text-sm text-navy-500"><Share2 className="mt-0.5 h-4 w-4 shrink-0" /> Estimates follow the standard depreciation schedule; the insurer’s surveyor makes the final assessment.</p>
+            </Reveal>
+            <ul className="border-t border-navy-100">
+              {WHY.map((t, i) => (
+                <Reveal key={t} delay={i * 0.05}>
+                  <li className="flex gap-4 border-b border-navy-100 py-5 text-lg text-navy-800">
+                    <Check className="mt-1 h-5 w-5 shrink-0 text-signal-700" /> {t}
+                  </li>
+                </Reveal>
               ))}
             </ul>
-            <p className="mt-6 flex items-center gap-2 text-sm text-navy-500"><Share2 className="h-4 w-4" /> Estimates follow the standard depreciation schedule; the insurer’s surveyor makes the final assessment.</p>
           </div>
         </section>
       </main>
