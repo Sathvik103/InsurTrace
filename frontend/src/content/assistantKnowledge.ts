@@ -21,7 +21,7 @@ export interface KnowledgeEntry {
   answer: string[];
   links?: KnowledgeLink[];
   followUps?: string[];
-  topic: 'basics' | 'claims' | 'money' | 'verisure' | 'privacy';
+  topic: 'basics' | 'claims' | 'money' | 'product' | 'privacy';
 }
 
 export const LAST_REVIEWED = 'October 2026';
@@ -125,7 +125,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
   },
   {
     id: 'not-final',
-    topic: 'verisure',
+    topic: 'product',
     question: 'Is this the amount my insurer will pay?',
     keywords: ['trust', 'reliable', 'exact', 'guaranteed', 'final amount', 'will insurer pay', 'accurate', 'approve', 'approval', 'reject', 'settlement'],
     answer: [
@@ -228,7 +228,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
   },
   {
     id: 'ledger',
-    topic: 'verisure',
+    topic: 'product',
     question: 'What does blockchain verification mean?',
     keywords: ['blockchain', 'ledger', 'fabric', 'hyperledger', 'verified', 'verification', 'tamper', 'fingerprint', 'hash', 'anchored', 'transaction'],
     answer: [
@@ -240,7 +240,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
   },
   {
     id: 'ledger-offline',
-    topic: 'verisure',
+    topic: 'product',
     question: 'Why is the ledger not connected?',
     keywords: ['ledger offline', 'not connected', 'pending', 'anchoring pending', 'ledger unavailable', 'why pending', 'retry'],
     answer: [
@@ -251,9 +251,9 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
   },
   {
     id: 'what-is-clearclaim',
-    topic: 'verisure',
+    topic: 'product',
     question: 'What is ClearClaim and who is it for?',
-    keywords: ['what is clearclaim', 'about', 'who are you', 'what can you do', 'help', 'what does this do', 'clearclaim', 'verisure'],
+    keywords: ['what is clearclaim', 'about', 'who are you', 'what can you do', 'help', 'what does this do', 'clearclaim', 'product'],
     answer: [
       'ClearClaim tells you, before you call your insurer, whether a car insurance claim is worth it: what the insurer might pay, what you’d pay, and how your No-Claim Bonus would be affected.',
       'Car owners use the claim check and the repair-quote X-ray. Fleets use claim triage to decide across many vehicles at once. Workshops use it to show customers what their insurance is likely to cover.',
@@ -263,7 +263,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
   },
   {
     id: 'repair-quote-xray',
-    topic: 'verisure',
+    topic: 'product',
     question: 'What is the repair-quote X-ray?',
     keywords: ['x-ray', 'xray', 'repair quote', 'workshop quote', 'estimate breakdown', 'line by line', 'which parts', 'who pays'],
     answer: [
@@ -275,7 +275,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
   },
   {
     id: 'fleet-triage',
-    topic: 'verisure',
+    topic: 'product',
     question: 'How does fleet claim triage work?',
     keywords: ['fleet', 'many vehicles', 'multiple claims', 'triage', 'taxi', 'logistics', 'company cars', 'bulk'],
     answer: [
@@ -288,7 +288,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
   },
   {
     id: 'demo',
-    topic: 'verisure',
+    topic: 'product',
     question: 'What are “demo records”?',
     keywords: ['demo', 'sample', 'fake', 'example', 'demo record', 'sandbox', 'test data'],
     answer: [
@@ -299,7 +299,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
   },
   {
     id: 'upload-policy',
-    topic: 'verisure',
+    topic: 'product',
     question: 'How does policy upload work?',
     keywords: ['upload', 'pdf', 'extract', 'scan', 'policy document', 'estimate pdf', 'read my policy', 'document'],
     answer: [
@@ -321,7 +321,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
   },
   {
     id: 'ai-scores',
-    topic: 'verisure',
+    topic: 'product',
     question: 'Does ClearClaim use AI to score my claim?',
     keywords: ['ai', 'machine learning', 'ml', 'fraud score', 'fraud', 'severity', 'model', 'damage detection', 'photo analysis'],
     answer: [

@@ -3,7 +3,6 @@ import datetime
 from services.document_processing.extractor import DocumentExtractor
 from services.financial_engine.calculator import calculate_decision
 from services.financial_engine.models import ClaimDecisionInput, VehicleInfo, PolicyInfo, RepairItem
-from services.vision_engine.detector import DamageDetector
 from services.fabric_client import FabricClient
 
 # ---------------------------------------------------------
@@ -131,18 +130,6 @@ def test_financial_engine_with_extracted_policy_and_estimate():
 # ---------------------------------------------------------
 # 3. Vision Engine Architecture & Security Review
 # ---------------------------------------------------------
-def test_vision_engine_experimental_stub():
-    """Verifies that the vision engine returns an EXPERIMENTAL_STUB with image provenance."""
-    detector = DamageDetector()
-    fake_jpeg = b"\xff\xd8\xff\xe0" + b"\x00" * 100
-
-    result = detector.analyze_image(fake_jpeg)
-
-    assert result.status == "EXPERIMENTAL_STUB"
-    assert len(result.image_hash) == 64
-    assert result.detected_damages == []
-    assert "COCO-Damage" in result.limitations or "weights" in result.limitations
-
 # ---------------------------------------------------------
 # 4. Hyperledger Fabric Client Verification
 # ---------------------------------------------------------

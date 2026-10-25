@@ -16,9 +16,9 @@ export function XRayPlayground() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 rounded-xl border border-navy-100 bg-white p-3 pl-5 text-sm sm:flex-row sm:items-center sm:justify-between">
-        <p className="flex items-center gap-2 text-navy-600">
-          <span className={`shrink-0 whitespace-nowrap rounded-md px-2 py-0.5 text-[11px] font-semibold ${isSample ? 'bg-amber-100 text-amber-900' : 'bg-navy-950 text-signal'}`}>{isSample ? 'Sample quote' : 'Your quote'}</span>
+      <div className="flex flex-col gap-3 rounded-xl border border-ink-100 bg-white p-3 pl-5 text-sm sm:flex-row sm:items-center sm:justify-between">
+        <p className="flex items-center gap-2 text-ink-600">
+          <span className={`shrink-0 whitespace-nowrap rounded-md px-2 py-0.5 text-[11px] font-semibold ${isSample ? 'bg-amber-100 text-amber-900' : 'bg-ink-950 text-signal'}`}>{isSample ? 'Sample quote' : 'Your quote'}</span>
           {isSample ? 'Fictional figures. Replace them with your workshop’s lines.' : 'Calculated on your device. Nothing is uploaded.'}
         </p>
         <div className="flex shrink-0 gap-2">

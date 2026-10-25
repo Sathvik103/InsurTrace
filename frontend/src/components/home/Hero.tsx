@@ -193,7 +193,7 @@ function Scanner() {
       </div>
       <AnimatePresence mode="wait">
         {done ? (
-          <motion.div key="v" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.5, delay: 0.5, ease: EASE }} className="mt-4 flex items-center justify-between rounded-2xl bg-signal px-4 py-3 text-navy-950">
+          <motion.div key="v" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.5, delay: 0.5, ease: EASE }} className="mt-4 flex items-center justify-between rounded-2xl bg-signal px-4 py-3 text-ink-950">
             <span className="font-display text-lg font-semibold">{verdict}</span>
             <span className="text-sm font-medium">saves about {rupees(Math.abs(result.estimated_saving))}</span>
           </motion.div>
@@ -212,7 +212,7 @@ export function Hero({ checkHref }: { checkHref: string }) {
   const reduce = useReducedMotion();
 
   return (
-    <section className="vs-grain relative isolate overflow-hidden bg-navy-950 text-white">
+    <section className="vs-grain relative isolate overflow-hidden bg-ink-950 text-white">
 
       <div className="mx-auto grid min-h-[100svh] max-w-7xl items-center gap-12 px-5 pb-16 pt-28 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pt-24">
         <div>
@@ -222,7 +222,7 @@ export function Hero({ checkHref }: { checkHref: string }) {
             transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
             className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] py-1 pl-1 pr-3 text-xs font-medium text-white/70"
           >
-            <span className="rounded-md bg-signal px-2 py-0.5 font-semibold text-navy-950">Free</span>
+            <span className="rounded-md bg-signal px-2 py-0.5 font-semibold text-ink-950">Free</span>
             For car owners, fleets and workshops in India
           </motion.p>
 
@@ -272,7 +272,7 @@ export function Hero({ checkHref }: { checkHref: string }) {
           >
               <Link href={checkHref} className="vs-btn-signal group w-full py-4 pl-7 pr-2 sm:w-auto">
                 Check my claim
-                <span className="ml-2 flex h-9 w-9 items-center justify-center rounded-full bg-navy-950 text-signal transition-transform duration-500 group-hover:rotate-[-45deg]">
+                <span className="ml-2 flex h-9 w-9 items-center justify-center rounded-full bg-ink-950 text-signal transition-transform duration-500 group-hover:rotate-[-45deg]">
                   <ArrowRight className="h-4 w-4" />
                 </span>
               </Link>

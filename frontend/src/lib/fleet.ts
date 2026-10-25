@@ -1,11 +1,12 @@
 import type { Vehicle } from '@/context/VehicleContext';
 import type { FleetVehicle } from '@/lib/triage';
+import { KEYS } from '@/lib/storage';
 
 /** Per-vehicle values a fleet manager can set locally when the record lacks them. */
 export type Overrides = Record<string, { premium?: number; deductible?: number; idv?: number }>;
 
-export const FLEET_INCIDENTS_KEY = 'cc_fleet_incidents';
-export const FLEET_OVERRIDES_KEY = 'cc_fleet_overrides';
+export const FLEET_INCIDENTS_KEY = KEYS.fleetIncidents;
+export const FLEET_OVERRIDES_KEY = KEYS.fleetOverrides;
 
 export function loadLocal<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') return fallback;

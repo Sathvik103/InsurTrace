@@ -80,15 +80,15 @@ export function LedgerCommitPanel({ buildPayload, disabled, onSaved }: LedgerCom
   };
 
   return (
-    <div className="space-y-3 rounded-2xl border border-navy-100 bg-white p-6">
+    <div className="space-y-3 rounded-2xl border border-ink-100 bg-white p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-950 text-signal">
+          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink-950 text-signal">
             <Lock className="h-4 w-4" aria-hidden="true" />
           </div>
           <div>
-            <h4 className="font-display text-lg font-semibold text-navy-950">Save this claim record</h4>
-            <p className="mt-0.5 text-sm leading-relaxed text-navy-500">
+            <h4 className="font-display text-lg font-semibold text-ink-950">Save this claim record</h4>
+            <p className="mt-0.5 text-sm leading-relaxed text-ink-500">
               Saves the repair estimate and this calculation to your vehicle history in ClearClaim, then anchors a SHA-256
               fingerprint on the Hyperledger Fabric ledger so later changes can be detected. It is <strong>not</strong> sent to your insurer.
             </p>
@@ -110,15 +110,15 @@ export function LedgerCommitPanel({ buildPayload, disabled, onSaved }: LedgerCom
       {error != null && !claim && <ApiErrorNotice error={error} onRetry={save} retrying={saving} />}
 
       {claim && (
-        <FadeIn className="mt-2 space-y-3 rounded-2xl bg-[#f6f5f0] p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-navy-950">
+        <FadeIn className="mt-2 space-y-3 rounded-2xl bg-paper p-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink-950">
             <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
             Claim record {claim.claim_number} saved
           </div>
           <LedgerStatusRow ledger={claim.ledger} onRetry={retry} retrying={retrying} />
           <Link
             href={`/verification?claimId=${claim.id}`}
-            className="inline-flex items-center gap-1 text-xs font-medium text-navy-950 underline-offset-2 hover:underline"
+            className="inline-flex items-center gap-1 text-xs font-medium text-ink-950 underline-offset-2 hover:underline"
           >
             View integrity details <ArrowRight className="h-3 w-3" aria-hidden="true" />
           </Link>
@@ -134,17 +134,17 @@ export function LedgerStatusRow({ ledger, onRetry, retrying }: { ledger: LedgerV
   if (status === 'COMMITTED') {
     return (
       <div className="space-y-2 text-xs">
-        <p className="flex items-center gap-1.5 font-semibold text-zinc-900 dark:text-zinc-100">
+        <p className="flex items-center gap-1.5 font-semibold text-ink-900">
           <ShieldCheck className="h-4 w-4 text-signal-700" aria-hidden="true" />
           {mode === 'MOCK' ? 'Development mock: not recorded on a ledger' : 'Fingerprint anchored on Hyperledger Fabric'}
         </p>
-        <dl className="grid grid-cols-1 gap-1 rounded-lg bg-zinc-50 p-2.5 font-mono text-[11px] text-zinc-600 sm:grid-cols-2 dark:bg-zinc-950 dark:text-zinc-400">
-          <div><dt className="inline text-zinc-400">Transaction: </dt><dd className="inline">{truncateHash(ledger.blockchain_tx_id || '', 8, 8)}</dd></div>
+        <dl className="grid grid-cols-1 gap-1 rounded-lg bg-ink-50 p-2.5 font-mono text-[11px] text-ink-600 sm:grid-cols-2">
+          <div><dt className="inline text-ink-400">Transaction: </dt><dd className="inline">{truncateHash(ledger.blockchain_tx_id || '', 8, 8)}</dd></div>
           {ledger.canonical_hash && (
-            <div className="truncate"><dt className="inline text-zinc-400">SHA-256: </dt><dd className="inline">{truncateHash(ledger.canonical_hash, 8, 8)}</dd></div>
+            <div className="truncate"><dt className="inline text-ink-400">SHA-256: </dt><dd className="inline">{truncateHash(ledger.canonical_hash, 8, 8)}</dd></div>
           )}
         </dl>
-        <p className="leading-relaxed text-zinc-500 dark:text-zinc-400">
+        <p className="leading-relaxed text-ink-500">
           This proves the saved record has not changed since it was anchored. It does not prove that the reported damage occurred.
         </p>
       </div>
@@ -153,7 +153,7 @@ export function LedgerStatusRow({ ledger, onRetry, retrying }: { ledger: LedgerV
 
   const failed = status === 'FAILED';
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 sm:flex-row sm:items-start dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+    <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 sm:flex-row sm:items-start">
       {failed ? <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden="true" /> : <Clock className="h-4 w-4 shrink-0" aria-hidden="true" />}
       <div className="flex-1 space-y-1">
         <p className="font-semibold">{failed ? 'The ledger did not accept the fingerprint' : 'Ledger not connected: anchoring pending'}</p>
@@ -168,7 +168,7 @@ export function LedgerStatusRow({ ledger, onRetry, retrying }: { ledger: LedgerV
           type="button"
           onClick={onRetry}
           disabled={retrying}
-          className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-amber-300 bg-white px-3 py-1.5 font-semibold hover:bg-amber-100 disabled:opacity-60 dark:border-amber-800 dark:bg-amber-950"
+          className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-amber-300 bg-white px-3 py-1.5 font-semibold hover:bg-amber-100 disabled:opacity-60"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${retrying ? 'animate-spin' : ''}`} aria-hidden="true" />
           {retrying ? 'Retrying…' : 'Retry anchoring'}

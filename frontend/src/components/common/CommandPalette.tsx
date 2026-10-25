@@ -73,23 +73,23 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-zinc-900/50 backdrop-blur-xs z-50 flex items-start justify-center pt-20 px-4">
-      <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+    <div className="fixed inset-0 bg-ink-900/50 backdrop-blur-xs z-50 flex items-start justify-center pt-20 px-4">
+      <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-ink-200 overflow-hidden">
         {/* Search Input Bar */}
-        <div className="p-3.5 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3">
-          <Search className="w-4 h-4 text-zinc-400 shrink-0" />
+        <div className="p-3.5 border-b border-ink-200 flex items-center gap-3">
+          <Search className="w-4 h-4 text-ink-400 shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search vehicles, claims, documents, settings (Esc to close)..."
-            className="w-full text-xs font-medium bg-transparent border-none outline-hidden text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+            className="w-full text-xs font-medium bg-transparent border-none outline-hidden text-ink-900 placeholder:text-ink-400"
           />
           <button
             type="button"
             onClick={onClose}
-            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+            className="text-ink-400 hover:text-ink-600"
           >
             <X className="w-4 h-4" />
           </button>
@@ -100,7 +100,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           {/* Vehicles Section */}
           {matchedVehicles.length > 0 && (
             <div>
-              <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider px-2.5 py-1">
+              <div className="text-[10px] font-semibold text-ink-400 uppercase tracking-wider px-2.5 py-1">
                 Vehicles
               </div>
               <div className="space-y-0.5 mt-0.5">
@@ -109,20 +109,20 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     key={v.id}
                     type="button"
                     onClick={() => handleSelectVehicle(v.id)}
-                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-between transition-colors"
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-ink-100 flex items-center justify-between transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
-                      <Car className="w-4 h-4 text-zinc-500" />
+                      <Car className="w-4 h-4 text-ink-500" />
                       <div>
-                        <div className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        <div className="font-semibold text-ink-900">
                           {v.make} {v.model}
                         </div>
-                        <div className="text-[10px] text-zinc-400 font-mono">
+                        <div className="text-[10px] text-ink-400 font-mono">
                           {v.registration_number} • {v.is_demo ? 'Demo Record' : 'My Vehicle'}
                         </div>
                       </div>
                     </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-zinc-400" />
+                    <ArrowRight className="w-3.5 h-3.5 text-ink-400" />
                   </button>
                 ))}
               </div>
@@ -132,7 +132,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           {/* Actions & Navigation Section */}
           {matchedCommands.length > 0 && (
             <div>
-              <div className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider px-2.5 py-1">
+              <div className="text-[10px] font-semibold text-ink-400 uppercase tracking-wider px-2.5 py-1">
                 Quick Actions
               </div>
               <div className="space-y-0.5 mt-0.5">
@@ -143,15 +143,15 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                       key={cmd.href}
                       type="button"
                       onClick={() => handleNavigate(cmd.href)}
-                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-between transition-colors"
+                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-ink-100 flex items-center justify-between transition-colors"
                     >
                       <div className="flex items-center gap-2.5">
-                        <Icon className="w-4 h-4 text-zinc-500" />
-                        <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                        <Icon className="w-4 h-4 text-ink-500" />
+                        <span className="font-medium text-ink-800">
                           {cmd.label}
                         </span>
                       </div>
-                      <span className="text-[10px] text-zinc-400">{cmd.category}</span>
+                      <span className="text-[10px] text-ink-400">{cmd.category}</span>
                     </button>
                   );
                 })}
@@ -160,7 +160,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
           )}
 
           {matchedVehicles.length === 0 && matchedCommands.length === 0 && (
-            <div className="p-6 text-center text-zinc-500 text-xs">
+            <div className="p-6 text-center text-ink-500 text-xs">
               No matching records or actions found for &ldquo;{query}&rdquo;.
             </div>
           )}

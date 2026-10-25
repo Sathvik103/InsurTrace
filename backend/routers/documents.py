@@ -14,6 +14,8 @@ from services.rate_limit import limiter, sensitive_limit
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
 PDF_MAGIC = b"%PDF-"
+# Photos of documents are accepted for reading (OCR); recognised by their first bytes, not the filename.
+IMAGE_MAGIC = {b"\xff\xd8\xff": "jpeg", b"\x89PNG\r\n\x1a\n": "png"}
 DocumentType = Literal["POLICY", "ESTIMATE", "INVOICE", "SURVEY_REPORT", "OTHER"]
 EntityTable = Literal["vehicles", "claims"]
 
@@ -23,17 +25,32 @@ def sanitize_filename(filename: str) -> str:
     return clean[-100:]
 
 
-async def read_pdf_upload(file: UploadFile) -> bytes:
-    """Reads an upload with a hard size cap and verifies it really is a PDF."""
+async def _read_capped(file: UploadFile) -> bytes:
     limit = get_settings().max_upload_bytes
     contents = await file.read(limit + 1)
     if len(contents) > limit:
         raise HTTPException(status_code=413, detail=f"File exceeds the {limit // (1024 * 1024)} MB limit.")
     if not contents:
         raise HTTPException(status_code=400, detail="The uploaded file is empty.")
+    return contents
+
+
+async def read_pdf_upload(file: UploadFile) -> bytes:
+    """Reads an upload with a hard size cap and verifies it really is a PDF."""
+    contents = await _read_capped(file)
     if not contents.startswith(PDF_MAGIC):
         raise HTTPException(status_code=415, detail="Only PDF documents are supported.")
     return contents
+
+
+async def read_document_upload(file: UploadFile) -> tuple[bytes, str]:
+    """A PDF, or a JPEG/PNG photo of a document. Returns the bytes and 'pdf' or 'image'."""
+    contents = await _read_capped(file)
+    if contents.startswith(PDF_MAGIC):
+        return contents, "pdf"
+    if any(contents.startswith(m) for m in IMAGE_MAGIC):
+        return contents, "image"
+    raise HTTPException(status_code=415, detail="Please upload a PDF, or a JPEG or PNG photo.")
 
 
 def _require_entity_access(profile: dict, entity_table: str, entity_id: str) -> None:
@@ -55,12 +72,13 @@ async def extract_document_sync(
     profile: dict = Depends(get_current_profile),
 ):
     """
-    Extracts text and structured fields from a PDF for the review screen.
-    Nothing is stored; the user reviews and corrects the fields first.
+    Extracts structured fields from a PDF or a photo for the review screen.
+    Scanned pages and photos are read with OCR. Nothing is stored; the user
+    reviews and corrects the fields first.
     """
-    contents = await read_pdf_upload(file)
+    contents, kind = await read_document_upload(file)
     extractor = DocumentExtractor()
-    extraction_result = extractor.extract_text(contents, "application/pdf")
+    extraction_result = extractor.read_document(contents, kind)
 
     if extraction_result["status"] == "PASSWORD_PROTECTED":
         raise HTTPException(
@@ -69,6 +87,7 @@ async def extract_document_sync(
         )
     if extraction_result["status"] not in ["SUCCESS", "SCANNED_PDF_NO_TEXT"]:
         raise HTTPException(status_code=422, detail=extraction_result.get("message", "We could not read this document."))
+    used_ocr = bool(extraction_result.get("ocr"))
 
     parsed_fields = {}
     if document_type == "POLICY":
@@ -82,6 +101,8 @@ async def extract_document_sync(
         "filename": sanitize_filename(file.filename),
         "is_scanned": extraction_result.get("status") == "SCANNED_PDF_NO_TEXT",
         "total_pages": extraction_result.get("total_pages", 1),
+        "ocr_used": used_ocr,
+        "source_kind": kind,
         "extraction_method": extraction_result.get("extraction_method", "pdfplumber (deterministic rules)"),
         "extracted_fields": parsed_fields,
         "raw_text": extraction_result.get("full_text", ""),

@@ -42,7 +42,7 @@ export function XRay({
   return (
     <div className="space-y-5">
       {/* Summary */}
-      <section className="vs-grain relative overflow-hidden rounded-2xl bg-navy-950 p-6 text-white sm:p-8">
+      <section className="vs-grain relative overflow-hidden rounded-2xl bg-ink-950 p-6 text-white sm:p-8">
         <div className="relative grid gap-6 sm:grid-cols-3">
           <Stat label="Repair quote" value={r.total} />
           <Stat label="Insurer would pay" value={r.insurerPays} tone="text-signal" />
@@ -110,7 +110,7 @@ export function XRay({
       {share >= TOTAL_LOSS_RATIO && (
         <div className="flex flex-col gap-3 rounded-xl border border-ember/40 bg-loss-soft p-5 sm:flex-row sm:items-center">
           <AlertTriangle className="h-5 w-5 shrink-0 text-loss" />
-          <p className="flex-1 text-sm text-navy-800">
+          <p className="flex-1 text-sm text-ink-800">
             <span className="font-semibold">This quote is {Math.round(share * 100)}% of the IDV.</span> Many policies treat repairs above about 75% of the IDV as a total loss, and selling the car as it is might also beat repairing.
           </p>
           <Link href="/decision" className="vs-btn-primary shrink-0 py-2.5">Compare repair vs sell <ArrowRight className="h-4 w-4" /></Link>
@@ -119,11 +119,11 @@ export function XRay({
 
       {/* Policy controls */}
       {onPolicyChange && (
-        <section className="grid gap-5 rounded-2xl border border-navy-100 bg-white p-6 md:grid-cols-[1.4fr_1fr_1fr]">
+        <section className="grid gap-5 rounded-2xl border border-ink-100 bg-white p-6 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <div className="flex items-baseline justify-between">
-              <span className="text-sm font-medium text-navy-800">Car age</span>
-              <span className="font-mono text-xs text-navy-500">
+              <span className="text-sm font-medium text-ink-800">Car age</span>
+              <span className="font-mono text-xs text-ink-500">
                 {policy.ageYears} yr{policy.ageYears === 1 ? '' : 's'} · metal {Math.round(metalDepreciation(policy.ageYears) * 100)}%
               </span>
             </div>
@@ -135,15 +135,15 @@ export function XRay({
               value={policy.ageYears}
               onChange={(e) => onPolicyChange({ ...policy, ageYears: Number(e.target.value) })}
               aria-label="Car age in years"
-              className="mt-4 w-full accent-navy-950"
+              className="mt-4 w-full accent-ink-950"
             />
-            <p className="mt-1 text-xs text-navy-400">Older cars lose more on metal parts. Plastic is always 50%.</p>
+            <p className="mt-1 text-xs text-ink-400">Older cars lose more on metal parts. Plastic is always 50%.</p>
           </div>
           <div>
-            <span className="text-sm font-medium text-navy-800">Deductible</span>
+            <span className="text-sm font-medium text-ink-800">Deductible</span>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {[1000, 2000].map((d) => (
-                <button key={d} type="button" onClick={() => onPolicyChange({ ...policy, deductible: d })} aria-pressed={policy.deductible === d} className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${policy.deductible === d ? 'bg-navy-950 text-white' : 'bg-navy-50 text-navy-700 hover:bg-navy-100'}`}>
+                <button key={d} type="button" onClick={() => onPolicyChange({ ...policy, deductible: d })} aria-pressed={policy.deductible === d} className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${policy.deductible === d ? 'bg-ink-950 text-white' : 'bg-ink-50 text-ink-700 hover:bg-ink-100'}`}>
                   {rupees(d)}
                 </button>
               ))}
@@ -152,12 +152,12 @@ export function XRay({
           </div>
           <div className="space-y-3">
             <label className="block">
-              <span className="text-sm font-medium text-navy-800">IDV</span>
+              <span className="text-sm font-medium text-ink-800">IDV</span>
               <MoneyBox value={policy.idv} onChange={(v) => onPolicyChange({ ...policy, idv: v })} placeholder="e.g. 6,00,000" />
             </label>
-            <button type="button" role="switch" aria-checked={policy.zeroDep} onClick={() => onPolicyChange({ ...policy, zeroDep: !policy.zeroDep })} className="flex w-full items-center justify-between rounded-2xl border border-navy-100 px-4 py-2.5 text-sm font-medium text-navy-800">
+            <button type="button" role="switch" aria-checked={policy.zeroDep} onClick={() => onPolicyChange({ ...policy, zeroDep: !policy.zeroDep })} className="flex w-full items-center justify-between rounded-2xl border border-ink-100 px-4 py-2.5 text-sm font-medium text-ink-800">
               Zero-dep cover
-              <span className={`relative h-6 w-11 rounded-full transition-colors ${policy.zeroDep ? 'bg-navy-950' : 'bg-navy-200'}`}>
+              <span className={`relative h-6 w-11 rounded-full transition-colors ${policy.zeroDep ? 'bg-ink-950' : 'bg-ink-200'}`}>
                 <motion.span layout className={`absolute top-1 h-4 w-4 rounded-full ${policy.zeroDep ? 'right-1 bg-signal' : 'left-1 bg-white'}`} transition={{ type: 'spring', stiffness: 600, damping: 32 }} />
               </span>
             </button>
@@ -166,8 +166,8 @@ export function XRay({
       )}
 
       {/* Lines */}
-      <section className="overflow-hidden rounded-2xl border border-navy-100 bg-white">
-        <ul className="divide-y divide-navy-50">
+      <section className="overflow-hidden rounded-2xl border border-ink-100 bg-white">
+        <ul className="divide-y divide-ink-50">
           <AnimatePresence initial={false}>
             {r.lines.map((l) => {
               const youPct = l.cost ? (l.depreciation / l.cost) * 100 : 0;
@@ -182,14 +182,14 @@ export function XRay({
                   exit={{ opacity: 0, height: 0 }}
                   onMouseEnter={() => setHover(l.id)}
                   onMouseLeave={() => setHover(null)}
-                  className={`grid gap-3 px-5 py-4 transition-colors duration-300 md:grid-cols-[1fr_120px_1fr] md:items-start md:gap-5 ${lit ? 'bg-[#f6f5f0]' : ''}`}
+                  className={`grid gap-3 px-5 py-4 transition-colors duration-300 md:grid-cols-[1fr_120px_1fr] md:items-start md:gap-5 ${lit ? 'bg-paper' : ''}`}
                 >
                   <div className="min-w-0 space-y-2">
                     <div className="flex items-center gap-2">
                       {editable ? (
-                        <input value={l.label} onChange={(e) => update(l.id, { label: e.target.value })} placeholder="Item, e.g. front bumper" aria-label="Item description" className="w-full bg-transparent font-medium text-navy-950 placeholder:text-navy-300 focus:outline-none" />
+                        <input value={l.label} onChange={(e) => update(l.id, { label: e.target.value })} placeholder="Item, e.g. front bumper" aria-label="Item description" className="w-full bg-transparent font-medium text-ink-950 placeholder:text-ink-300 focus:outline-none" />
                       ) : (
-                        <p className="font-medium text-navy-950">{l.label || 'Item'}</p>
+                        <p className="font-medium text-ink-950">{l.label || 'Item'}</p>
                       )}
                       {top && <span className="shrink-0 rounded-md bg-loss/10 px-2 py-0.5 text-[10px] font-semibold text-loss">Big cost to you</span>}
                     </div>
@@ -202,23 +202,23 @@ export function XRay({
                             role="radio"
                             aria-checked={l.category === c}
                             onClick={() => update(l.id, { category: c })}
-                            className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${l.category === c ? 'bg-navy-950 text-white' : 'bg-navy-50 text-navy-600 hover:bg-navy-100'}`}
+                            className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${l.category === c ? 'bg-ink-950 text-white' : 'bg-ink-50 text-ink-600 hover:bg-ink-100'}`}
                           >
                             {SHORT[c]}
                           </button>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-navy-500">{CATEGORY_LABEL[l.category]}</p>
+                      <p className="text-xs text-ink-500">{CATEGORY_LABEL[l.category]}</p>
                     )}
                   </div>
                   {editable ? (
                     <MoneyBox value={l.cost} onChange={(v) => update(l.id, { cost: v })} placeholder="Cost" />
                   ) : (
-                    <p className="tabular text-right font-medium text-navy-950">{rupees(l.cost)}</p>
+                    <p className="tabular text-right font-medium text-ink-950">{rupees(l.cost)}</p>
                   )}
                   <div className="space-y-1.5">
-                    <div className="flex h-2.5 overflow-hidden rounded-md bg-navy-50">
+                    <div className="flex h-2.5 overflow-hidden rounded-md bg-ink-50">
                       <motion.span className="h-full bg-signal-600" initial={false} animate={{ width: `${100 - youPct}%` }} transition={{ duration: reduce ? 0 : 0.5, ease: EASE }} />
                       <motion.span className="h-full bg-ember" initial={false} animate={{ width: `${youPct}%` }} transition={{ duration: reduce ? 0 : 0.5, ease: EASE }} />
                     </div>
@@ -226,12 +226,12 @@ export function XRay({
                       <span className="tabular font-medium text-signal-700">Insurer {rupees(l.insurerShare)}</span>
                       <span className="tabular font-medium text-loss">You {rupees(l.depreciation)}{l.depRate ? ` · ${Math.round(l.depRate * 100)}%` : ''}</span>
                       {editable && (
-                        <button type="button" onClick={() => onLinesChange?.(lines.filter((x) => x.id !== l.id))} className="ml-2 rounded-md p-1 text-navy-300 transition hover:bg-red-50 hover:text-red-600" aria-label={`Remove ${l.label || 'item'}`}>
+                        <button type="button" onClick={() => onLinesChange?.(lines.filter((x) => x.id !== l.id))} className="ml-2 rounded-md p-1 text-ink-300 transition hover:bg-red-50 hover:text-red-600" aria-label={`Remove ${l.label || 'item'}`}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       )}
                     </div>
-                    {!compact && l.tip && <p className="text-xs leading-relaxed text-navy-500">{l.tip}</p>}
+                    {!compact && l.tip && <p className="text-xs leading-relaxed text-ink-500">{l.tip}</p>}
                   </div>
                 </motion.li>
               );
@@ -239,12 +239,12 @@ export function XRay({
           </AnimatePresence>
         </ul>
         {editable && (
-          <button type="button" onClick={() => onLinesChange?.([...lines, newLine()])} className="flex w-full items-center gap-2 border-t border-navy-100 px-5 py-3.5 text-sm font-medium text-navy-500 transition hover:bg-[#f6f5f0] hover:text-navy-950">
+          <button type="button" onClick={() => onLinesChange?.([...lines, newLine()])} className="flex w-full items-center gap-2 border-t border-ink-100 px-5 py-3.5 text-sm font-medium text-ink-500 transition hover:bg-paper hover:text-ink-950">
             <Plus className="h-4 w-4" /> Add a line
           </button>
         )}
       </section>
-      <p className="text-xs leading-relaxed text-navy-500">
+      <p className="text-xs leading-relaxed text-ink-500">
         Uses the standard depreciation schedule insurers commonly apply. Your policy wording, add-ons and the surveyor’s assessment decide the actual settlement.
       </p>
     </div>
@@ -263,7 +263,7 @@ function Stat({ label, value, tone = 'text-white' }: { label: string; value: num
 function MoneyBox({ value, onChange, placeholder, small }: { value: number; onChange: (v: number) => void; placeholder?: string; small?: boolean }) {
   return (
     <span className={`relative block ${small ? 'w-28' : 'mt-1.5'}`}>
-      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-navy-400">₹</span>
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">₹</span>
       <input
         inputMode="numeric"
         value={value ? new Intl.NumberFormat('en-IN').format(value) : ''}

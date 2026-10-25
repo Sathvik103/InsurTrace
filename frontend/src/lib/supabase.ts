@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { KEYS, migrateLegacyStorage } from "./storage";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-project.supabase.co";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
@@ -13,10 +14,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  const token = localStorage.getItem("verisure_token") || localStorage.getItem("insuretrace_token");
+  migrateLegacyStorage();
+  const token = localStorage.getItem(KEYS.token);
   if (token) return token;
   // If in an active demo persona session
-  const demoPersona = localStorage.getItem("verisure_demo_persona");
+  const demoPersona = localStorage.getItem(KEYS.demoPersona);
   if (demoPersona) {
     try {
       const parsed = JSON.parse(demoPersona);
@@ -28,14 +30,12 @@ export function getAuthToken(): string | null {
 
 export function setAuthToken(token: string) {
   if (typeof window === "undefined") return;
-  localStorage.setItem("verisure_token", token);
-  localStorage.setItem("insuretrace_token", token);
+  localStorage.setItem(KEYS.token, token);
 }
 
 export function clearAuthTokens() {
   if (typeof window === "undefined") return;
-  localStorage.removeItem("verisure_token");
-  localStorage.removeItem("insuretrace_token");
-  localStorage.removeItem("verisure_demo_persona");
+  localStorage.removeItem(KEYS.token);
+  localStorage.removeItem(KEYS.demoPersona);
 }
 

@@ -42,9 +42,9 @@ function Card({ title, children, delay = 0 }: { title: string; children: React.R
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: EASE, delay }}
-      className="rounded-2xl border border-navy-100 bg-white p-6"
+      className="rounded-2xl border border-ink-100 bg-white p-6"
     >
-      <h2 className="text-lg font-semibold text-navy-900">{title}</h2>
+      <h2 className="text-lg font-semibold text-ink-900">{title}</h2>
       <div className="mt-4">{children}</div>
     </motion.section>
   );
@@ -106,39 +106,39 @@ export default function SettingsPage() {
     <AppShell>
       <div className="mx-auto max-w-3xl space-y-6">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">Settings</h1>
-          <p className="mt-2 text-navy-500">Your account, your data, and whether each part of {BRAND.name} is working right now.</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl">Settings</h1>
+          <p className="mt-2 text-ink-500">Your account, your data, and whether each part of {BRAND.name} is working right now.</p>
         </div>
 
         <Card title="Account">
-          <dl className="divide-y divide-navy-50">
+          <dl className="divide-y divide-ink-50">
             {rows.map(([k, v]) => (
               <div key={k} className="flex flex-col gap-0.5 py-3 sm:flex-row sm:justify-between">
-                <dt className="text-sm text-navy-500">{k}</dt>
-                <dd className="text-sm font-medium text-navy-900">{v}</dd>
+                <dt className="text-sm text-ink-500">{k}</dt>
+                <dd className="text-sm font-medium text-ink-900">{v}</dd>
               </div>
             ))}
           </dl>
           <div className="mt-4 flex flex-wrap gap-2">
             {['POLICYHOLDER', 'FLEET_OPERATOR'].includes(roleKey) && (
-              <Link href="/vehicles" className="rounded-xl border border-navy-200 px-3 py-2 text-sm font-medium text-navy-700 hover:bg-navy-50">My cars ({vehicles.length})</Link>
+              <Link href="/vehicles" className="rounded-xl border border-ink-200 px-3 py-2 text-sm font-medium text-ink-700 hover:bg-ink-50">My cars ({vehicles.length})</Link>
             )}
-            {isOrg && <Link href={orgHomeFor(roleKey)} className="rounded-xl border border-navy-200 px-3 py-2 text-sm font-medium text-navy-700 hover:bg-navy-50">Open workspace</Link>}
+            {isOrg && <Link href={orgHomeFor(roleKey)} className="rounded-xl border border-ink-200 px-3 py-2 text-sm font-medium text-ink-700 hover:bg-ink-50">Open workspace</Link>}
           </div>
         </Card>
 
         <Card title="Your data" delay={0.05}>
-          <p className="text-sm leading-relaxed text-navy-600">
+          <p className="text-sm leading-relaxed text-ink-600">
             Download everything stored for your account: cars, saved records and who you have shared them with. To have your data deleted, email us from the address on your account. We handle requests in line with India&apos;s DPDP Act.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <button type="button" onClick={exportData} disabled={exporting} className="inline-flex items-center gap-2 rounded-xl bg-navy-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 disabled:opacity-60">
+            <button type="button" onClick={exportData} disabled={exporting} className="inline-flex items-center gap-2 rounded-xl bg-ink-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-ink-800 disabled:opacity-60">
               <Download className="h-4 w-4" /> {exporting ? 'Preparing…' : 'Download my data'}
             </button>
-            <Link href="/decision/consent" className="inline-flex items-center gap-2 rounded-xl border border-navy-200 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-50">
+            <Link href="/decision/consent" className="inline-flex items-center gap-2 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50">
               <Share2 className="h-4 w-4" /> Manage sharing
             </Link>
-            <a href={`mailto:${BRAND.contactEmail}?subject=${encodeURIComponent('Data deletion request')}`} className="inline-flex items-center gap-2 rounded-xl border border-navy-200 px-4 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-50">
+            <a href={`mailto:${BRAND.contactEmail}?subject=${encodeURIComponent('Data deletion request')}`} className="inline-flex items-center gap-2 rounded-xl border border-ink-200 px-4 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50">
               <Mail className="h-4 w-4" /> Request deletion
             </a>
           </div>
@@ -151,23 +151,23 @@ export default function SettingsPage() {
             <div className="vs-shimmer h-40 rounded-2xl" />
           ) : (
             <>
-              <ul className="divide-y divide-navy-50">
+              <ul className="divide-y divide-ink-50">
                 {Object.entries(status.components).map(([key, c]) => {
                   const ok = OK.includes(c.badge_variant || '');
                   const off = OFF.includes(c.badge_variant || '');
                   const Icon = ok ? CheckCircle2 : off ? CircleDashed : CircleAlert;
                   return (
                     <li key={key} className="flex items-start gap-3 py-3">
-                      <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${ok ? 'text-gain' : off ? 'text-navy-300' : 'text-amber-600'}`} />
+                      <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${ok ? 'text-gain' : off ? 'text-ink-300' : 'text-amber-600'}`} />
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-navy-900">{c.name}</p>
-                        {c.details && <p className="text-xs leading-relaxed text-navy-500">{c.details}</p>}
+                        <p className="text-sm font-medium text-ink-900">{c.name}</p>
+                        {c.details && <p className="text-xs leading-relaxed text-ink-500">{c.details}</p>}
                       </div>
                     </li>
                   );
                 })}
               </ul>
-              <p className="mt-3 text-xs text-navy-400">
+              <p className="mt-3 text-xs text-ink-400">
                 {status.data_mode === 'DEMO_SANDBOX' ? 'This server runs on sample data.' : 'Connected to the live database.'} Grey items are not part of {BRAND.name} yet; we never show them as working.
               </p>
             </>

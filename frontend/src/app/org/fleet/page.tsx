@@ -50,7 +50,7 @@ function Strategy({ plan, count }: { plan: FleetPlan; count: number }) {
   const saving = Math.max(0, nextBest - plan.planCost);
 
   return (
-    <section className="vs-grain relative overflow-hidden rounded-2xl bg-navy-950 p-6 text-white sm:p-8">
+    <section className="vs-grain relative overflow-hidden rounded-2xl bg-ink-950 p-6 text-white sm:p-8">
       <div className="relative grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/45">This month’s plan saves</p>
@@ -208,8 +208,8 @@ export default function FleetTriagePage() {
       {live.length > 0 && <Strategy plan={plan} count={priced} />}
 
       {hasSample && (
-        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-navy-100 bg-white p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-navy-600"><span className="font-semibold text-navy-950">Sample incidents loaded.</span> They show how triage works with your vehicles. Replace them with your own before saving.</p>
+        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-ink-100 bg-white p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-ink-600"><span className="font-semibold text-ink-950">Sample incidents loaded.</span> They show how triage works with your vehicles. Replace them with your own before saving.</p>
           <button type="button" onClick={() => setIncidents((x) => x.filter((i) => !i.sample))} className="vs-btn-secondary shrink-0 py-2"><X className="h-4 w-4" /> Clear samples</button>
         </div>
       )}
@@ -225,17 +225,17 @@ export default function FleetTriagePage() {
       )}
 
       {orphaned > 0 && (
-        <p className="mt-4 rounded-2xl border border-navy-100 bg-white p-4 text-sm text-navy-600">
+        <p className="mt-4 rounded-2xl border border-ink-100 bg-white p-4 text-sm text-ink-600">
           {orphaned} incident{orphaned > 1 ? 's belong' : ' belongs'} to a vehicle no longer in your fleet and {orphaned > 1 ? 'are' : 'is'} left out of the plan.{' '}
-          <button type="button" className="font-semibold text-navy-950 underline" onClick={() => setIncidents((x) => x.filter((i) => byId.has(i.vehicleId)))}>Remove</button>
+          <button type="button" className="font-semibold text-ink-950 underline" onClick={() => setIncidents((x) => x.filter((i) => byId.has(i.vehicleId)))}>Remove</button>
         </p>
       )}
 
       {live.length === 0 ? (
-        <section className="mt-2 flex flex-col items-center gap-4 rounded-2xl border border-navy-100 bg-white p-12 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy-950 text-signal"><Layers className="h-6 w-6" /></span>
-          <h2 className="font-display text-2xl font-semibold tracking-tight text-navy-950">No incidents this month</h2>
-          <p className="max-w-md text-sm text-navy-500">Add incidents one by one, import a CSV from your maintenance log, or load a sample month to see how triage decides.</p>
+        <section className="mt-2 flex flex-col items-center gap-4 rounded-2xl border border-ink-100 bg-white p-12 text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-ink-950 text-signal"><Layers className="h-6 w-6" /></span>
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-950">No incidents this month</h2>
+          <p className="max-w-md text-sm text-ink-500">Add incidents one by one, import a CSV from your maintenance log, or load a sample month to see how triage decides.</p>
           <div className="flex flex-wrap justify-center gap-2">
             <button type="button" onClick={() => add()} className="vs-btn-primary"><Plus className="h-4 w-4" /> Add the first incident</button>
             <button type="button" onClick={loadSample} className="vs-btn-secondary">Load a sample month</button>
@@ -256,32 +256,32 @@ export default function FleetTriagePage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.5, delay: gi * 0.04, ease: EASE }}
-                  className="overflow-hidden rounded-2xl border border-navy-100 bg-white"
+                  className="overflow-hidden rounded-2xl border border-ink-100 bg-white"
                 >
-                  <header className="flex flex-col gap-4 border-b border-navy-100 bg-[#f6f5f0] p-5 sm:flex-row sm:items-center">
+                  <header className="flex flex-col gap-4 border-b border-ink-100 bg-paper p-5 sm:flex-row sm:items-center">
                     <CarSilhouette vehicle={v} className="h-14 w-36 shrink-0" />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="font-display text-xl font-semibold tracking-tight text-navy-950">{f.label}</h2>
+                        <h2 className="font-display text-xl font-semibold tracking-tight text-ink-950">{f.label}</h2>
                         <NumberPlate value={f.registration} commercial={!!v.usage_type && v.usage_type !== 'PERSONAL'} />
                         {vp?.bundled && (
-                          <span className="inline-flex items-center gap-1 rounded-md bg-navy-950 px-2.5 py-1 text-[11px] font-semibold text-signal">
+                          <span className="inline-flex items-center gap-1 rounded-md bg-ink-950 px-2.5 py-1 text-[11px] font-semibold text-signal">
                             <Link2 className="h-3 w-3" /> Bundled
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 text-xs text-navy-500">
+                      <p className="mt-1 text-xs text-ink-500">
                         {f.ncb}% No-Claim Bonus · worth {rupees(vp?.ncbLoss ?? 0)} at renewal · {f.ageYears} yr old
                       </p>
                     </div>
                     {vp && <VehicleCost vp={vp} />}
                   </header>
-                  <ul className="divide-y divide-navy-50">
+                  <ul className="divide-y divide-ink-50">
                     {rows.map((inc) => (
                       <IncidentRow key={inc.id} inc={inc} vp={vp} fleet={fleet} onChange={(p) => update(inc.id, p)} onRemove={() => remove(inc.id)} />
                     ))}
                   </ul>
-                  <button type="button" onClick={() => add(f.id)} className="flex w-full items-center gap-2 px-5 py-3 text-sm font-medium text-navy-500 transition hover:bg-[#f6f5f0] hover:text-navy-950">
+                  <button type="button" onClick={() => add(f.id)} className="flex w-full items-center gap-2 px-5 py-3 text-sm font-medium text-ink-500 transition hover:bg-paper hover:text-ink-950">
                     <Plus className="h-4 w-4" /> Another incident on {f.registration}
                   </button>
                 </motion.section>
@@ -290,7 +290,7 @@ export default function FleetTriagePage() {
           </AnimatePresence>
 
           <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-navy-500">Incidents stay on this device until you save them. Estimates use standard rules; insurers and surveyors decide actual settlements.</p>
+            <p className="text-xs text-ink-500">Incidents stay on this device until you save them. Estimates use standard rules; insurers and surveyors decide actual settlements.</p>
             <div className="flex shrink-0 gap-2">
               <button type="button" onClick={() => download('clearclaim-fleet-plan.csv', planToCsv(plan))} className="vs-btn-secondary py-2.5"><Download className="h-4 w-4" /> Export plan</button>
               <button type="button" onClick={saveClaims} disabled={saving || hasSample} title={hasSample ? 'Clear the sample incidents first' : undefined} className="vs-btn-primary py-2.5">
@@ -308,8 +308,8 @@ function VehicleCost({ vp }: { vp: VehiclePlan }) {
   const alt = Math.min(vp.claimAllCost, vp.payAllCost);
   return (
     <div className="text-left sm:text-right">
-      <p className="text-[11px] uppercase tracking-wide text-navy-400">Plan cost</p>
-      <p className="tabular font-display text-2xl font-semibold text-navy-950">{rupees(vp.planCost)}</p>
+      <p className="text-[11px] uppercase tracking-wide text-ink-400">Plan cost</p>
+      <p className="tabular font-display text-2xl font-semibold text-ink-950">{rupees(vp.planCost)}</p>
       {alt - vp.planCost > 0.5 && <p className="text-xs font-medium text-signal-700">saves {rupees(alt - vp.planCost)}</p>}
     </div>
   );
@@ -345,7 +345,7 @@ function IncidentRow({
       <div className="min-w-0 space-y-1.5 sm:col-span-3 lg:col-span-1">
         <input value={inc.description} onChange={(e) => onChange({ description: e.target.value })} placeholder="What happened, e.g. rear bumper scrape" className="vs-input py-2 text-sm" aria-label="What happened" />
         <div className="flex items-center gap-2">
-          <select value={inc.vehicleId} onChange={(e) => onChange({ vehicleId: e.target.value })} className="max-w-[14rem] truncate rounded-lg border border-navy-100 bg-white px-2 py-1 text-xs text-navy-600" aria-label="Move to another vehicle">
+          <select value={inc.vehicleId} onChange={(e) => onChange({ vehicleId: e.target.value })} className="max-w-[14rem] truncate rounded-lg border border-ink-100 bg-white px-2 py-1 text-xs text-ink-600" aria-label="Move to another vehicle">
             {fleet.map((v) => <option key={v.id} value={v.id}>{v.registration} · {v.label}</option>)}
           </select>
           {inc.sample && <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800 ring-1 ring-amber-200">Sample</span>}
@@ -358,7 +358,7 @@ function IncidentRow({
         </div>
       </div>
       <label className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-navy-400">₹</span>
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">₹</span>
         <input
           value={inc.amount ? new Intl.NumberFormat('en-IN').format(inc.amount) : ''}
           inputMode="numeric"
@@ -373,19 +373,19 @@ function IncidentRow({
       </select>
       <label className="relative">
         <input value={inc.daysOffRoad ? String(inc.daysOffRoad) : ''} inputMode="numeric" onChange={(e) => onChange({ daysOffRoad: Math.min(365, Number(e.target.value.replace(/[^\d]/g, '')) || 0) })} placeholder="0" className="vs-input tabular py-2 pr-12 text-right text-sm" aria-label="Days off road" />
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-navy-400">days</span>
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-400">days</span>
       </label>
       <div className="min-w-0 sm:col-span-2 lg:col-span-1">
         {reason ? (
           <motion.div key={d!.decision} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="flex items-start gap-2.5">
-            <span className={`mt-0.5 shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold ${claim ? 'bg-signal text-navy-950' : 'bg-navy-100 text-navy-800'}`}>{claim ? 'Claim' : 'Pay'}</span>
-            <p className="text-xs leading-relaxed text-navy-500">{reason}</p>
+            <span className={`mt-0.5 shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold ${claim ? 'bg-signal text-ink-950' : 'bg-ink-100 text-ink-800'}`}>{claim ? 'Claim' : 'Pay'}</span>
+            <p className="text-xs leading-relaxed text-ink-500">{reason}</p>
           </motion.div>
         ) : (
-          <span className="text-xs text-navy-400">Enter the quote to see a decision</span>
+          <span className="text-xs text-ink-400">Enter the quote to see a decision</span>
         )}
       </div>
-      <button type="button" onClick={onRemove} className="justify-self-end rounded-md p-2 text-navy-300 transition hover:bg-red-50 hover:text-red-600" aria-label="Remove incident">
+      <button type="button" onClick={onRemove} className="justify-self-end rounded-md p-2 text-ink-300 transition hover:bg-red-50 hover:text-red-600" aria-label="Remove incident">
         <Trash2 className="h-4 w-4" />
       </button>
     </motion.li>

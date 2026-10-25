@@ -17,9 +17,9 @@ type Key = 'premium' | 'deductible' | 'idv';
 function MoneyInput({ value, onChange, label, warn }: { value?: number; onChange: (v: string) => void; label: string; warn?: boolean }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] uppercase tracking-wide text-navy-400">{label}</span>
+      <span className="mb-1 block text-[11px] uppercase tracking-wide text-ink-400">{label}</span>
       <span className="relative block">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-navy-400">₹</span>
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">₹</span>
         <input
           value={value ? new Intl.NumberFormat('en-IN').format(value) : ''}
           onChange={(e) => onChange(e.target.value)}
@@ -53,15 +53,15 @@ export default function FleetVehiclesPage() {
       actions={<Link href="/onboarding" className="vs-btn-primary py-2.5"><Plus className="h-4 w-4" /> Add vehicle</Link>}
     >
       {fleet.length > 0 && (
-        <div className="mb-5 flex items-center gap-4 rounded-2xl border border-navy-100 bg-white p-4">
-          <div className="h-2 flex-1 overflow-hidden rounded-md bg-navy-50">
+        <div className="mb-5 flex items-center gap-4 rounded-2xl border border-ink-100 bg-white p-4">
+          <div className="h-2 flex-1 overflow-hidden rounded-md bg-ink-50">
             <motion.div className="h-full rounded-md bg-signal-600" initial={reduce ? false : { width: 0 }} animate={{ width: `${(ready / fleet.length) * 100}%` }} transition={{ duration: 0.8 }} />
           </div>
-          <p className="shrink-0 text-sm text-navy-600"><span className="font-semibold text-navy-950">{ready} of {fleet.length}</span> ready for triage</p>
+          <p className="shrink-0 text-sm text-ink-600"><span className="font-semibold text-ink-950">{ready} of {fleet.length}</span> ready for triage</p>
         </div>
       )}
 
-      {fleet.length === 0 && <p className="rounded-2xl border border-navy-100 bg-white p-10 text-center text-sm text-navy-500">No vehicles yet. Add your first vehicle to start triaging claims.</p>}
+      {fleet.length === 0 && <p className="rounded-2xl border border-ink-100 bg-white p-10 text-center text-sm text-ink-500">No vehicles yet. Add your first vehicle to start triaging claims.</p>}
 
       <div className="grid gap-4 md:grid-cols-2">
         {fleet.map(({ v, f }, i) => {
@@ -72,13 +72,13 @@ export default function FleetVehiclesPage() {
               initial={reduce ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04, duration: 0.5 }}
-              className="overflow-hidden rounded-2xl border border-navy-100 bg-white"
+              className="overflow-hidden rounded-2xl border border-ink-100 bg-white"
             >
-              <div className="flex items-center gap-4 bg-[#f6f5f0] p-5">
+              <div className="flex items-center gap-4 bg-paper p-5">
                 <CarSilhouette vehicle={v} className="h-14 w-32 shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <Link href={`/vehicles/${encodeURIComponent(v.id)}`} className="block truncate font-display text-lg font-semibold tracking-tight text-navy-950 hover:underline">{f.label}</Link>
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-navy-500">
+                  <Link href={`/vehicles/${encodeURIComponent(v.id)}`} className="block truncate font-display text-lg font-semibold tracking-tight text-ink-950 hover:underline">{f.label}</Link>
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-500">
                     <NumberPlate value={f.registration} commercial={!!v.usage_type && v.usage_type !== 'PERSONAL'} />
                     <span>{BODY_LABEL[bodyTypeOf(v)]} · {f.ageYears} yr · {f.ncb}% NCB{v.is_demo ? ' · Demo' : ''}</span>
                   </div>
@@ -91,7 +91,7 @@ export default function FleetVehiclesPage() {
                 <MoneyInput label="IDV" value={f.idv} onChange={(x) => set(v.id, 'idv', x)} warn={!f.idv} />
                 <MoneyInput label="Renewal premium" value={f.premium} onChange={(x) => set(v.id, 'premium', x)} warn={!f.premium} />
                 <MoneyInput label="Deductible" value={overrides[v.id]?.deductible} onChange={(x) => set(v.id, 'deductible', x)} />
-                <p className="col-span-3 text-xs text-navy-400">
+                <p className="col-span-3 text-xs text-ink-400">
                   Deductible defaults to ₹1,000 when left empty.{f.downtimePerDay ? ` Downtime ${rupees(f.downtimePerDay)}/day.` : ''}
                 </p>
               </div>

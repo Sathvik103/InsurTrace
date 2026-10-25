@@ -87,61 +87,61 @@ export function AttentionCenter() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-lg text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+        className="relative p-2 rounded-lg text-ink-600 hover:bg-ink-100 transition-colors"
         title="Attention Center"
         aria-label="Attention Center"
       >
         <Bell className="w-4 h-4" />
         {items.length > 0 && (
           <span className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full ${
-            highPriorityCount > 0 ? 'bg-rose-500' : 'bg-sky-500'
+            highPriorityCount > 0 ? 'bg-loss' : 'bg-forest-500'
           }`} />
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl z-50 overflow-hidden text-xs">
-          <div className="p-3.5 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-            <div className="font-bold text-zinc-900 dark:text-zinc-100">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-ink-200 bg-white shadow-xl z-50 overflow-hidden text-xs">
+          <div className="p-3.5 border-b border-ink-100 flex items-center justify-between">
+            <div className="font-bold text-ink-900">
               Attention Center
             </div>
-            <span className="text-[10px] font-mono text-zinc-400">
+            <span className="text-[10px] font-mono text-ink-400">
               {items.length} actionable item(s)
             </span>
           </div>
 
-          <div className="max-h-80 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
+          <div className="max-h-80 overflow-y-auto divide-y divide-ink-100">
             {items.length === 0 ? (
-              <div className="p-6 text-center text-zinc-500">
-                <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
+              <div className="p-6 text-center text-ink-500">
+                <CheckCircle2 className="w-6 h-6 text-gain mx-auto mb-2" />
                 <p className="font-medium">All records are up to date</p>
-                <p className="text-[11px] text-zinc-400 mt-1">No pending actions required.</p>
+                <p className="text-[11px] text-ink-400 mt-1">No pending actions required.</p>
               </div>
             ) : (
               items.map((item) => (
-                <div key={item.id} className="p-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors space-y-1.5">
+                <div key={item.id} className="p-3.5 hover:bg-ink-50 transition-colors space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-[240px]">
+                    <span className="font-bold text-ink-900 truncate max-w-[240px]">
                       {item.title}
                     </span>
                     <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded ${
                       item.severity === 'high'
-                        ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                        ? 'bg-loss-soft text-loss'
                         : item.severity === 'medium'
-                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                        : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-ink-100 text-ink-700'
                     }`}>
                       {item.severity}
                     </span>
                   </div>
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                  <p className="text-[11px] text-ink-500 leading-relaxed">
                     {item.description}
                   </p>
                   <div className="pt-1">
                     <Link
                       href={item.actionHref}
                       onClick={() => setOpen(false)}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-700"
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-forest-600 hover:text-forest-700"
                     >
                       <span>{item.actionLabel}</span>
                       <ArrowRight className="w-3 h-3" />

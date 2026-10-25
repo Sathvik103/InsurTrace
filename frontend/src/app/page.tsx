@@ -31,33 +31,33 @@ function Example() {
   const payTotal = EXAMPLE.self_pay_cost;
   const max = Math.max(claimTotal, payTotal);
   return (
-    <section className="bg-[#f6f5f0] px-5 py-24 lg:py-32">
+    <section className="bg-paper px-5 py-24 lg:py-32">
       <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <Reveal>
-          <p className="text-sm font-semibold text-steel-700">Why it matters</p>
-          <h2 className="mt-4 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">A ₹12,000 bumper can cost more to claim.</h2>
-          <p className="mt-5 max-w-md text-lg leading-relaxed text-navy-500">
+          <p className="text-sm font-semibold text-forest-700">Why it matters</p>
+          <h2 className="mt-4 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-ink-950 sm:text-5xl">A ₹12,000 bumper can cost more to claim.</h2>
+          <p className="mt-5 max-w-md text-lg leading-relaxed text-ink-500">
             Insurers deduct 50% on plastic parts, you pay the deductible, and the claim resets your No-Claim Bonus at renewal. Add it up and paying the workshop yourself is often cheaper.
           </p>
-          <p className="mt-4 text-sm text-navy-400">Example: 3-year-old car, 35% No-Claim Bonus, ₹18,000 renewal premium.</p>
+          <p className="mt-4 text-sm text-ink-400">Example: 3-year-old car, 35% No-Claim Bonus, ₹18,000 renewal premium.</p>
         </Reveal>
         <Reveal delay={0.1}>
-          <div className="rounded-2xl bg-white p-7 ring-1 ring-navy-100 sm:p-9">
+          <div className="rounded-2xl bg-white p-7 ring-1 ring-ink-100 sm:p-9">
             {[
               { label: 'If you claim', total: claimTotal, lines: [['You pay the workshop', claimNow], ['Bonus lost at renewal', bonus]] as [string, number][], win: claimTotal < payTotal },
               { label: 'If you pay yourself', total: payTotal, lines: [['Full repair bill', payTotal]] as [string, number][], win: payTotal <= claimTotal },
             ].map((o) => (
-              <div key={o.label} className="border-b border-navy-100 py-6 first:pt-0 last:border-0 last:pb-0">
+              <div key={o.label} className="border-b border-ink-100 py-6 first:pt-0 last:border-0 last:pb-0">
                 <div className="flex items-baseline justify-between gap-4">
-                  <p className="font-medium text-navy-700">{o.label}</p>
-                  <p className={`tabular font-display text-3xl font-semibold tracking-tight ${o.win ? 'text-navy-950' : 'text-navy-400'}`}>{rupees(o.total)}</p>
+                  <p className="font-medium text-ink-700">{o.label}</p>
+                  <p className={`tabular font-display text-3xl font-semibold tracking-tight ${o.win ? 'text-ink-950' : 'text-ink-400'}`}>{rupees(o.total)}</p>
                 </div>
-                <div className="mt-3 h-2.5 overflow-hidden rounded-md bg-navy-50">
-                  <motion.div className={`h-full rounded-md ${o.win ? 'bg-signal-600' : 'bg-navy-300'}`} initial={{ width: 0 }} whileInView={{ width: `${(o.total / max) * 100}%` }} viewport={{ once: true }} transition={{ duration: 0.9, ease: EASE }} />
+                <div className="mt-3 h-2.5 overflow-hidden rounded-md bg-ink-50">
+                  <motion.div className={`h-full rounded-md ${o.win ? 'bg-signal-600' : 'bg-ink-300'}`} initial={{ width: 0 }} whileInView={{ width: `${(o.total / max) * 100}%` }} viewport={{ once: true }} transition={{ duration: 0.9, ease: EASE }} />
                 </div>
                 <dl className="mt-3 space-y-1 text-sm">
                   {o.lines.map(([k, v]) => (
-                    <div key={k} className="flex justify-between text-navy-500">
+                    <div key={k} className="flex justify-between text-ink-500">
                       <dt>{k}</dt>
                       <dd className="tabular">{rupees(v)}</dd>
                     </div>
@@ -65,7 +65,7 @@ function Example() {
                 </dl>
               </div>
             ))}
-            <p className="mt-6 rounded-2xl bg-navy-950 px-4 py-3 text-sm text-white">
+            <p className="mt-6 rounded-2xl bg-ink-950 px-4 py-3 text-sm text-white">
               Paying yourself saves about <span className="font-semibold text-signal">{rupees(Math.abs(claimTotal - payTotal))}</span> here. Your own numbers may say the opposite, which is why we check.
             </p>
           </div>
@@ -89,26 +89,26 @@ function Steps() {
     <section id="how-it-works" className="scroll-mt-24 bg-white px-5 py-28 lg:py-36">
       <div className="mx-auto grid max-w-6xl gap-14 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="lg:sticky lg:top-32 lg:self-start">
-          <p className="text-sm font-semibold text-steel-700">How it works</p>
-          <h2 className="mt-5 font-display text-5xl font-semibold leading-[0.95] tracking-[-0.04em] text-navy-950 sm:text-6xl">
+          <p className="text-sm font-semibold text-forest-700">How it works</p>
+          <h2 className="mt-5 font-display text-5xl font-semibold leading-[0.95] tracking-[-0.04em] text-ink-950 sm:text-6xl">
             <SplitWords text="Three taps." inView />
             <br />
-            <SplitWords text="One answer." inView delay={0.15} className="text-navy-300" />
+            <SplitWords text="One answer." inView delay={0.15} className="text-ink-300" />
           </h2>
-          <p className="mt-6 max-w-sm text-lg text-navy-500">No insurance vocabulary needed. Unsure about a word? The assistant explains it in one line.</p>
+          <p className="mt-6 max-w-sm text-lg text-ink-500">No insurance vocabulary needed. Unsure about a word? The assistant explains it in one line.</p>
         </div>
         <div ref={ref} className="relative pl-10 sm:pl-14">
-          <div className="absolute bottom-4 left-[15px] top-4 w-px bg-navy-100 sm:left-[19px]" />
-          <motion.div style={{ scaleY: line }} className="absolute bottom-4 left-[15px] top-4 w-px origin-top bg-navy-950 sm:left-[19px]" />
+          <div className="absolute bottom-4 left-[15px] top-4 w-px bg-ink-100 sm:left-[19px]" />
+          <motion.div style={{ scaleY: line }} className="absolute bottom-4 left-[15px] top-4 w-px origin-top bg-ink-950 sm:left-[19px]" />
           <div className="space-y-16 sm:space-y-24">
             {STEPS.map((s, i) => (
               <Reveal key={s.title} className="relative">
-                <span className="absolute -left-10 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-navy-950 font-mono text-xs font-semibold text-signal ring-8 ring-white sm:-left-14 sm:h-10 sm:w-10">
+                <span className="absolute -left-10 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-ink-950 font-mono text-xs font-semibold text-signal ring-8 ring-white sm:-left-14 sm:h-10 sm:w-10">
                   0{i + 1}
                 </span>
-                <s.icon className="h-7 w-7 text-steel-600" />
-                <h3 className="mt-4 font-display text-3xl font-semibold tracking-tight text-navy-950 sm:text-4xl">{s.title}</h3>
-                <p className="mt-3 max-w-md text-lg leading-relaxed text-navy-500">{s.body}</p>
+                <s.icon className="h-7 w-7 text-forest-600" />
+                <h3 className="mt-4 font-display text-3xl font-semibold tracking-tight text-ink-950 sm:text-4xl">{s.title}</h3>
+                <p className="mt-3 max-w-md text-lg leading-relaxed text-ink-500">{s.body}</p>
               </Reveal>
             ))}
           </div>
@@ -127,13 +127,13 @@ function NcbLadder() {
       {steps.map((s, i) => (
         <motion.div
           key={s}
-          className="relative flex-1 rounded-t-lg bg-navy-950"
+          className="relative flex-1 rounded-t-lg bg-ink-950"
           initial={reduce ? false : { height: 0 }}
           whileInView={{ height: `${(s / 50) * 100}%` }}
           viewport={{ once: true }}
           transition={{ duration: 0.9, delay: 0.1 * i, ease: EASE }}
         >
-          <span className="absolute -top-6 left-1/2 -translate-x-1/2 font-mono text-[11px] text-navy-500">{s}%</span>
+          <span className="absolute -top-6 left-1/2 -translate-x-1/2 font-mono text-[11px] text-ink-500">{s}%</span>
         </motion.div>
       ))}
       <motion.div
@@ -151,19 +151,19 @@ function NcbLadder() {
 
 function Bento() {
   return (
-    <section className="bg-[#f6f5f0] px-5 py-28 lg:py-36">
+    <section className="bg-paper px-5 py-28 lg:py-36">
       <div className="mx-auto max-w-6xl">
         <Reveal className="max-w-3xl">
-          <p className="text-sm font-semibold text-steel-700">What you’ll see</p>
-          <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-6xl">The numbers insurers use. Finally out loud.</h2>
+          <p className="text-sm font-semibold text-forest-700">What you’ll see</p>
+          <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-ink-950 sm:text-6xl">The numbers insurers use. Finally out loud.</h2>
         </Reveal>
         <div className="mt-14 grid gap-4 md:grid-cols-6">
           <Reveal className="md:col-span-4">
-            <div className="h-full rounded-2xl bg-white p-7 ring-1 ring-navy-100 sm:p-9">
+            <div className="h-full rounded-2xl bg-white p-7 ring-1 ring-ink-100 sm:p-9">
               <div className="flex items-start justify-between gap-6">
                 <div>
-                  <h3 className="font-display text-2xl font-semibold tracking-tight text-navy-950">Your No-Claim Bonus, climbing for years</h3>
-                  <p className="mt-2 max-w-md text-navy-500">Each claim-free year raises the discount. One claim drops it to zero. ClearClaim prices that loss in rupees.</p>
+                  <h3 className="font-display text-2xl font-semibold tracking-tight text-ink-950">Your No-Claim Bonus, climbing for years</h3>
+                  <p className="mt-2 max-w-md text-ink-500">Each claim-free year raises the discount. One claim drops it to zero. ClearClaim prices that loss in rupees.</p>
                 </div>
                 <span className="hidden shrink-0 rounded-md bg-loss/10 px-3 py-1 text-xs font-semibold text-loss sm:inline">after a claim</span>
               </div>
@@ -171,7 +171,7 @@ function Bento() {
             </div>
           </Reveal>
           <Reveal className="md:col-span-2" delay={0.08}>
-            <div className="flex h-full flex-col justify-between rounded-2xl bg-navy-950 p-7 text-white sm:p-9">
+            <div className="flex h-full flex-col justify-between rounded-2xl bg-ink-950 p-7 text-white sm:p-9">
               <p className="font-mono text-xs uppercase tracking-[0.16em] text-white/40">Plastic bumper, ₹10,000 quote</p>
               <div>
                 <p className="font-display text-6xl font-semibold tracking-tight text-signal">
@@ -182,18 +182,18 @@ function Bento() {
             </div>
           </Reveal>
           <Reveal className="md:col-span-3" delay={0.05}>
-            <div className="h-full rounded-2xl bg-signal p-7 text-navy-950 sm:p-9">
+            <div className="h-full rounded-2xl bg-signal p-7 text-ink-950 sm:p-9">
               <Scale className="h-7 w-7" />
               <h3 className="mt-6 font-display text-3xl font-semibold tracking-tight">A verdict, with the working shown</h3>
-              <p className="mt-2 text-navy-800">Claim, pay yourself, or too close to call, and every rule behind it. Fixed rules, not AI guesses: same inputs, same answer.</p>
+              <p className="mt-2 text-ink-800">Claim, pay yourself, or too close to call, and every rule behind it. Fixed rules, not AI guesses: same inputs, same answer.</p>
             </div>
           </Reveal>
           <Reveal className="md:col-span-3" delay={0.12}>
-            <div className="h-full overflow-hidden rounded-2xl bg-white p-7 ring-1 ring-navy-100 sm:p-9">
-              <Fingerprint className="h-7 w-7 text-steel-600" />
-              <h3 className="mt-6 font-display text-3xl font-semibold tracking-tight text-navy-950">A record you can prove later</h3>
-              <p className="mt-2 text-navy-500">Saved checks get a fingerprint. If anyone edits the record afterwards, the mismatch shows.</p>
-              <p className="mt-6 truncate rounded-xl bg-navy-50 px-3 py-2 font-mono text-xs text-navy-500">sha256 · 9f2c4e1a7b…d03e8c55</p>
+            <div className="h-full overflow-hidden rounded-2xl bg-white p-7 ring-1 ring-ink-100 sm:p-9">
+              <Fingerprint className="h-7 w-7 text-forest-600" />
+              <h3 className="mt-6 font-display text-3xl font-semibold tracking-tight text-ink-950">A record you can prove later</h3>
+              <p className="mt-2 text-ink-500">Saved checks get a fingerprint. If anyone edits the record afterwards, the mismatch shows.</p>
+              <p className="mt-6 truncate rounded-xl bg-ink-50 px-3 py-2 font-mono text-xs text-ink-500">sha256 · 9f2c4e1a7b…d03e8c55</p>
             </div>
           </Reveal>
         </div>
@@ -205,7 +205,7 @@ function Bento() {
 /* ---------------------------------------------------------------- try it */
 function TryIt() {
   return (
-    <section className="vs-grain relative overflow-hidden bg-navy-950 px-5 py-28 text-white lg:py-36">
+    <section className="vs-grain relative overflow-hidden bg-ink-950 px-5 py-28 text-white lg:py-36">
       <div className="relative mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[0.9fr_1.1fr]">
         <Reveal>
           <p className="text-sm font-semibold text-signal">Try it, no sign-up</p>
@@ -234,17 +234,17 @@ function Orgs() {
     <section className="bg-white px-5 py-28 lg:py-36">
       <div className="mx-auto max-w-6xl">
         <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <h2 className="max-w-2xl font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-6xl">Built for the people who handle the most claims.</h2>
-          <p className="max-w-xs text-navy-500">Separate workspaces for fleets and workshops, designed around how each actually works.</p>
+          <h2 className="max-w-2xl font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-ink-950 sm:text-6xl">Built for the people who handle the most claims.</h2>
+          <p className="max-w-xs text-ink-500">Separate workspaces for fleets and workshops, designed around how each actually works.</p>
         </Reveal>
         <div className="mt-14 grid gap-4 md:grid-cols-2">
           {items.map((o, i) => (
             <Reveal key={o.href} delay={i * 0.08}>
-              <div className="group h-full rounded-2xl bg-navy-950 text-white transition duration-500 hover:-translate-y-1">
+              <div className="group h-full rounded-2xl bg-ink-950 text-white transition duration-500 hover:-translate-y-1">
                 <Link href={o.href} className="relative flex h-full min-h-[340px] flex-col justify-between p-8 sm:p-10">
                   <div className="flex items-center justify-between">
                     <span className="rounded-md border border-white/15 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-white/60">{o.tag}</span>
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 transition duration-500 group-hover:rotate-45 group-hover:bg-signal group-hover:text-navy-950">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 transition duration-500 group-hover:rotate-45 group-hover:bg-signal group-hover:text-ink-950">
                       <ArrowUpRight className="h-5 w-5" />
                     </span>
                   </div>
@@ -285,7 +285,7 @@ function StrikeItem({ text, delay }: { text: string; delay: number }) {
 
 function Honesty() {
   return (
-    <section className="vs-grain relative overflow-hidden bg-navy-950 px-5 py-28 text-white lg:py-36">
+    <section className="vs-grain relative overflow-hidden bg-ink-950 px-5 py-28 text-white lg:py-36">
       <div className="relative mx-auto max-w-6xl">
         <Reveal>
           <p className="text-sm font-semibold text-signal">Straight talk</p>
@@ -325,28 +325,28 @@ function Faq() {
     <section id="questions" className="scroll-mt-24 bg-white px-5 py-28 lg:py-36">
       <div className="mx-auto grid max-w-6xl gap-14 lg:grid-cols-[0.8fr_1.2fr]">
         <Reveal>
-          <p className="text-sm font-semibold text-steel-700">Questions</p>
-          <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">Car insurance, minus the jargon.</h2>
-          <p className="mt-5 text-navy-500">The assistant answers from the same reviewed guide, and says so when it doesn’t know.</p>
+          <p className="text-sm font-semibold text-forest-700">Questions</p>
+          <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-ink-950 sm:text-5xl">Car insurance, minus the jargon.</h2>
+          <p className="mt-5 text-ink-500">The assistant answers from the same reviewed guide, and says so when it doesn’t know.</p>
           <button type="button" onClick={() => open()} className="vs-btn-secondary mt-8">
             <MessageCircleQuestion className="h-4 w-4" /> Ask the assistant
           </button>
         </Reveal>
-        <div className="border-t border-navy-100">
+        <div className="border-t border-ink-100">
           {faqs.map((f) => {
             const isOpen = openFaq === f.id;
             return (
-              <div key={f.id} className="border-b border-navy-100">
+              <div key={f.id} className="border-b border-ink-100">
                 <button type="button" onClick={() => setOpenFaq(isOpen ? null : f.id)} aria-expanded={isOpen} className="group flex w-full items-center justify-between gap-6 py-6 text-left">
-                  <span className="font-display text-xl font-medium tracking-tight text-navy-950 transition group-hover:translate-x-1 sm:text-2xl">{f.question}</span>
-                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-500 ${isOpen ? 'rotate-45 bg-navy-950 text-signal' : 'bg-navy-50 text-navy-700 group-hover:bg-navy-100'}`}>
+                  <span className="font-display text-xl font-medium tracking-tight text-ink-950 transition group-hover:translate-x-1 sm:text-2xl">{f.question}</span>
+                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all duration-500 ${isOpen ? 'rotate-45 bg-ink-950 text-signal' : 'bg-ink-50 text-ink-700 group-hover:bg-ink-100'}`}>
                     <Plus className="h-5 w-5" />
                   </span>
                 </button>
                 <AnimatePresence initial={false}>
                   {isOpen && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.45, ease: EASE }} className="overflow-hidden">
-                      <div className="max-w-2xl space-y-3 pb-7 text-[16px] leading-relaxed text-navy-600">
+                      <div className="max-w-2xl space-y-3 pb-7 text-[16px] leading-relaxed text-ink-600">
                         {f.answer.map((p, i) => <p key={i} className="whitespace-pre-line">{p}</p>)}
                       </div>
                     </motion.div>
@@ -365,7 +365,7 @@ function Faq() {
 function FinalCta({ checkHref }: { checkHref: string }) {
   return (
     <section className="bg-white px-3 pb-3">
-      <div className="vs-grain relative overflow-hidden rounded-2xl bg-navy-950 px-6 py-24 text-center text-white sm:py-32">
+      <div className="vs-grain relative overflow-hidden rounded-2xl bg-ink-950 px-6 py-24 text-center text-white sm:py-32">
         <div className="relative">
           <h2 className="mx-auto max-w-5xl font-display text-[clamp(3rem,10vw,8rem)] font-semibold leading-[0.9] tracking-[-0.05em]">
             <SplitWords text="Know before" inView />
@@ -376,7 +376,7 @@ function FinalCta({ checkHref }: { checkHref: string }) {
           <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link href={checkHref} className="vs-btn-signal group py-4 pl-7 pr-2">
                 Check my claim
-                <span className="ml-2 flex h-9 w-9 items-center justify-center rounded-full bg-navy-950 text-signal transition-transform duration-500 group-hover:rotate-[-45deg]">
+                <span className="ml-2 flex h-9 w-9 items-center justify-center rounded-full bg-ink-950 text-signal transition-transform duration-500 group-hover:rotate-[-45deg]">
                   <ArrowRight className="h-4 w-4" />
                 </span>
               </Link>

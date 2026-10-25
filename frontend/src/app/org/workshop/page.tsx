@@ -9,8 +9,9 @@ import { newLine, xray, XLine, XPolicy, CATEGORY_LABEL } from '@/lib/xray';
 import { loadLocal } from '@/lib/fleet';
 import { rupees } from '@/lib/claimCheck';
 import { BrandLogo } from '@/components/brand/Logo';
+import { KEYS } from '@/lib/storage';
 
-const DRAFT = 'cc_workshop_estimate';
+const DRAFT = KEYS.workshopDraft;
 
 interface Draft {
   customer: string;
@@ -66,25 +67,25 @@ export default function WorkshopEstimatesPage() {
       }
     >
       <div className="space-y-5 print:hidden">
-        <section className="grid gap-4 rounded-2xl border border-navy-100 bg-white p-5 sm:grid-cols-3">
+        <section className="grid gap-4 rounded-2xl border border-ink-100 bg-white p-5 sm:grid-cols-3">
           {([
             ['customer', 'Customer name'],
             ['registration', 'Registration'],
             ['vehicle', 'Vehicle (make & model)'],
           ] as const).map(([k, label]) => (
-            <label key={k} className="text-sm font-medium text-navy-800">
+            <label key={k} className="text-sm font-medium text-ink-800">
               {label}
               <input value={d[k]} onChange={(e) => setD({ ...d, [k]: k === 'registration' ? e.target.value.toUpperCase() : e.target.value })} className="vs-input mt-1.5 py-2.5 text-sm" />
             </label>
           ))}
         </section>
         <XRay lines={d.lines} onLinesChange={(lines) => setD({ ...d, lines })} policy={d.policy} onPolicyChange={(policy) => setD({ ...d, policy })} />
-        <p className="text-xs text-navy-500">Drafts are kept on this device.</p>
+        <p className="text-xs text-ink-500">Drafts are kept on this device.</p>
       </div>
 
       {/* Print view */}
       <article className="hidden print:block">
-        <div className="flex items-center justify-between border-b border-navy-200 pb-4">
+        <div className="flex items-center justify-between border-b border-ink-200 pb-4">
           <BrandLogo size="sm" />
           <p className="text-sm">{today}</p>
         </div>

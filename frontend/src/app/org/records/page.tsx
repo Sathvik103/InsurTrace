@@ -39,21 +39,21 @@ export default function OrgRecordsPage() {
   return (
     <OrgShell title="Saved records" subtitle="Claim decisions you saved. They live in ClearClaim only and are never sent to an insurer.">
       {error != null && <ApiErrorNotice error={error} />}
-      <div className="overflow-hidden rounded-2xl border border-navy-100 bg-white">
+      <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white">
         {rows === null ? (
           <div className="vs-shimmer h-40" />
         ) : rows.length === 0 ? (
-          <p className="p-10 text-center text-sm text-navy-500">No saved records yet.</p>
+          <p className="p-10 text-center text-sm text-ink-500">No saved records yet.</p>
         ) : (
-          <ul className="divide-y divide-navy-50">
+          <ul className="divide-y divide-ink-50">
             {rows.map((r) => {
               const anchored = r.ledger?.sync_status === 'COMMITTED' && r.ledger?.network_mode !== 'MOCK';
               return (
                 <li key={r.id}>
-                  <Link href={`/verification?claimId=${encodeURIComponent(r.id)}`} className="flex flex-col gap-1 px-4 py-4 hover:bg-navy-50/50 sm:flex-row sm:items-center sm:justify-between">
+                  <Link href={`/verification?claimId=${encodeURIComponent(r.id)}`} className="flex flex-col gap-1 px-4 py-4 hover:bg-ink-50/50 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="font-medium text-navy-900">{name(r.vehicle_id)}</p>
-                      <p className="text-xs text-navy-500">
+                      <p className="font-medium text-ink-900">{name(r.vehicle_id)}</p>
+                      <p className="text-xs text-ink-500">
                         {r.claim_number || r.id.slice(0, 8)} · {r.created_at ? new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''} · quote {rupees(r.estimated_repair_cost)}
                         {r.calculated_payout != null ? ` · insurer ~${rupees(r.calculated_payout)}` : ''}
                       </p>

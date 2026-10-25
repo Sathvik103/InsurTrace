@@ -35,7 +35,7 @@ export default function PrivacyPage() {
         {
           id: 'sharing',
           title: 'Sharing is your choice',
-          body: <p>A workshop, insurer or surveyor sees a vehicle’s records only after you grant access, for a period you pick. You can see every active grant and revoke it at any time on the <Link href="/decision/consent" className="font-medium text-navy-950 underline underline-offset-2">Data &amp; privacy</Link> page. Grants and revocations are logged.</p>,
+          body: <p>A workshop, insurer or surveyor sees a vehicle’s records only after you grant access, for a period you pick. You can see every active grant and revoke it at any time on the <Link href="/decision/consent" className="font-medium text-ink-950 underline underline-offset-2">Data &amp; privacy</Link> page. Grants and revocations are logged.</p>,
         },
         {
           id: 'ledger',
@@ -53,7 +53,7 @@ export default function PrivacyPage() {
           body: (
             <>
               <p>You can download everything we hold about you from Settings, correct your details at any time, and ask us to delete your account and data.</p>
-              <p>For any privacy request, email <a href={`mailto:${BRAND.contactEmail}?subject=Privacy request`} className="font-medium text-navy-950 underline underline-offset-2">{BRAND.contactEmail}</a>.</p>
+              <p>For any privacy request, email <a href={`mailto:${BRAND.contactEmail}?subject=Privacy request`} className="font-medium text-ink-950 underline underline-offset-2">{BRAND.contactEmail}</a>.</p>
             </>
           ),
         },

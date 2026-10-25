@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api';
+import { KEYS } from '@/lib/storage';
 
 export interface SystemComponentStatus {
   name: string;
@@ -21,7 +22,7 @@ type State = { status: SystemStatus | null; error: unknown; loading: boolean };
 
 // One request per minute per tab, shared by every component that asks.
 let inflight: Promise<SystemStatus> | null = null;
-const CACHE_KEY = 'cc_system_status';
+const CACHE_KEY = KEYS.systemStatus;
 const TTL_MS = 60_000;
 
 function cached(): SystemStatus | null {

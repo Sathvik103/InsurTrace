@@ -31,11 +31,11 @@ function Money({ label, hint, value, onChange, placeholder }: { label: string; h
 
 function Path({ title, value, sub, win, muted }: { title: string; value: string; sub: string; win?: boolean; muted?: boolean }) {
   return (
-    <div className={`relative rounded-2xl p-4 transition-colors duration-500 ${win ? 'bg-signal text-navy-950' : 'bg-white/[0.05] text-white'}`}>
-      {win && <span className="absolute right-3 top-3 rounded-md bg-navy-950 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-signal">Better</span>}
-      <p className={`text-xs font-medium ${win ? 'text-navy-800' : 'text-white/55'}`}>{title}</p>
+    <div className={`relative rounded-2xl p-4 transition-colors duration-500 ${win ? 'bg-signal text-ink-950' : 'bg-white/[0.05] text-white'}`}>
+      {win && <span className="absolute right-3 top-3 rounded-md bg-ink-950 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-signal">Better</span>}
+      <p className={`text-xs font-medium ${win ? 'text-ink-800' : 'text-white/55'}`}>{title}</p>
       <p className={`mt-1 font-display text-2xl font-semibold tracking-tight ${muted ? 'text-white/35' : ''}`}>{value}</p>
-      <p className={`mt-1 text-xs leading-relaxed ${win ? 'text-navy-800' : 'text-white/50'}`}>{sub}</p>
+      <p className={`mt-1 text-xs leading-relaxed ${win ? 'text-ink-800' : 'text-white/50'}`}>{sub}</p>
     </div>
   );
 }
@@ -66,9 +66,9 @@ export function RepairOrSell({
   const pct = Math.round(r.ratio * 100);
   const tone =
     r.band === 'total-loss'
-      ? { label: 'Likely total loss', cls: 'bg-ember text-navy-950' }
+      ? { label: 'Likely total loss', cls: 'bg-ember text-ink-950' }
       : r.band === 'consider'
-        ? { label: 'Worth a thought', cls: 'bg-amber-300 text-navy-950' }
+        ? { label: 'Worth a thought', cls: 'bg-amber-300 text-ink-950' }
         : { label: 'Repair makes sense', cls: 'bg-white/10 text-white' };
 
   const sellWins = r.sell?.better;
@@ -86,7 +86,7 @@ export function RepairOrSell({
   })();
 
   return (
-    <section className="vs-grain relative overflow-hidden rounded-2xl bg-navy-950 text-white">
+    <section className="vs-grain relative overflow-hidden rounded-2xl bg-ink-950 text-white">
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-center gap-4 p-6 text-left sm:p-7">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">

@@ -97,14 +97,14 @@ export function CarDiagram({ selected, onToggle, type = 'sedan' }: { selected: S
             <span className="relative flex h-8 w-8 items-center justify-center">
               {!on && !reduce && (
                 <motion.span
-                  className="absolute inset-0 rounded-md bg-navy-950/25"
+                  className="absolute inset-0 rounded-md bg-ink-950/25"
                   animate={{ scale: [1, 1.6], opacity: [0.6, 0] }}
                   transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.12 }}
                 />
               )}
               <span
                 className={`relative flex h-7 w-7 items-center justify-center rounded-full border-2 shadow-md transition-colors ${
-                  on ? 'border-white bg-loss text-white' : 'border-white bg-navy-950 text-white'
+                  on ? 'border-white bg-loss text-white' : 'border-white bg-ink-950 text-white'
                 }`}
               >
                 {on ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : <span className="h-1.5 w-1.5 rounded-full bg-signal" />}

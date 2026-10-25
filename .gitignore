@@ -29,3 +29,6 @@ coverage/
 Thumbs.db
 
 .local/
+
+# Fabric command-line tools: downloaded by backend/blockchain/install-fabric.sh
+backend/blockchain/bin/

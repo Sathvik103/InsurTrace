@@ -67,8 +67,8 @@ export function OrgShell({ children, title, subtitle, actions }: { children: Rea
 
   if (!initialized || status !== 'authenticated' || !user || !allowed || wrongWorkspace) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-navy-950">
-        <span className="h-5 w-5 animate-spin rounded-full border-2 border-steel-400 border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center bg-ink-950">
+        <span className="h-5 w-5 animate-spin rounded-full border-2 border-forest-400 border-t-transparent" />
       </div>
     );
   }
@@ -82,12 +82,12 @@ export function OrgShell({ children, title, subtitle, actions }: { children: Rea
   return (
     <div className="min-h-screen bg-[#f4f6fb] lg:pl-64 print:bg-white print:pl-0">
       {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 print:!hidden flex-col bg-navy-950 text-navy-200 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 print:!hidden flex-col bg-ink-950 text-ink-200 lg:flex">
         <Link href={items[0].href} className="flex items-center gap-2.5 px-6 py-5">
           <BrandMark size={30} />
           <span className="font-display text-[17px] font-semibold text-white">Clear<span className="text-signal">Claim</span></span>
         </Link>
-        <p className="px-6 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-navy-400">{KIND_LABEL[kind]} workspace</p>
+        <p className="px-6 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-400">{KIND_LABEL[kind]} workspace</p>
         <nav className="flex-1 space-y-1 px-3" aria-label="Workspace">
           {items.map((i) => (
             <Link key={i.href} href={i.href} aria-current={active(i.href) ? 'page' : undefined} className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${active(i.href) ? 'text-white' : 'hover:bg-white/5 hover:text-white'}`}>
@@ -107,7 +107,7 @@ export function OrgShell({ children, title, subtitle, actions }: { children: Rea
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-30 flex items-center justify-between bg-navy-950 px-4 py-3 text-white lg:hidden print:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between bg-ink-950 px-4 py-3 text-white lg:hidden print:hidden">
         <span className="flex items-center gap-2"><BrandMark size={26} /><span className="font-semibold">{KIND_LABEL[kind]}</span></span>
         <button type="button" onClick={async () => { await signOut(); router.replace('/login'); }} aria-label="Sign out" className="rounded-lg p-2 hover:bg-white/10"><LogOut className="h-4 w-4" /></button>
       </header>
@@ -115,8 +115,8 @@ export function OrgShell({ children, title, subtitle, actions }: { children: Rea
       <main className="mx-auto w-full max-w-7xl px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-12 lg:pt-10">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between print:hidden">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-navy-950 sm:text-3xl">{title}</h1>
-            {subtitle && <p className="mt-1 max-w-2xl text-sm text-navy-500">{subtitle}</p>}
+            <h1 className="text-2xl font-semibold tracking-tight text-ink-950 sm:text-3xl">{title}</h1>
+            {subtitle && <p className="mt-1 max-w-2xl text-sm text-ink-500">{subtitle}</p>}
           </div>
           {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
         </div>
@@ -124,9 +124,9 @@ export function OrgShell({ children, title, subtitle, actions }: { children: Rea
       </main>
 
       {/* Mobile tab bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 print:hidden border-t border-navy-100 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Workspace">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 print:hidden border-t border-ink-100 bg-white pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Workspace">
         {items.map((i) => (
-          <Link key={i.href} href={i.href} className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${active(i.href) ? 'text-navy-950' : 'text-navy-400'}`}>
+          <Link key={i.href} href={i.href} className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${active(i.href) ? 'text-ink-950' : 'text-ink-400'}`}>
             <i.icon className="h-5 w-5" />
             {i.label.split(' ')[0]}
           </Link>

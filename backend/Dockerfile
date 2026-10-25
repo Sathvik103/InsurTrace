@@ -5,6 +5,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PORT=8000
 
+# Tesseract reads scanned PDFs and photos of documents (English only).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-eng \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY requirements.txt .
@@ -13,8 +18,8 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Run as an unprivileged user.
-RUN useradd --create-home --uid 10001 verisure && chown -R verisure /app
-USER verisure
+RUN useradd --create-home --uid 10001 clearclaim && chown -R clearclaim /app
+USER clearclaim
 
 EXPOSE 8000
 

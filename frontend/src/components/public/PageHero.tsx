@@ -33,7 +33,7 @@ export function PageHero({
   });
 
   return (
-    <section className="vs-grain relative isolate overflow-hidden bg-navy-950 text-white">
+    <section className="vs-grain relative isolate overflow-hidden bg-ink-950 text-white">
 
       <div className={`mx-auto grid max-w-6xl items-center gap-12 px-5 ${compact ? 'pb-16 pt-32 lg:pb-20 lg:pt-40' : 'pb-20 pt-32 lg:grid-cols-[1.1fr_0.9fr] lg:pb-28 lg:pt-40'}`}>
         <div>

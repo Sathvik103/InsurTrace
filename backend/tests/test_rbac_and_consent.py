@@ -64,25 +64,6 @@ def test_consent_grant_blocks_unauthorized_roles():
     assert exc_info.value.status_code == 403
     assert "Only policyholders" in exc_info.value.detail
 
-def test_vision_upload_role_enforcement():
-    """Verifies that unauthorized or unknown roles are rejected from vision analysis."""
-    from routers.vision import analyze_vehicle_damage
-    import asyncio
-    from unittest.mock import MagicMock
-
-    mock_file = MagicMock()
-    mock_file.content_type = "image/jpeg"
-
-    unauthorized_profile = {
-        "id": "44444444-4444-4444-4444-444444444444",
-        "role": "GUEST",
-        "organization_id": "00000000-0000-0000-0000-000000000004"
-    }
-
-    with pytest.raises(HTTPException) as exc_info:
-        asyncio.run(analyze_vehicle_damage(file=mock_file, profile=unauthorized_profile))
-    assert exc_info.value.status_code == 403
-    assert "Unauthorized" in exc_info.value.detail
 
 def test_production_auth_rejects_dev_tokens(settings):
     """With ENVIRONMENT=production and a real Supabase project, demo tokens and anonymous calls are rejected."""

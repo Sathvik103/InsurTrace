@@ -125,15 +125,15 @@ function VerifyContent() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <header className="space-y-3">
-        <p className="text-sm font-semibold text-steel-700">Verify a record</p>
-        <h1 className="font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-navy-950 sm:text-5xl">Has this record <span className="text-navy-300">been changed?</span></h1>
-        <p className="max-w-xl text-base text-navy-500">
+        <p className="text-sm font-semibold text-forest-700">Verify a record</p>
+        <h1 className="font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-ink-950 sm:text-5xl">Has this record <span className="text-ink-300">been changed?</span></h1>
+        <p className="max-w-xl text-base text-ink-500">
           When you save a claim check, ClearClaim anchors its fingerprint on a ledger. Checking it again shows whether the record is still exactly as it was saved.
         </p>
       </header>
 
       <section className="vs-surface space-y-4 p-6">
-        <label htmlFor="claim" className="text-sm font-medium text-navy-800">Which record?</label>
+        <label htmlFor="claim" className="text-sm font-medium text-ink-800">Which record?</label>
         <div className="flex flex-col gap-2 sm:flex-row">
           {claims.length > 0 ? (
             <select id="claim" value={claimId} onChange={(e) => setClaimId(e.target.value)} className="vs-input flex-1 py-3 text-sm">
@@ -148,11 +148,11 @@ function VerifyContent() {
             {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Check now
           </button>
         </div>
-        <p className="flex items-center gap-2 text-xs text-navy-500">
+        <p className="flex items-center gap-2 text-xs text-ink-500">
           <span className={`h-1.5 w-1.5 rounded-full ${fabric?.status === 'CONNECTED' ? 'bg-gain' : 'bg-amber-500'}`} />
           Ledger {fabric?.status === 'CONNECTED' ? 'connected' : fabric ? 'not connected right now' : 'status loading'}
           {fabric?.mode ? ` · ${fabric.mode}` : ''} ·{' '}
-          <Link href="/settings?tab=status" className="font-medium text-steel-700 hover:underline">details</Link>
+          <Link href="/settings?tab=status" className="font-medium text-forest-700 hover:underline">details</Link>
         </p>
       </section>
 
@@ -161,8 +161,8 @@ function VerifyContent() {
       <AnimatePresence mode="wait">
         {loading ? (
           <motion.div key="checking" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="vs-surface flex flex-col items-center gap-4 p-12 text-center" role="status">
-            <motion.div animate={reduce ? undefined : { rotate: 360 }} transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }} className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-navy-100 border-t-navy-900" />
-            <p className="font-medium text-navy-800">Recomputing the fingerprint and asking the ledger…</p>
+            <motion.div animate={reduce ? undefined : { rotate: 360 }} transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }} className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-ink-100 border-t-ink-900" />
+            <p className="font-medium text-ink-800">Recomputing the fingerprint and asking the ledger…</p>
           </motion.div>
         ) : result ? (
           <motion.div key={`${claimId}-${result.status}`} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="space-y-5">
@@ -174,22 +174,22 @@ function VerifyContent() {
 
       <section className="grid gap-4 sm:grid-cols-2">
         <div className="vs-surface p-6">
-          <p className="flex items-center gap-2 font-semibold text-navy-900"><CheckCircle2 className="h-5 w-5 text-gain" /> What this proves</p>
-          <p className="mt-2 text-sm leading-relaxed text-navy-600">The saved record (repair cost, estimate, decision) is byte-for-byte the same as when its fingerprint was anchored.</p>
+          <p className="flex items-center gap-2 font-semibold text-ink-900"><CheckCircle2 className="h-5 w-5 text-gain" /> What this proves</p>
+          <p className="mt-2 text-sm leading-relaxed text-ink-600">The saved record (repair cost, estimate, decision) is byte-for-byte the same as when its fingerprint was anchored.</p>
         </div>
         <div className="vs-surface p-6">
-          <p className="flex items-center gap-2 font-semibold text-navy-900"><X className="h-5 w-5 text-loss" /> What it doesn’t prove</p>
-          <p className="mt-2 text-sm leading-relaxed text-navy-600">That the accident or damage really happened, or what an insurer will pay. That is for your insurer and surveyor.</p>
+          <p className="flex items-center gap-2 font-semibold text-ink-900"><X className="h-5 w-5 text-loss" /> What it doesn’t prove</p>
+          <p className="mt-2 text-sm leading-relaxed text-ink-600">That the accident or damage really happened, or what an insurer will pay. That is for your insurer and surveyor.</p>
         </div>
       </section>
-      <button type="button" onClick={() => open('What does blockchain verification mean?')} className="inline-flex items-center gap-2 text-sm font-medium text-steel-700 hover:underline">
+      <button type="button" onClick={() => open('What does blockchain verification mean?')} className="inline-flex items-center gap-2 text-sm font-medium text-forest-700 hover:underline">
         <HelpCircle className="h-4 w-4" /> How does this work?
       </button>
 
       {tamperDemoAllowed && claimId && (
-        <section className="rounded-2xl border border-dashed border-navy-200 p-6">
-          <p className="flex items-center gap-2 font-semibold text-navy-900"><FlaskConical className="h-5 w-5 text-steel-600" /> Tamper demonstration (development only)</p>
-          <p className="mt-1 text-sm text-navy-600">Changes the repair cost directly in the database, without updating the ledger, to show that verification catches it. Hidden in production.</p>
+        <section className="rounded-2xl border border-dashed border-ink-200 p-6">
+          <p className="flex items-center gap-2 font-semibold text-ink-900"><FlaskConical className="h-5 w-5 text-forest-600" /> Tamper demonstration (development only)</p>
+          <p className="mt-1 text-sm text-ink-600">Changes the repair cost directly in the database, without updating the ledger, to show that verification catches it. Hidden in production.</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <button type="button" onClick={() => simulate('tamper')} disabled={acting} className="vs-btn-secondary py-2.5 text-loss">Alter the record</button>
             <button type="button" onClick={() => simulate('restore')} disabled={acting || originalCost === null} className="vs-btn-secondary py-2.5">Restore original</button>
@@ -210,7 +210,7 @@ function Verdict({ result }: { result: VerifyResponse }) {
         ? { Icon: ShieldAlert, tone: 'from-loss-soft to-white ring-loss/25', color: 'text-loss', title: 'This record was changed after it was saved', body: 'Its current fingerprint does not match the anchored one. Treat its figures with caution.' }
         : s === 'PENDING' || s === 'FAILED' || s === 'NO_LEDGER_RECORD' || s === 'RETRY'
           ? { Icon: Clock, tone: 'bg-amber-50 ring-amber-500/25', color: 'text-amber-700', title: 'Saved, but not anchored yet', body: 'This record has no fingerprint on the ledger yet, so it can’t be verified. Anchor it from the claim check when the ledger is connected.' }
-          : { Icon: ShieldQuestion, tone: 'bg-navy-50 ring-navy-200', color: 'text-navy-600', title: 'Can’t check right now', body: result.message || 'The ledger could not be reached, so integrity can’t be confirmed at the moment. This is not a sign of tampering.' };
+          : { Icon: ShieldQuestion, tone: 'bg-ink-50 ring-ink-200', color: 'text-ink-600', title: 'Can’t check right now', body: result.message || 'The ledger could not be reached, so integrity can’t be confirmed at the moment. This is not a sign of tampering.' };
   return (
     <div className={`relative overflow-hidden rounded-2xl p-7 ring-1 ${conf.tone}`}>
       <div className="flex items-start gap-4">
@@ -218,9 +218,9 @@ function Verdict({ result }: { result: VerifyResponse }) {
           <conf.Icon className="h-7 w-7" />
         </motion.span>
         <div className="space-y-1.5">
-          <h2 className="text-2xl font-semibold tracking-tight text-navy-900">{conf.title}</h2>
-          <p className="text-navy-600">{conf.body}</p>
-          {result.transaction_id && <p className="font-mono text-xs text-navy-500">Ledger transaction {result.transaction_id.slice(0, 12)}…{result.transaction_id.slice(-8)}</p>}
+          <h2 className="text-2xl font-semibold tracking-tight text-ink-900">{conf.title}</h2>
+          <p className="text-ink-600">{conf.body}</p>
+          {result.transaction_id && <p className="font-mono text-xs text-ink-500">Ledger transaction {result.transaction_id.slice(0, 12)}…{result.transaction_id.slice(-8)}</p>}
         </div>
       </div>
     </div>
@@ -232,15 +232,15 @@ function HashCompare({ current, anchored }: { current: string; anchored: string 
   const reduce = useReducedMotion();
   return (
     <div className="vs-surface space-y-4 p-6">
-      <p className="text-sm font-semibold text-navy-900">Fingerprints (SHA-256)</p>
+      <p className="text-sm font-semibold text-ink-900">Fingerprints (SHA-256)</p>
       {[
         { label: 'Record as it is now', value: current },
         { label: 'Anchored on the ledger', value: anchored },
       ].map((row, r) => (
         <div key={row.label}>
-          <p className="text-xs text-navy-500">{row.label}</p>
+          <p className="text-xs text-ink-500">{row.label}</p>
           {row.value ? (
-            <p className="mt-1 break-all rounded-2xl bg-navy-50 p-3 font-mono text-[12px] leading-relaxed">
+            <p className="mt-1 break-all rounded-2xl bg-ink-50 p-3 font-mono text-[12px] leading-relaxed">
               {row.value.split('').map((ch, i) => {
                 const differs = anchored && current[i] !== anchored[i];
                 return (
@@ -249,7 +249,7 @@ function HashCompare({ current, anchored }: { current: string; anchored: string 
                     initial={reduce ? false : { opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: r * 0.25 + i * 0.006 }}
-                    className={differs ? 'rounded-sm bg-loss/15 text-loss' : 'text-navy-700'}
+                    className={differs ? 'rounded-sm bg-loss/15 text-loss' : 'text-ink-700'}
                   >
                     {ch}
                   </motion.span>
@@ -257,7 +257,7 @@ function HashCompare({ current, anchored }: { current: string; anchored: string 
               })}
             </p>
           ) : (
-            <p className="mt-1 rounded-2xl bg-navy-50 p-3 text-sm text-navy-500">Not available: the ledger wasn’t queried.</p>
+            <p className="mt-1 rounded-2xl bg-ink-50 p-3 text-sm text-ink-500">Not available: the ledger wasn’t queried.</p>
           )}
         </div>
       ))}

@@ -8,13 +8,14 @@ import { ArrowLeft, ArrowRight, Check, FileUp, HelpCircle, Plus, Wrench, X } fro
 import { useVehicle } from '@/context/VehicleContext';
 import { useAssistant, useAssistantPageContext } from '@/context/AssistantContext';
 import { analyzeClaim, DAMAGE_PARTS, EngineResult, NCB_STEPS, PartCategory, PolicyInputs, RepairLine, rupees } from '@/lib/claimCheck';
-import { CarDiagram } from './CarDiagram';
+import { DamagePicker } from './DamagePicker';
 import { ResultView } from './ResultView';
 import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
 import { takeHandoff } from '@/lib/extractHandoff';
 import { LedgerCommitPanel } from '@/components/common/LedgerCommitPanel';
+import { PolicyAutofill, PolicyValues } from '@/components/documents/PolicyAutofill';
 import { CarSilhouette } from '@/components/vehicle/CarSilhouette';
-import { BODY_LABEL, bodyTypeOf } from '@/lib/bodyType';
+import { BODY_LABEL, bodyTypeOf, paintFor } from '@/lib/bodyType';
 
 const STEPS = ['Your car', 'What’s damaged', 'Your policy', 'Your answer'] as const;
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -107,6 +108,15 @@ export function ClaimCheckFlow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, vehicles.length]);
 
+  // Values read from an uploaded policy document. Only fields that were found are changed.
+  const applyPolicy = (v: PolicyValues) => {
+    if (v.idv) setIdv(String(Math.round(v.idv)));
+    if (v.ncb !== undefined && (NCB_STEPS as readonly number[]).includes(v.ncb)) setNcb(v.ncb);
+    if (v.deductible) setDeductible(String(Math.round(v.deductible)));
+    if (v.premium) setPremium(String(Math.round(v.premium)));
+    if (v.zeroDep) setZeroDep('yes');
+  };
+
   const vehicleAge = useMemo(() => {
     const year = car?.manufacture_year ?? (otherYear ? Number(otherYear) : NaN);
     return Number.isFinite(year) ? Math.max(0, CURRENT_YEAR - year) : NaN;
@@ -197,11 +207,11 @@ export function ClaimCheckFlow() {
       {/* Header + progress */}
       <div className="mb-8 space-y-5">
         <div className="space-y-3">
-          <p className={`text-sm font-semibold ${fromDocument ? 'text-amber-700' : 'text-steel-700'}`}>
+          <p className={`text-sm font-semibold ${fromDocument ? 'text-amber-700' : 'text-forest-700'}`}>
             {fromDocument ? 'Filled in from your document: check each value' : 'Claim check · about 2 minutes'}
           </p>
-          <h1 className="font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-navy-950 sm:text-5xl">Claim it, or pay it yourself?</h1>
-          <p className="max-w-xl text-base text-navy-500">Answer a few simple questions. We’ll show what your insurer might pay, what you’d pay, and which option costs you less.</p>
+          <h1 className="font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-ink-950 sm:text-5xl">Claim it, or pay it yourself?</h1>
+          <p className="max-w-xl text-base text-ink-500">Answer a few simple questions. We’ll show what your insurer might pay, what you’d pay, and which option costs you less.</p>
         </div>
         <ol className="flex items-center gap-2" aria-label="Progress">
           {STEPS.map((label, i) => (
@@ -215,22 +225,22 @@ export function ClaimCheckFlow() {
               >
                 <span
                   className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-mono text-xs font-semibold transition-all duration-500 ${
-                    i < step ? 'bg-navy-950 text-signal' : i === step ? 'bg-signal text-navy-950 ring-4 ring-signal/30' : 'bg-navy-50 text-navy-300'
+                    i < step ? 'bg-ink-950 text-signal' : i === step ? 'bg-signal text-ink-950 ring-4 ring-signal/30' : 'bg-ink-50 text-ink-300'
                   }`}
                 >
                   {i < step ? <Check className="h-4 w-4" strokeWidth={3} /> : `0${i + 1}`}
                 </span>
-                <span className={`hidden whitespace-nowrap text-sm font-medium md:block ${i === step ? 'text-navy-950' : i < step ? 'text-navy-500 group-hover:text-navy-900' : 'text-navy-300'}`}>{label}</span>
+                <span className={`hidden whitespace-nowrap text-sm font-medium md:block ${i === step ? 'text-ink-950' : i < step ? 'text-ink-500 group-hover:text-ink-900' : 'text-ink-300'}`}>{label}</span>
               </button>
               {i < STEPS.length - 1 && (
-                <span className="relative h-px flex-1 bg-navy-100">
-                  <motion.span className="absolute inset-y-0 left-0 bg-navy-950" initial={false} animate={{ width: i < step ? '100%' : '0%' }} transition={{ duration: 0.6, ease: EASE }} />
+                <span className="relative h-px flex-1 bg-ink-100">
+                  <motion.span className="absolute inset-y-0 left-0 bg-ink-950" initial={false} animate={{ width: i < step ? '100%' : '0%' }} transition={{ duration: 0.6, ease: EASE }} />
                 </span>
               )}
             </li>
           ))}
         </ol>
-        <p className="text-sm font-medium text-navy-500 sm:hidden">Step {step + 1} of 4 · {STEPS[step]}</p>
+        <p className="text-sm font-medium text-ink-500 sm:hidden">Step {step + 1} of 4 · {STEPS[step]}</p>
       </div>
 
       <AnimatePresence mode="wait" custom={dir}>
@@ -262,20 +272,20 @@ export function ClaimCheckFlow() {
                         if (v.od_premium) setPremium(String(v.od_premium));
                       }}
                       className={`relative overflow-hidden rounded-xl border p-4 text-left transition duration-300 ${
-                        on ? 'border-navy-950 bg-navy-950 text-white shadow-[0_20px_40px_-20px_rgba(20,19,16,0.6)]' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'
+                        on ? 'border-ink-950 bg-ink-950 text-white shadow-[0_20px_40px_-20px_rgba(20,19,16,0.6)]' : 'border-ink-100 bg-white hover:-translate-y-0.5 hover:border-ink-300'
                       }`}
                     >
-                      <div className={`-mx-1 mb-3 rounded-2xl px-3 pt-2 ${on ? 'bg-white/[0.07]' : 'bg-[#f6f5f0]'}`}>
+                      <div className={`-mx-1 mb-3 rounded-2xl px-3 pt-2 ${on ? 'bg-white/[0.07]' : 'bg-paper'}`}>
                         <CarSilhouette vehicle={v} className="h-16 w-full" />
                       </div>
                       <span className="flex items-start gap-2">
                         <span className="min-w-0 flex-1">
                           <span className="block truncate font-semibold">{v.make} {v.model}</span>
-                          <span className={`block text-xs ${on ? 'text-white/55' : 'text-navy-500'}`}>
+                          <span className={`block text-xs ${on ? 'text-white/55' : 'text-ink-500'}`}>
                             {BODY_LABEL[bodyTypeOf(v)]} · {v.registration_number} · {v.manufacture_year}{v.is_demo ? ' · Demo' : ''}
                           </span>
                         </span>
-                        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition ${on ? 'bg-signal text-navy-950' : 'border border-navy-200'}`}>
+                        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition ${on ? 'bg-signal text-ink-950' : 'border border-ink-200'}`}>
                           {on && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
                         </span>
                       </span>
@@ -289,13 +299,13 @@ export function ClaimCheckFlow() {
                     setIdv('');
                   }}
                   className={`flex min-h-36 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 text-center transition ${
-                    carId === 'other' ? 'border-navy-950 bg-navy-50' : 'border-navy-200 bg-white hover:border-navy-400'
+                    carId === 'other' ? 'border-ink-950 bg-ink-50' : 'border-ink-200 bg-white hover:border-ink-400'
                   }`}
                 >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy-50 text-navy-600"><Plus className="h-5 w-5" /></span>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ink-50 text-ink-600"><Plus className="h-5 w-5" /></span>
                   <span>
-                    <span className="block font-semibold text-navy-900">A different car</span>
-                    <span className="block text-xs text-navy-500">Quick check without saving</span>
+                    <span className="block font-semibold text-ink-900">A different car</span>
+                    <span className="block text-xs text-ink-500">Quick check without saving</span>
                   </span>
                 </button>
               </div>
@@ -308,17 +318,18 @@ export function ClaimCheckFlow() {
                 )}
                 <Field label="IDV (Insured Declared Value)" htmlFor="idv" help={() => open('What is IDV?')} hint="On the first page of your policy">
                   <RupeeInput id="idv" value={idv} onChange={setIdv} placeholder="e.g. 6,50,000" />
+                  <PolicyAutofill compact onApply={applyPolicy} />
                 </Field>
               </div>
-              {car?.is_demo && <p className="mt-4 text-xs text-navy-500">This is a demo car with fictional policy details. Add your own car for an estimate about you.</p>}
+              {car?.is_demo && <p className="mt-4 text-xs text-ink-500">This is a demo car with fictional policy details. Add your own car for an estimate about you.</p>}
             </StepCard>
           )}
 
           {step === 1 && (
             <StepCard title="What got damaged?" subtitle="Tap each damaged part, then enter the cost from your workshop’s quote.">
-              <div className="mb-6 inline-flex rounded-2xl bg-navy-50 p-1">
+              <div className="mb-6 inline-flex rounded-2xl bg-ink-50 p-1">
                 {(['parts', 'total'] as const).map((m) => (
-                  <button key={m} type="button" onClick={() => setMode(m)} className="relative rounded-xl px-4 py-2 text-sm font-medium text-navy-700">
+                  <button key={m} type="button" onClick={() => setMode(m)} className="relative rounded-xl px-4 py-2 text-sm font-medium text-ink-700">
                     {mode === m && <motion.span layoutId="mode-pill" className="absolute inset-0 rounded-xl bg-white shadow-sm" transition={{ type: 'spring', stiffness: 500, damping: 35 }} />}
                     <span className="relative">{m === 'parts' ? 'Part by part' : 'I only know the total'}</span>
                   </button>
@@ -326,9 +337,10 @@ export function ClaimCheckFlow() {
               </div>
 
               {mode === 'parts' ? (
-                <div className="grid gap-8 md:grid-cols-[260px_1fr]">
-                  <CarDiagram
+                <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr]">
+                  <DamagePicker
                     type={car ? bodyTypeOf(car) : 'hatchback'}
+                    paint={paintFor(car?.id || 'other').body}
                     selected={selectedParts}
                     onToggle={(id) =>
                       setCosts((c) => {
@@ -341,13 +353,13 @@ export function ClaimCheckFlow() {
                   />
                   <div className="space-y-3">
                     {docItems.map((d, idx) => (
-                      <div key={`doc-${idx}`} className="flex items-center gap-3 rounded-2xl border border-steel-200 bg-steel-50/50 p-3">
+                      <div key={`doc-${idx}`} className="flex items-center gap-3 rounded-2xl border border-forest-200 bg-forest-50/50 p-3">
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-navy-900">{d.label}</p>
-                          <p className="text-xs text-steel-700">From your document · {d.category === 'labour' ? 'labour' : `${d.category} part`}</p>
+                          <p className="truncate text-sm font-semibold text-ink-900">{d.label}</p>
+                          <p className="text-xs text-forest-700">From your document · {d.category === 'labour' ? 'labour' : `${d.category} part`}</p>
                         </div>
                         <div className="w-36"><RupeeInput value={d.cost} onChange={(v) => setDocItems((all) => all.map((x, k) => (k === idx ? { ...x, cost: v } : x)))} placeholder="Cost" compact /></div>
-                        <button type="button" onClick={() => setDocItems((all) => all.filter((_, k) => k !== idx))} className="rounded-md p-1.5 text-navy-300 hover:bg-navy-50 hover:text-navy-700" aria-label={`Remove ${d.label}`}>
+                        <button type="button" onClick={() => setDocItems((all) => all.filter((_, k) => k !== idx))} className="rounded-md p-1.5 text-ink-300 hover:bg-ink-50 hover:text-ink-700" aria-label={`Remove ${d.label}`}>
                           <X className="h-4 w-4" />
                         </button>
                       </div>
@@ -363,13 +375,13 @@ export function ClaimCheckFlow() {
                           transition={{ duration: 0.3, ease: EASE }}
                           className="overflow-hidden"
                         >
-                          <div className="flex items-center gap-3 rounded-2xl border border-navy-100 bg-white p-3">
+                          <div className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-white p-3">
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-navy-900">{p.label}</p>
-                              <p className="text-xs text-navy-500">{p.hint}</p>
+                              <p className="text-sm font-semibold text-ink-900">{p.label}</p>
+                              <p className="text-xs text-ink-500">{p.hint}</p>
                             </div>
                             <div className="w-36"><RupeeInput value={costs[p.id]} onChange={(v) => setCosts((c) => ({ ...c, [p.id]: v }))} placeholder="Cost" compact autoFocus /></div>
-                            <button type="button" onClick={() => setCosts((c) => { const n = { ...c }; delete n[p.id]; return n; })} className="rounded-md p-1.5 text-navy-300 hover:bg-navy-50 hover:text-navy-700" aria-label={`Remove ${p.label}`}>
+                            <button type="button" onClick={() => setCosts((c) => { const n = { ...c }; delete n[p.id]; return n; })} className="rounded-md p-1.5 text-ink-300 hover:bg-ink-50 hover:text-ink-700" aria-label={`Remove ${p.label}`}>
                               <X className="h-4 w-4" />
                             </button>
                           </div>
@@ -377,13 +389,13 @@ export function ClaimCheckFlow() {
                       ))}
                     </AnimatePresence>
                     {selectedParts.size === 0 && docItems.length === 0 && (
-                      <div className="flex h-full min-h-40 flex-col items-center justify-center rounded-2xl border border-dashed border-navy-200 p-6 text-center text-sm text-navy-500">
-                        <Wrench className="mb-2 h-6 w-6 text-navy-300" />
-                        Tap the dots on the car to add damaged parts.
+                      <div className="flex h-full min-h-40 flex-col items-center justify-center rounded-2xl border border-dashed border-ink-200 p-6 text-center text-sm text-ink-500">
+                        <Wrench className="mb-2 h-6 w-6 text-ink-300" />
+                        Tap the damaged parts on the car to add them here.
                       </div>
                     )}
                     {!selectedParts.has('labour') && (
-                      <button type="button" onClick={() => setCosts((c) => ({ ...c, labour: '' }))} className="vs-chip hover:border-navy-300">
+                      <button type="button" onClick={() => setCosts((c) => ({ ...c, labour: '' }))} className="vs-chip hover:border-ink-300">
                         <Plus className="h-3.5 w-3.5" /> Add labour & painting charges
                       </button>
                     )}
@@ -395,20 +407,20 @@ export function ClaimCheckFlow() {
                     <RupeeInput id="total" value={total} onChange={setTotal} placeholder="e.g. 42,500" />
                   </Field>
                   <fieldset className="space-y-2">
-                    <legend className="text-sm font-medium text-navy-800">What was mostly replaced?</legend>
+                    <legend className="text-sm font-medium text-ink-800">What was mostly replaced?</legend>
                     <div className="grid gap-2 sm:grid-cols-3">
                       {([['metal', 'Metal panels', 'Doors, bonnet, fenders'], ['plastic', 'Plastic parts', 'Bumpers, lights, mirrors'], ['mixed', 'Not sure', 'We’ll assume half and half']] as const).map(([v, l, h]) => (
                         <Choice key={v} on={material === v} onClick={() => setMaterial(v)} label={l} hint={h} />
                       ))}
                     </div>
                   </fieldset>
-                  <p className="text-xs text-navy-500">Entering parts one by one gives a more accurate estimate, because insurers deduct different amounts for different materials.</p>
+                  <p className="text-xs text-ink-500">Entering parts one by one gives a more accurate estimate, because insurers deduct different amounts for different materials.</p>
                 </div>
               )}
 
-              <div className="mt-6 flex flex-col gap-3 border-t border-navy-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-navy-600">Repair total: <span className="tabular text-lg font-semibold text-navy-900">{rupees(repairTotal)}</span></p>
-                <Link href="/decision/extract" className="inline-flex items-center gap-1.5 text-sm font-medium text-steel-700 hover:underline">
+              <div className="mt-6 flex flex-col gap-3 border-t border-ink-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-ink-600">Repair total: <span className="tabular text-lg font-semibold text-ink-900">{rupees(repairTotal)}</span></p>
+                <Link href="/decision/extract" className="inline-flex items-center gap-1.5 text-sm font-medium text-forest-700 hover:underline">
                   <FileUp className="h-4 w-4" /> Have the estimate as a PDF? Upload it
                 </Link>
               </div>
@@ -418,8 +430,9 @@ export function ClaimCheckFlow() {
           {step === 2 && (
             <StepCard title="A few details from your policy" subtitle="You’ll find these on your policy schedule. If you’re unsure, pick the closest option.">
               <div className="space-y-7">
+                <PolicyAutofill onApply={applyPolicy} />
                 <fieldset className="space-y-3">
-                  <legend className="flex items-center gap-2 text-sm font-medium text-navy-800">
+                  <legend className="flex items-center gap-2 text-sm font-medium text-ink-800">
                     Your current No-Claim Bonus <HelpBtn onClick={() => open('How does No-Claim Bonus (NCB) work?')} />
                   </legend>
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
@@ -430,20 +443,20 @@ export function ClaimCheckFlow() {
                 </fieldset>
 
                 <fieldset className="space-y-3">
-                  <legend className="flex items-center gap-2 text-sm font-medium text-navy-800">
+                  <legend className="flex items-center gap-2 text-sm font-medium text-ink-800">
                     Deductible (the part you always pay) <HelpBtn onClick={() => open('What is a deductible?')} />
                   </legend>
                   <div className="grid gap-2 sm:grid-cols-3">
                     <Choice on={deductible === '1000'} onClick={() => setDeductible('1000')} label="₹1,000" hint="Most cars up to 1500cc" />
                     <Choice on={deductible === '2000'} onClick={() => setDeductible('2000')} label="₹2,000" hint="Above 1500cc" />
-                    <div className={`rounded-2xl border p-2 ${!['1000', '2000'].includes(deductible) ? 'border-navy-900' : 'border-navy-100'}`}>
+                    <div className={`rounded-2xl border p-2 ${!['1000', '2000'].includes(deductible) ? 'border-ink-900' : 'border-ink-100'}`}>
                       <RupeeInput value={['1000', '2000'].includes(deductible) ? '' : deductible} onChange={setDeductible} placeholder="Other amount" compact />
                     </div>
                   </div>
                 </fieldset>
 
                 <fieldset className="space-y-3">
-                  <legend className="flex items-center gap-2 text-sm font-medium text-navy-800">
+                  <legend className="flex items-center gap-2 text-sm font-medium text-ink-800">
                     Do you have zero-depreciation cover? <HelpBtn onClick={() => open('What is zero depreciation cover?')} />
                   </legend>
                   <div className="grid gap-2 sm:grid-cols-3">
@@ -482,8 +495,8 @@ export function ClaimCheckFlow() {
                       })}
                     />
                   ) : (
-                    <p className="rounded-2xl border border-navy-100 bg-white p-5 text-sm text-navy-600">
-                      Want to keep this result in your vehicle’s history? <Link href="/onboarding" className="font-semibold text-steel-700 hover:underline">Add this car</Link> and run the check again.
+                    <p className="rounded-2xl border border-ink-100 bg-white p-5 text-sm text-ink-600">
+                      Want to keep this result in your vehicle’s history? <Link href="/onboarding" className="font-semibold text-forest-700 hover:underline">Add this car</Link> and run the check again.
                     </p>
                   )}
                 </>
@@ -494,7 +507,7 @@ export function ClaimCheckFlow() {
       </AnimatePresence>
 
       {/* Navigation */}
-      <div className="sticky bottom-[84px] z-10 -mx-4 mt-8 rounded-2xl border border-navy-100 bg-white/90 px-4 py-3 backdrop-blur lg:bottom-0 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-none">
+      <div className="sticky bottom-[84px] z-10 -mx-4 mt-8 rounded-2xl border border-ink-100 bg-white/90 px-4 py-3 backdrop-blur lg:bottom-0 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-none">
         <div className="flex items-center justify-between gap-3">
           {step > 0 ? (
             <button type="button" onClick={() => go(step - 1)} className="vs-btn-secondary">
@@ -505,7 +518,7 @@ export function ClaimCheckFlow() {
             <div className="flex items-center gap-3">
               <AnimatePresence>
                 {stepError && (
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="hidden text-right text-sm text-navy-500 md:block">
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="hidden text-right text-sm text-ink-500 md:block">
                     {stepError}
                   </motion.p>
                 )}
@@ -516,7 +529,7 @@ export function ClaimCheckFlow() {
             </div>
           )}
         </div>
-        {stepError && step < 3 && <p className="mt-2 text-sm text-navy-500 md:hidden">{stepError}</p>}
+        {stepError && step < 3 && <p className="mt-2 text-sm text-ink-500 md:hidden">{stepError}</p>}
       </div>
     </div>
   );
@@ -524,9 +537,9 @@ export function ClaimCheckFlow() {
 
 function StepCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-navy-100 bg-white p-6 shadow-[0_1px_2px_rgba(20,19,16,0.04),0_24px_48px_-28px_rgba(20,19,16,0.18)] sm:p-8">
-      <h2 className="font-display text-2xl font-semibold tracking-tight text-navy-950">{title}</h2>
-      <p className="mt-1 text-sm text-navy-500">{subtitle}</p>
+    <section className="rounded-2xl border border-ink-100 bg-white p-6 shadow-[0_1px_2px_rgba(20,19,16,0.04),0_24px_48px_-28px_rgba(20,19,16,0.18)] sm:p-8">
+      <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-950">{title}</h2>
+      <p className="mt-1 text-sm text-ink-500">{subtitle}</p>
       <div className="mt-6">{children}</div>
     </section>
   );
@@ -535,18 +548,18 @@ function StepCard({ title, subtitle, children }: { title: string; subtitle: stri
 function Field({ label, htmlFor, hint, help, children }: { label: string; htmlFor: string; hint?: string; help?: () => void; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="flex items-center gap-2 text-sm font-medium text-navy-800">
+      <label htmlFor={htmlFor} className="flex items-center gap-2 text-sm font-medium text-ink-800">
         {label} {help && <HelpBtn onClick={help} />}
       </label>
       {children}
-      {hint && <p className="text-xs text-navy-500">{hint}</p>}
+      {hint && <p className="text-xs text-ink-500">{hint}</p>}
     </div>
   );
 }
 
 function HelpBtn({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="rounded-md text-navy-400 transition hover:text-steel-600" aria-label="Explain this">
+    <button type="button" onClick={onClick} className="rounded-md text-ink-400 transition hover:text-forest-600" aria-label="Explain this">
       <HelpCircle className="h-4 w-4" />
     </button>
   );
@@ -559,11 +572,11 @@ function Choice({ on, onClick, label, hint }: { on: boolean; onClick: () => void
       onClick={onClick}
       whileTap={{ scale: 0.97 }}
       aria-pressed={on}
-      className={`relative rounded-2xl border px-3 py-3 text-left transition duration-300 ${on ? 'border-navy-950 bg-navy-950 text-white shadow-[0_12px_24px_-14px_rgba(20,19,16,0.7)]' : 'border-navy-100 bg-white text-navy-900 hover:-translate-y-0.5 hover:border-navy-300'}`}
+      className={`relative rounded-2xl border px-3 py-3 text-left transition duration-300 ${on ? 'border-ink-950 bg-ink-950 text-white shadow-[0_12px_24px_-14px_rgba(20,19,16,0.7)]' : 'border-ink-100 bg-white text-ink-900 hover:-translate-y-0.5 hover:border-ink-300'}`}
     >
       {on && <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-signal" />}
       <span className="block text-sm font-semibold">{label}</span>
-      {hint && <span className={`mt-0.5 block text-[11px] leading-snug ${on ? 'text-white/55' : 'text-navy-500'}`}>{hint}</span>}
+      {hint && <span className={`mt-0.5 block text-[11px] leading-snug ${on ? 'text-white/55' : 'text-ink-500'}`}>{hint}</span>}
     </motion.button>
   );
 }
@@ -576,7 +589,7 @@ function RupeeInput({ id, value, onChange, placeholder, compact, autoFocus }: { 
   }, [autoFocus]);
   return (
     <div className="relative">
-      <span className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-navy-400 ${compact ? 'text-sm' : ''}`}>₹</span>
+      <span className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-400 ${compact ? 'text-sm' : ''}`}>₹</span>
       <input
         ref={ref}
         id={id}
@@ -599,7 +612,7 @@ function Working({ car }: { car?: { id?: string; make?: string; model?: string; 
     return () => clearInterval(t);
   }, [lines.length]);
   return (
-    <div className="vs-grain relative flex flex-col items-center gap-6 overflow-hidden rounded-2xl bg-navy-950 p-10 text-center text-white" role="status">
+    <div className="vs-grain relative flex flex-col items-center gap-6 overflow-hidden rounded-2xl bg-ink-950 p-10 text-center text-white" role="status">
       <div className="relative w-full max-w-sm">
         <CarSilhouette vehicle={car} variant="line" className="w-full" />
         {!reduce && (

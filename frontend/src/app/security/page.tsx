@@ -46,14 +46,14 @@ export default function SecurityPage() {
           body="Plain answers to what we protect and how. If something here stops being true, we change the page."
         />
 
-        <section className="bg-[#f6f5f0] px-5 py-24">
+        <section className="bg-paper px-5 py-24">
           <div className="mx-auto grid max-w-6xl gap-4 md:grid-cols-2 lg:grid-cols-3">
             {CONTROLS.map((c, i) => (
               <Reveal key={c.title} delay={(i % 3) * 0.06}>
-                <div className="h-full rounded-2xl bg-white p-7 ring-1 ring-navy-100">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy-950 font-mono text-xs font-semibold text-signal">0{i + 1}</span>
-                  <h2 className="mt-5 font-display text-xl font-semibold tracking-tight text-navy-950">{c.title}</h2>
-                  <p className="mt-2 text-sm leading-relaxed text-navy-500">{c.body}</p>
+                <div className="h-full rounded-2xl bg-white p-7 ring-1 ring-ink-100">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink-950 font-mono text-xs font-semibold text-signal">0{i + 1}</span>
+                  <h2 className="mt-5 font-display text-xl font-semibold tracking-tight text-ink-950">{c.title}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-500">{c.body}</p>
                 </div>
               </Reveal>
             ))}
@@ -63,25 +63,25 @@ export default function SecurityPage() {
         <section className="bg-white px-5 py-24">
           <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.8fr_1.2fr]">
             <Reveal>
-              <h2 className="font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950">What we don’t do.</h2>
+              <h2 className="font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-ink-950">What we don’t do.</h2>
             </Reveal>
-            <ul className="border-t border-navy-100 text-lg text-navy-700">
+            <ul className="border-t border-ink-100 text-lg text-ink-700">
               {[
                 'Sell or share your data with insurers, brokers or advertisers',
                 'Send anything to an insurer on your behalf',
                 'Produce fraud or risk scores about you',
                 'Keep the PDFs you upload',
               ].map((t) => (
-                <li key={t} className="border-b border-navy-100 py-5">{t}</li>
+                <li key={t} className="border-b border-ink-100 py-5">{t}</li>
               ))}
             </ul>
           </div>
         </section>
 
         <section className="px-5 pb-24">
-          <p className="mx-auto max-w-6xl text-sm text-navy-500">
-            Found a security problem? Email <a href={`mailto:${BRAND.contactEmail}?subject=Security`} className="font-semibold text-navy-950 underline-offset-2 hover:underline">{BRAND.contactEmail}</a>. See also the{' '}
-            <Link href="/privacy" className="font-semibold text-navy-950 underline-offset-2 hover:underline">privacy notice</Link>.
+          <p className="mx-auto max-w-6xl text-sm text-ink-500">
+            Found a security problem? Email <a href={`mailto:${BRAND.contactEmail}?subject=Security`} className="font-semibold text-ink-950 underline-offset-2 hover:underline">{BRAND.contactEmail}</a>. See also the{' '}
+            <Link href="/privacy" className="font-semibold text-ink-950 underline-offset-2 hover:underline">privacy notice</Link>.
           </p>
         </section>
       </main>

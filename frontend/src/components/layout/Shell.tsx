@@ -106,12 +106,12 @@ export default function Shell({ children }: ShellProps) {
 
   if (!initialized || status === 'hydrating' || status === 'unauthenticated' || !user) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-6">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white p-6">
         <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}>
           <BrandLogo size="lg" />
         </motion.div>
-        <div className="flex items-center gap-2.5 text-sm text-navy-500">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-steel-500 border-t-transparent" />
+        <div className="flex items-center gap-2.5 text-sm text-ink-500">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-forest-500 border-t-transparent" />
           {status === 'unauthenticated' ? 'Taking you to sign in…' : 'Loading your account…'}
         </div>
       </div>
@@ -122,17 +122,17 @@ export default function Shell({ children }: ShellProps) {
   const more = MORE_NAV.filter((i) => !i.roles || i.roles.includes(roleKey));
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f6f5f0] text-navy-900">
+    <div className="flex min-h-screen flex-col bg-paper text-ink-900">
       {isDemoActive && (
-        <div className="bg-navy-950 px-4 py-2 text-center text-xs text-white/70">
-          <span className="mr-2 rounded-md bg-amber-300 px-2 py-0.5 font-semibold text-navy-950">Sample data</span>
+        <div className="bg-ink-950 px-4 py-2 text-center text-xs text-white/70">
+          <span className="mr-2 rounded-md bg-amber-300 px-2 py-0.5 font-semibold text-ink-950">Sample data</span>
           Calculations are real; the cars, policies and records are fictional.{' '}
           <Link href="/onboarding" className="font-semibold text-white underline-offset-2 hover:underline">Add your own car</Link>
         </div>
       )}
 
       <header className="sticky top-0 z-40 px-3 pt-3">
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 rounded-xl border border-navy-100/80 bg-white/80 pl-4 pr-2 shadow-[0_8px_30px_-14px_rgba(20,19,16,0.25)] backdrop-blur-xl">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 rounded-xl border border-ink-100/80 bg-white/80 pl-4 pr-2 shadow-[0_8px_30px_-14px_rgba(20,19,16,0.25)] backdrop-blur-xl">
           <Link href="/vehicles" className="mr-2 shrink-0" aria-label="ClearClaim home">
             <BrandLogo size="sm" />
           </Link>
@@ -145,10 +145,10 @@ export default function Shell({ children }: ShellProps) {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
-                  className={`relative whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors xl:px-3.5 ${active ? 'text-white' : 'text-navy-600 hover:text-navy-900'}`}
+                  className={`relative whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors xl:px-3.5 ${active ? 'text-white' : 'text-ink-600 hover:text-ink-900'}`}
                 >
                   {active && (
-                    <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-md bg-navy-950" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />
+                    <motion.span layoutId="nav-pill" className="absolute inset-0 rounded-md bg-ink-950" transition={{ type: 'spring', stiffness: 500, damping: 38 }} />
                   )}
                   <span className="relative">{item.label}</span>
                 </Link>
@@ -161,12 +161,12 @@ export default function Shell({ children }: ShellProps) {
             <button
               type="button"
               onClick={() => setCmdOpen(true)}
-              className="hidden items-center gap-2 rounded-md border border-navy-100 bg-white px-3 py-2 text-sm text-navy-500 transition hover:border-navy-200 md:flex"
+              className="hidden items-center gap-2 rounded-md border border-ink-100 bg-white px-3 py-2 text-sm text-ink-500 transition hover:border-ink-200 md:flex"
               aria-label="Search (Ctrl+K)"
             >
               <Search className="h-4 w-4" />
               <span className="hidden xl:inline">Search</span>
-              <kbd className="hidden rounded-md bg-navy-50 px-1.5 py-0.5 font-mono text-[10px] text-navy-500 xl:inline">⌘K</kbd>
+              <kbd className="hidden rounded-md bg-ink-50 px-1.5 py-0.5 font-mono text-[10px] text-ink-500 xl:inline">⌘K</kbd>
             </button>
             <AttentionCenter />
             <VehicleSwitcher vehicles={vehicles} selected={selectedVehicle} onSelect={(v) => {
@@ -197,7 +197,7 @@ export default function Shell({ children }: ShellProps) {
       </motion.main>
 
       {/* Mobile bottom navigation */}
-      <nav className="fixed inset-x-3 bottom-3 z-50 mb-[env(safe-area-inset-bottom)] rounded-xl bg-navy-950 p-1.5 shadow-[0_18px_40px_-12px_rgba(20,19,16,0.6)] lg:hidden" aria-label="Main">
+      <nav className="fixed inset-x-3 bottom-3 z-50 mb-[env(safe-area-inset-bottom)] rounded-xl bg-ink-950 p-1.5 shadow-[0_18px_40px_-12px_rgba(20,19,16,0.6)] lg:hidden" aria-label="Main">
         <div className="mx-auto grid max-w-md grid-cols-5">
           {PRIMARY_NAV.map((item) => {
             const active = isActive(item, pathname);
@@ -219,17 +219,17 @@ export default function Shell({ children }: ShellProps) {
       <AnimatePresence>
         {mobileMore && (
           <>
-            <motion.div className="fixed inset-0 z-[55] bg-navy-950/20 lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileMore(false)} />
+            <motion.div className="fixed inset-0 z-[55] bg-ink-950/20 lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobileMore(false)} />
             <motion.div
-              className="fixed inset-x-3 bottom-24 z-[56] rounded-2xl border border-navy-100 bg-white p-2 shadow-2xl lg:hidden"
+              className="fixed inset-x-3 bottom-24 z-[56] rounded-2xl border border-ink-100 bg-white p-2 shadow-2xl lg:hidden"
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 24 }}
               transition={{ type: 'spring', stiffness: 420, damping: 36 }}
             >
               {[...more, { label: 'Settings', href: '/settings', icon: Settings }].map((i) => (
-                <Link key={i.href} href={i.href} onClick={() => setMobileMore(false)} className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-navy-800 hover:bg-navy-50">
-                  <i.icon className="h-5 w-5 text-navy-500" /> {i.label}
+                <Link key={i.href} href={i.href} onClick={() => setMobileMore(false)} className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-ink-800 hover:bg-ink-50">
+                  <i.icon className="h-5 w-5 text-ink-500" /> {i.label}
                 </Link>
               ))}
             </motion.div>
@@ -254,16 +254,16 @@ function MoreMenu({ items, pathname }: { items: NavItem[]; pathname: string }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className={`flex items-center gap-1 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors ${active ? 'bg-navy-100 text-navy-900' : 'text-navy-600 hover:text-navy-900'}`}
+        className={`flex items-center gap-1 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors ${active ? 'bg-ink-100 text-ink-900' : 'text-ink-600 hover:text-ink-900'}`}
       >
         More <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div {...menuMotion} role="menu" className="absolute left-0 top-12 w-64 origin-top-left rounded-2xl border border-navy-100 bg-white p-1.5 shadow-xl">
+          <motion.div {...menuMotion} role="menu" className="absolute left-0 top-12 w-64 origin-top-left rounded-2xl border border-ink-100 bg-white p-1.5 shadow-xl">
             {items.map((i) => (
-              <Link key={i.href} href={i.href} role="menuitem" onClick={() => setOpen(false)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive(i, pathname) ? 'bg-navy-50 text-navy-900' : 'text-navy-700 hover:bg-navy-50'}`}>
-                <i.icon className="h-4 w-4 text-navy-400" /> {i.label}
+              <Link key={i.href} href={i.href} role="menuitem" onClick={() => setOpen(false)} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${isActive(i, pathname) ? 'bg-ink-50 text-ink-900' : 'text-ink-700 hover:bg-ink-50'}`}>
+                <i.icon className="h-4 w-4 text-ink-400" /> {i.label}
               </Link>
             ))}
           </motion.div>
@@ -284,19 +284,19 @@ function VehicleSwitcher({ vehicles, selected, onSelect }: { vehicles: Vehicle[]
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="flex items-center gap-2 rounded-md border border-navy-100 bg-white py-1.5 pl-1.5 pr-3 text-left transition hover:border-navy-200"
+        className="flex items-center gap-2 rounded-md border border-ink-100 bg-white py-1.5 pl-1.5 pr-3 text-left transition hover:border-ink-200"
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-navy-50 text-navy-700"><Car className="h-4 w-4" /></span>
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink-50 text-ink-700"><Car className="h-4 w-4" /></span>
         <span className="hidden max-w-[140px] sm:block">
-          <span className="block truncate text-xs font-semibold leading-tight text-navy-900">{selected ? `${selected.make} ${selected.model}` : 'Choose a car'}</span>
-          <span className="block truncate text-[10px] leading-tight text-navy-500">{selected?.registration_number}{selected?.is_demo ? ' · Demo' : ''}</span>
+          <span className="block truncate text-xs font-semibold leading-tight text-ink-900">{selected ? `${selected.make} ${selected.model}` : 'Choose a car'}</span>
+          <span className="block truncate text-[10px] leading-tight text-ink-500">{selected?.registration_number}{selected?.is_demo ? ' · Demo' : ''}</span>
         </span>
-        <ChevronDown className="h-3.5 w-3.5 text-navy-400" />
+        <ChevronDown className="h-3.5 w-3.5 text-ink-400" />
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div {...menuMotion} className="absolute right-0 top-12 w-72 origin-top-right rounded-2xl border border-navy-100 bg-white p-1.5 shadow-xl" role="listbox" aria-label="Your cars">
-            <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-navy-400">Your cars</p>
+          <motion.div {...menuMotion} className="absolute right-0 top-12 w-72 origin-top-right rounded-2xl border border-ink-100 bg-white p-1.5 shadow-xl" role="listbox" aria-label="Your cars">
+            <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wider text-ink-400">Your cars</p>
             <div className="max-h-72 overflow-y-auto">
               {vehicles.map((v) => (
                 <button
@@ -308,17 +308,17 @@ function VehicleSwitcher({ vehicles, selected, onSelect }: { vehicles: Vehicle[]
                     onSelect(v);
                     setOpen(false);
                   }}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-navy-50"
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-ink-50"
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-navy-900">{v.make} {v.model}</span>
-                    <span className="block text-xs text-navy-500">{v.registration_number}{v.is_demo ? ' · Demo' : ''}{v.is_local_only ? ' · This browser only' : ''}</span>
+                    <span className="block truncate text-sm font-medium text-ink-900">{v.make} {v.model}</span>
+                    <span className="block text-xs text-ink-500">{v.registration_number}{v.is_demo ? ' · Demo' : ''}{v.is_local_only ? ' · This browser only' : ''}</span>
                   </span>
-                  {selected?.id === v.id && <Check className="h-4 w-4 text-navy-900" />}
+                  {selected?.id === v.id && <Check className="h-4 w-4 text-ink-900" />}
                 </button>
               ))}
             </div>
-            <Link href="/onboarding" className="mt-1 flex items-center gap-2 rounded-xl border-t border-navy-50 px-3 py-2.5 text-sm font-semibold text-steel-700 hover:bg-steel-50">
+            <Link href="/onboarding" className="mt-1 flex items-center gap-2 rounded-xl border-t border-ink-50 px-3 py-2.5 text-sm font-semibold text-forest-700 hover:bg-forest-50">
               <Plus className="h-4 w-4" /> Add a car
             </Link>
           </motion.div>
@@ -335,23 +335,23 @@ function ProfileMenu({ name, roleLabel, isDemo, onSignOut }: { name: string; rol
   const initials = name.replace(/\(.*\)/, '').split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join('');
   return (
     <div ref={ref} className="relative">
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-haspopup="menu" aria-label="Account menu" className="flex h-9 w-9 items-center justify-center rounded-full bg-navy-900 text-xs font-semibold text-white ring-2 ring-white transition hover:ring-navy-100">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-haspopup="menu" aria-label="Account menu" className="flex h-9 w-9 items-center justify-center rounded-full bg-ink-900 text-xs font-semibold text-white ring-2 ring-white transition hover:ring-ink-100">
         {initials || <UserRound className="h-4 w-4" />}
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div {...menuMotion} role="menu" className="absolute right-0 top-12 w-64 origin-top-right rounded-2xl border border-navy-100 bg-white p-1.5 shadow-xl">
+          <motion.div {...menuMotion} role="menu" className="absolute right-0 top-12 w-64 origin-top-right rounded-2xl border border-ink-100 bg-white p-1.5 shadow-xl">
             <div className="px-3 py-2.5">
-              <p className="truncate text-sm font-semibold text-navy-900">{name}</p>
-              <p className="text-xs text-navy-500">{roleLabel}{isDemo ? ' · Demo account' : ''}</p>
+              <p className="truncate text-sm font-semibold text-ink-900">{name}</p>
+              <p className="text-xs text-ink-500">{roleLabel}{isDemo ? ' · Demo account' : ''}</p>
             </div>
-            <div className="my-1 h-px bg-navy-50" />
+            <div className="my-1 h-px bg-ink-50" />
             {[
               { label: 'Settings', href: '/settings', icon: Settings },
               { label: 'System status', href: '/settings?tab=status', icon: Activity },
             ].map((i) => (
-              <Link key={i.href} href={i.href} role="menuitem" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-navy-700 hover:bg-navy-50">
-                <i.icon className="h-4 w-4 text-navy-400" /> {i.label}
+              <Link key={i.href} href={i.href} role="menuitem" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-50">
+                <i.icon className="h-4 w-4 text-ink-400" /> {i.label}
               </Link>
             ))}
             <button type="button" role="menuitem" onClick={onSignOut} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-loss hover:bg-loss-soft">

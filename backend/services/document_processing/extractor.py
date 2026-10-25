@@ -4,6 +4,34 @@ import datetime
 import re
 from typing import Dict, Any, List, Optional
 
+from services.document_processing.ocr import ocr_available, ocr_pdf, ocr_photo
+
+LABOUR_WORDS = ["LABOUR", "PAINT", "REPAIR", "CHARGES", "SERVICE", "ALIGNMENT"]
+SKIP_LINE_WORDS = ["TOTAL", "GST", "TAX", "CGST", "SGST", "IGST", "SUBTOTAL", "SUB TOTAL", "DISCOUNT", "AMOUNT IN WORDS"]
+
+
+def categorise(description: str) -> str:
+    """Material of a repair line, which decides its depreciation."""
+    d = description.upper()
+    if any(k in d for k in LABOUR_WORDS):
+        return "labour"
+    if any(k in d for k in ["BUMPER", "PLASTIC", "FENDER LINER", "GRILL", "CLADDING", "HEADLAMP", "HEADLIGHT", "TAIL LAMP", "TAILLIGHT", "LAMP", "RUBBER", "MIRROR"]):
+        return "plastic"
+    if any(k in d for k in ["GLASS", "WINDSHIELD", "WINDSCREEN", "WINDOW"]):
+        return "glass"
+    if any(k in d for k in ["FIBRE", "FIBERGLASS"]):
+        return "fiberglass"
+    return "metal"
+
+
+def _mark_ocr(fields: Dict[str, Any]) -> None:
+    """Values read by OCR are less certain; say so in the method and confidence."""
+    for f in fields.values():
+        if f.get("value") is not None:
+            f["method"] = f"ocr_{f['method']}"
+            f["confidence"] = round(f["confidence"] * 0.8, 2)
+
+
 class DocumentExtractor:
     """
     Open-Source Document Intelligence Pipeline.
@@ -12,6 +40,37 @@ class DocumentExtractor:
     Handles encrypted/password-protected PDFs, scanned PDFs, multi-page documents, and missing fields.
     Missing values remain None and must be verified/supplied by the user.
     """
+
+    def read_document(self, file_bytes: bytes, kind: str) -> Dict[str, Any]:
+        """
+        Text for a PDF or a photo. PDFs with a text layer are read directly;
+        scanned PDFs and photos go through OCR when Tesseract is installed.
+        """
+        if kind == "pdf":
+            result = self.extract_text(file_bytes, "application/pdf")
+            if result.get("status") != "SCANNED_PDF_NO_TEXT" or not ocr_available():
+                return result
+            pages = ocr_pdf(file_bytes)
+            total_pages = result.get("total_pages", len(pages))
+        else:
+            if not ocr_available():
+                return {"status": "OCR_UNAVAILABLE", "message": "Photos can't be read on this server yet. Please upload a PDF or type the values."}
+            pages = ocr_photo(file_bytes)
+            total_pages = 1
+
+        full_text = "\n".join(p["raw_text"] for p in pages)
+        if len(re.sub(r"\s+", "", full_text)) < 20:
+            return {"status": "SCANNED_PDF_NO_TEXT", "total_pages": total_pages, "full_text": full_text, "pages": pages,
+                    "message": "We couldn't make out any text. Try a sharper, well-lit photo, or type the values."}
+        return {
+            "status": "SUCCESS",
+            "ocr": True,
+            "total_pages": total_pages,
+            "full_text": full_text,
+            "pages": pages,
+            "extraction_method": "Tesseract OCR",
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        }
 
     def extract_text(self, file_bytes: bytes, mime_type: str) -> Dict[str, Any]:
         """
@@ -111,7 +170,9 @@ class DocumentExtractor:
             "compulsory_deductible": {"value": None, "confidence": 0.0, "method": "regex_currency", "source_page": None, "human_corrected": False},
             "ncb_percentage": {"value": None, "confidence": 0.0, "method": "regex_percentage", "source_page": None, "human_corrected": False},
             "valid_from": {"value": None, "confidence": 0.0, "method": "regex_date", "source_page": None, "human_corrected": False},
-            "valid_to": {"value": None, "confidence": 0.0, "method": "regex_date", "source_page": None, "human_corrected": False}
+            "valid_to": {"value": None, "confidence": 0.0, "method": "regex_date", "source_page": None, "human_corrected": False},
+            "od_premium": {"value": None, "confidence": 0.0, "method": "regex_currency", "source_page": None, "human_corrected": False},
+            "has_zero_dep": {"value": None, "confidence": 0.0, "method": "keyword_match", "source_page": None, "human_corrected": False},
         }
 
         def find_page_for_text(pattern: str) -> Optional[int]:
@@ -204,7 +265,33 @@ class DocumentExtractor:
             except ValueError:
                 pass
 
-        # 7. Dates (From / To)
+        # 7. Own-damage premium (before NCB): the base for working out what the No-Claim Bonus is worth.
+        prem_match = re.search(
+            r'(?:(?:TOTAL|NET|BASIC)\s*)?(?:OWN\s*DAMAGE|OD)\s*PREMIUM[^0-9\n]*([0-9][0-9,]*(?:\.[0-9]{1,2})?)', text_upper
+        )
+        if prem_match:
+            try:
+                fields["od_premium"] = {
+                    "value": float(prem_match.group(1).replace(",", "")),
+                    "confidence": 0.75,
+                    "method": "regex_currency",
+                    "source_page": find_page_for_text("PREMIUM"),
+                    "human_corrected": False,
+                }
+            except ValueError:
+                pass
+
+        # 8. Zero-depreciation add-on. Only a positive mention counts; absence is left unknown, not "no".
+        if re.search(r'ZERO\s*DEP|NIL\s*DEP|DEPRECIATION\s*(?:REIMBURSEMENT|COVER|WAIVER)|BUMPER\s*TO\s*BUMPER', text_upper):
+            fields["has_zero_dep"] = {
+                "value": True,
+                "confidence": 0.7,
+                "method": "keyword_match",
+                "source_page": find_page_for_text("DEP"),
+                "human_corrected": False,
+            }
+
+        # 9. Dates (From / To)
         date_pattern = r'\b([0-3]?[0-9][-/.](?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|0[1-9]|1[0-2])[-/.](?:20\d{2}|\d{2}))\b'
         dates_found = re.findall(date_pattern, text_upper)
         if len(dates_found) >= 2:
@@ -222,6 +309,9 @@ class DocumentExtractor:
                 "source_page": 1,
                 "human_corrected": False
             }
+
+        if text_extraction_result.get("ocr"):
+            _mark_ocr(fields)
 
         return {
             "status": "PARSED",
@@ -263,40 +353,50 @@ class DocumentExtractor:
                         try:
                             price = float(re.sub(r'[^0-9.]', '', cell_str))
                             if 50 < price < 1000000:
-                                is_labour = any(kw in desc.upper() for kw in ["LABOUR", "PAINT", "REPAIR", "CHARGES", "SERVICE", "ALIGNMENT"])
-                                if is_labour:
+                                category = categorise(desc)
+                                if category == "labour":
                                     total_labour += price
-                                    line_items.append({
-                                        "part_name": desc,
-                                        "category": "labour",
-                                        "quantity": 1,
-                                        "estimated_cost": price,
-                                        "source_page": page_num,
-                                        "confidence": 0.85
-                                    })
                                 else:
                                     total_parts += price
-                                    # Categorize part for depreciation rules
-                                    category = "metal"
-                                    d_up = desc.upper()
-                                    if any(k in d_up for k in ["BUMPER", "PLASTIC", "FENDER LINER", "GRILL", "CLADDING", "HEADLAMP", "HEADLIGHT", "TAIL LAMP", "TAILLIGHT", "LAMP", "RUBBER", "MIRROR"]):
-                                        category = "plastic"
-                                    elif any(k in d_up for k in ["GLASS", "WINDSHIELD", "WINDOW"]):
-                                        category = "glass"
-                                    elif any(k in d_up for k in ["FIBRE", "FIBERGLASS"]):
-                                        category = "fiberglass"
-
-                                    line_items.append({
-                                        "part_name": desc,
-                                        "category": category,
-                                        "quantity": 1,
-                                        "estimated_cost": price,
-                                        "source_page": page_num,
-                                        "confidence": 0.85
-                                    })
+                                line_items.append({
+                                    "part_name": desc,
+                                    "category": category,
+                                    "quantity": 1,
+                                    "estimated_cost": price,
+                                    "source_page": page_num,
+                                    "confidence": 0.85,
+                                })
                                 break
                         except ValueError:
                             continue
+
+        if not line_items:
+            # No tables (typical for OCR): read "Description ..... 14,800.00" lines.
+            line_re = re.compile(r'^\s*(?:\d+[.)]?\s+)?([A-Za-z][A-Za-z0-9 ()/&,.\-]{2,60}?)\s+(?:RS\.?|INR|₹)?\s*([0-9]{1,3}(?:,[0-9]{2,3})*(?:\.[0-9]{1,2})?|[0-9]{3,7}(?:\.[0-9]{1,2})?)\s*$', re.I)
+            for page in pages:
+                for raw in page.get("raw_text", "").splitlines():
+                    m = line_re.match(raw)
+                    if not m:
+                        continue
+                    desc = m.group(1).strip()
+                    if any(w in desc.upper() for w in SKIP_LINE_WORDS):
+                        continue
+                    price = float(m.group(2).replace(",", ""))
+                    if not 50 < price < 1000000:
+                        continue
+                    category = categorise(desc)
+                    if category == "labour":
+                        total_labour += price
+                    else:
+                        total_parts += price
+                    line_items.append({
+                        "part_name": desc,
+                        "category": category,
+                        "quantity": 1,
+                        "estimated_cost": price,
+                        "source_page": page.get("page_number", 1),
+                        "confidence": 0.6 if text_extraction_result.get("ocr") else 0.7,
+                    })
 
         full_text = text_extraction_result.get("full_text", "").upper()
         gst_amount = None

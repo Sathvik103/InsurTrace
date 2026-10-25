@@ -1,113 +1,80 @@
-# Deploying ClearClaim
+# Deployment
 
-ClearClaim has three runtime parts. Each one is deployed separately.
-
-| Part | Where it runs | Status |
+| Part | Host | Deploys from |
 |---|---|---|
-| Next.js frontend | Vercel (`frontend/`) | Deployed at https://insur-trace.vercel.app |
-| FastAPI backend | Render, from `render.yaml` (Docker, `backend/`) | You need to create it (steps below) |
-| Hyperledger Fabric | Only on your machine (WSL2 + Docker) | A hosted API cannot reach it |
-| Supabase (Postgres, Auth, Storage) | Managed | The project in `frontend/.env.local` does not currently resolve in DNS |
+| Website (`frontend/`) | Vercel, https://insur-trace.vercel.app | every push to `main` |
+| API (`backend/`) | Render, Docker, Singapore, https://verisure-api-ucca.onrender.com | every push to `main` |
+| Database and sign-in | Supabase | SQL in `database/` |
+| Ledger | Not connected in production (records wait as *pending*) | see [ledger.md](ledger.md) |
 
+## API on Render
+
+The service is described in `render.yaml` (Docker, health check `/health`). The image installs
+Tesseract so scanned PDFs and photos can be read.
+
+Settings (Render → Environment). Secrets are never committed.
+
+| Variable | Purpose |
+|---|---|
+| `ENVIRONMENT=production` | Turns on the strict start-up checks below |
+| `ALLOWED_ORIGINS` | Exactly the website origin(s), comma-separated. `*` is refused in production |
+| `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | The Supabase project. Leave both empty to run the in-memory demo sandbox |
+| `ENABLE_DEMO_AUTH` | Allows the demo accounts. Demo tokens are always refused once a real Supabase project is connected in production |
+| `FABRIC_MODE` | `auto` (default), `gateway`, `local_wsl` or `disabled` |
+| `GATEWAY_URL`, `GATEWAY_API_KEY` | A reachable ledger gateway over `https://`. Leave empty until there is one |
+
+Checks after a deploy:
+
+- `GET /health` returns `{"status":"healthy"}`
+- `GET /ready` shows the data mode and ledger mode
+- `GET /api/v1/system/status` shows every part honestly, including what is not connected
+
+The free plan sleeps after about 15 idle minutes; the first request then takes 30 to 60 seconds,
+and the website shows a waking-up message meanwhile. Demo-sandbox data lives in memory and resets
+on restart.
+
+## Website on Vercel
+
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | The API's URL, no trailing slash |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | For real sign-in |
+| `NEXT_PUBLIC_SITE_URL` | Optional; defaults to https://insur-trace.vercel.app (used for SEO links) |
+
+`NEXT_PUBLIC_*` values are built into the site, so change them and then redeploy.
+
+## Database on Supabase
+
+Run `database/schema.sql`, then the files in `database/migrations` in order. All three are applied
+to the live project:
+
+1. `001_secure_signup_role.sql`: sign-up can never choose an insurer, surveyor or admin role
+2. `002_align_schema_with_api.sql`: columns the API uses; demo organisations
+3. `003_org_signup_and_premium.sql`: fleet and workshop sign-up; renewal premium per vehicle
+
+## Running locally
+
+```bash
+# API (http://localhost:8000), demo sandbox, no ledger
+cd backend
+python -m venv venv && venv/Scripts/pip install -r requirements-dev.txt   # Windows
+venv/Scripts/uvicorn main:app --reload
+
+# Website (http://localhost:3000)
+cd frontend
+npm install
+npm run dev
 ```
-Browser ──HTTPS──▶ Vercel (Next.js)
-   │
-   └──HTTPS (NEXT_PUBLIC_API_URL)──▶ Render (FastAPI)
-                                         ├──▶ Supabase (optional; otherwise demo sandbox)
-                                         └──HTTPS + X-Gateway-Key──▶ Fabric gateway ──▶ peers / orderer
-                                             (optional; otherwise ledger "not configured")
+
+Set `NEXT_PUBLIC_API_URL=http://localhost:8000` in `frontend/.env.local`. Reading photos needs
+Tesseract on your machine; without it the API explains that only PDFs can be read.
+
+## Tests
+
+```bash
+cd backend && venv/Scripts/python -m pytest          # API tests (ledger tests skipped)
+cd frontend && npm run test:unit                     # engine parity, triage, body types, repair-or-sell
+cd frontend && npm run lint && npx tsc --noEmit      # lint and types
 ```
 
-## What failed before
-
-Before this change, saving a claim on the live site showed *"Failed to commit claim to ledger"*. Four things were wrong at once:
-
-1. **The API URL was never set at build time.** `NEXT_PUBLIC_API_URL` was empty when Vercel built the app, so the build silently fell back to `http://localhost:8000`, which points at each visitor's own computer.
-2. **The backend wasn't hosted anywhere.**
-3. **The page sent a fixed demo token,** `dev-policyholder`. A production backend rejects it.
-4. **The claim insert didn't match the database schema,** and the error came back without CORS headers. The browser therefore reported a generic network error instead of the real problem.
-
-What happens now:
-
-- If a production build has no API URL, the app shows **"Backend not configured"** instead of calling localhost.
-- A claim is saved **independently** of the ledger. Its fingerprint shows one of these states:
-
-  | State | Meaning |
-  |---|---|
-  | `COMMITTED` | Anchored on the ledger, with its transaction ID |
-  | `PENDING` | The ledger can't be reached; the record can be retried later |
-  | `FAILED` | The ledger rejected the record |
-
-- **Retry anchoring** (`POST /api/v1/claims/{id}/ledger/retry`) can be repeated safely. It only resubmits the original fingerprint, and only if the record has not changed since then.
-
-## 1. Backend on Render
-
-1. In Render, choose **New → Blueprint** and select this repository. Render reads `render.yaml`, which defines the `verisure-api` service.
-2. Set the secret environment variables in the dashboard. The blueprint marks them `sync: false`, so they are never committed:
-
-   | Variable | Value |
-   |---|---|
-   | `SUPABASE_URL`, `SUPABASE_SECRET_KEY` | Leave both **empty** to run the demo sandbox. Set both to use a real Supabase project (see step 4). Sign-in tokens are verified against the project's published keys (JWKS) automatically; a JWT secret is only needed for legacy projects. |
-   | `GATEWAY_URL`, `GATEWAY_API_KEY` | Leave empty until a Fabric gateway is reachable over HTTPS (see step 3). |
-
-3. Check that `ALLOWED_ORIGINS` contains exactly the frontend origin, `https://insur-trace.vercel.app`, and add any custom domain. The API refuses to start in production if this is `*` or empty.
-4. Deploy. Then check:
-   - `GET https://<service>.onrender.com/health` returns `{"status":"healthy"}`.
-   - `GET /ready` reports `data_mode` and the ledger mode.
-   - `GET /api/v1/system/status` gives the full honest status.
-
-Things to know about the free plan:
-
-- **The service sleeps after about 15 minutes idle.** The first request afterwards can take 30–60 seconds. The frontend waits up to 30–60 seconds and then explains that the server may be waking up.
-- **Demo-sandbox data lives in memory** and resets when the service restarts or sleeps.
-
-## 2. Frontend on Vercel
-
-1. Go to **Project → Settings → Environment Variables** and set `NEXT_PUBLIC_API_URL=https://<service>.onrender.com` for the Production environment. Do not add a trailing slash.
-2. **Redeploy.** `NEXT_PUBLIC_*` values are baked in at build time, so changing the variable does nothing until the next build.
-3. Open the site:
-   - The homepage badge should read *Integrity ledger offline* (expected until step 3) rather than *System status unavailable*.
-   - On **Claim Decision**, the calculation should load, and **Save claim record** should report the claim as saved with anchoring *pending*.
-
-## 3. Connecting a ledger (optional)
-
-A hosted API cannot reach Fabric on `localhost` inside your WSL machine. To connect a ledger, run the peers **and** `backend/blockchain/gateway` on a host the API can reach over HTTPS. Either of these works:
-
-- A small Linux VM (for example Oracle Cloud's free ARM tier) running the Fabric test network, with the gateway behind a TLS reverse proxy.
-- For demos only: your PC, exposed with a tunnel (for example Cloudflare Tunnel) pointing at the gateway port. It only works while your PC, WSL and Docker are running.
-
-Set up the gateway:
-
-- On the gateway host, set `GATEWAY_API_KEY`, which you can generate with `openssl rand -hex 32`.
-- Set `FABRIC_RUNNER=native` (or `wsl` on Windows).
-- Set `FABRIC_BASE_DIR`.
-
-Then on Render, set:
-
-- `GATEWAY_URL=https://<gateway-host>` (production requires `https://`)
-- `GATEWAY_API_KEY=<same secret>`
-
-The status page will then report the ledger as `gateway` / `CONNECTED`. Pending claims can be anchored with **Retry anchoring**.
-
-Never commit wallets, crypto material, connection profiles or the gateway key. `.gitignore` already excludes `*.pem`, `*.key`, `wallet/`, `crypto-config/` and `connection-profile.json`.
-
-## 4. Supabase (optional, for real accounts)
-
-The Supabase URL configured in `frontend/.env.local` (`mwcpavdontwsjvmeeexw.supabase.co`) currently **does not resolve in DNS**. The project is probably paused or deleted, so real sign-in cannot work until it is restored or replaced.
-
-To set it up:
-
-1. Restore the project, or create a new one, in the Supabase dashboard.
-2. Apply `database/schema.sql`. **Known gap:** the API currently uses a richer data model than `schema.sql`. For example, it uses `claims.vehicle_id`, `policies.idv` and the `PENDING_SURVEY` status. Reconciling the schema with the API is tracked as follow-up work. Until it's done, keep Render on the demo sandbox.
-3. Set `SUPABASE_URL` and `SUPABASE_SECRET_KEY` (the `sb_secret_...` key) on Render. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` on Vercel, then redeploy.
-
-When the API is connected to a real Supabase project in production, it **rejects demo tokens**, so demo personas cannot reach real user data.
-
-## Local development
-
-- **Backend:** run `uvicorn main:app --reload` in `backend/`. It uses the demo sandbox. With `FABRIC_MODE=auto` it uses the local Fabric network through the peer CLI.
-- **WSL idling:** WSL shuts down when idle, and the Fabric containers restart on the next `wsl` call. Right after such a restart the orderer needs a few seconds to elect a Raft leader. The client retries for this, and if the leader is still missing the claim is left `PENDING` so it can be retried.
-- **Tests:**
-  - `python -m pytest` runs the suite with the ledger disabled.
-  - `FABRIC_TESTS=1 python -m pytest -m fabric` runs the live ledger tests.
-- **Docker image check:** `docker build -t verisure-api backend && docker run -e ENVIRONMENT=production -e ALLOWED_ORIGINS=http://localhost:3000 -p 8000:8000 verisure-api`
+To check the production image: `docker build -t clearclaim-api backend`.

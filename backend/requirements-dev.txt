@@ -1,2 +1,4 @@
 -r requirements.txt
 pytest==9.1.1
+# Only for scripts/make_sample_documents.py (generates the fictional sample PDFs).
+pymupdf==1.28.2

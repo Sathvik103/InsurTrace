@@ -56,13 +56,13 @@ export function QuickCheck() {
   }, [bill, ncb, age, plastic]);
 
   const verdict = result ? verdictFor(result) : null;
-  const toneColor = verdict?.tone === 'claim' ? 'bg-gain' : verdict?.tone === 'selfpay' ? 'bg-steel-600' : 'bg-amber-500';
+  const toneColor = verdict?.tone === 'claim' ? 'bg-gain' : verdict?.tone === 'selfpay' ? 'bg-forest-600' : 'bg-amber-500';
 
   return (
-    <div className="vs-glass relative rounded-2xl p-6 sm:p-7">
+    <div className="vs-surface relative p-6 sm:p-7">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-navy-900">Try it: quick check</p>
-        <span className="flex items-center gap-1.5 text-xs text-navy-500">
+        <p className="text-sm font-semibold text-ink-900">Try it: quick check</p>
+        <span className="flex items-center gap-1.5 text-xs text-ink-500">
           {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <span className="h-1.5 w-1.5 rounded-full bg-gain" />}
           {busy ? 'Calculating' : 'Live result'}
         </span>
@@ -71,25 +71,25 @@ export function QuickCheck() {
       <div className="mt-5 space-y-5">
         <div>
           <div className="flex items-baseline justify-between">
-            <label htmlFor="qc-bill" className="text-xs font-medium text-navy-600">Repair bill</label>
-            <span className="tabular text-xl font-semibold text-navy-900">{rupees(bill)}</span>
+            <label htmlFor="qc-bill" className="text-xs font-medium text-ink-600">Repair bill</label>
+            <span className="tabular text-xl font-semibold text-ink-900">{rupees(bill)}</span>
           </div>
-          <input id="qc-bill" type="range" min={3000} max={150000} step={1000} value={bill} onChange={(e) => setBill(Number(e.target.value))} className="mt-2 w-full accent-navy-900" />
+          <input id="qc-bill" type="range" min={3000} max={150000} step={1000} value={bill} onChange={(e) => setBill(Number(e.target.value))} className="mt-2 w-full accent-ink-900" />
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           {[true, false].map((p) => (
-            <button key={String(p)} type="button" onClick={() => setPlastic(p)} aria-pressed={plastic === p} className={`rounded-xl border px-3 py-2 text-xs font-medium transition ${plastic === p ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-navy-700 hover:border-navy-300'}`}>
+            <button key={String(p)} type="button" onClick={() => setPlastic(p)} aria-pressed={plastic === p} className={`rounded-xl border px-3 py-2 text-xs font-medium transition ${plastic === p ? 'border-ink-900 bg-ink-900 text-white' : 'border-ink-100 bg-white text-ink-700 hover:border-ink-300'}`}>
               {p ? 'Bumper / plastic part' : 'Door / metal panel'}
             </button>
           ))}
         </div>
 
         <div>
-          <p className="text-xs font-medium text-navy-600">Your No-Claim Bonus</p>
+          <p className="text-xs font-medium text-ink-600">Your No-Claim Bonus</p>
           <div className="mt-2 grid grid-cols-6 gap-1.5">
             {NCB_STEPS.map((n) => (
-              <button key={n} type="button" onClick={() => setNcb(n)} aria-pressed={ncb === n} className={`rounded-lg py-1.5 text-xs font-semibold transition ${ncb === n ? 'bg-navy-900 text-white' : 'bg-white text-navy-700 ring-1 ring-navy-100 hover:ring-navy-300'}`}>
+              <button key={n} type="button" onClick={() => setNcb(n)} aria-pressed={ncb === n} className={`rounded-lg py-1.5 text-xs font-semibold transition ${ncb === n ? 'bg-ink-900 text-white' : 'bg-white text-ink-700 ring-1 ring-ink-100 hover:ring-ink-300'}`}>
                 {n}%
               </button>
             ))}
@@ -97,10 +97,10 @@ export function QuickCheck() {
         </div>
 
         <div>
-          <p className="text-xs font-medium text-navy-600">Car age</p>
+          <p className="text-xs font-medium text-ink-600">Car age</p>
           <div className="mt-2 grid grid-cols-4 gap-1.5">
             {AGES.map((a) => (
-              <button key={a.label} type="button" onClick={() => setAge(a.years)} aria-pressed={age === a.years} className={`rounded-lg py-1.5 text-[11px] font-semibold transition ${age === a.years ? 'bg-navy-900 text-white' : 'bg-white text-navy-700 ring-1 ring-navy-100 hover:ring-navy-300'}`}>
+              <button key={a.label} type="button" onClick={() => setAge(a.years)} aria-pressed={age === a.years} className={`rounded-lg py-1.5 text-[11px] font-semibold transition ${age === a.years ? 'bg-ink-900 text-white' : 'bg-white text-ink-700 ring-1 ring-ink-100 hover:ring-ink-300'}`}>
                 {a.label}
               </button>
             ))}
@@ -108,26 +108,26 @@ export function QuickCheck() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl bg-white p-5 ring-1 ring-navy-100">
+      <div className="mt-6 rounded-2xl bg-white p-5 ring-1 ring-ink-100">
         {error && !result ? (
-          <p className="text-sm text-navy-600">{error}. The live preview needs the ClearClaim server.</p>
+          <p className="text-sm text-ink-600">{error}. The live preview needs the ClearClaim server.</p>
         ) : result && verdict ? (
           <>
             <AnimatePresence mode="wait">
               <motion.div key={verdict.tone} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.25 }} className="flex items-center gap-2">
                 <span className={`h-2.5 w-2.5 rounded-full ${toneColor}`} />
-                <p className="text-base font-semibold text-navy-900">{verdict.headline}</p>
+                <p className="text-base font-semibold text-ink-900">{verdict.headline}</p>
               </motion.div>
             </AnimatePresence>
             <div className="mt-4 grid grid-cols-2 gap-4">
               <div>
-                <p className="text-[11px] text-navy-500">Insurer might pay</p>
+                <p className="text-[11px] text-ink-500">Insurer might pay</p>
                 <AnimatedNumber value={result.estimated_payout} duration={0.5} className="text-xl font-semibold text-gain" />
               </div>
               <div>
-                <p className="text-[11px] text-navy-500">Claiming costs you</p>
-                <AnimatedNumber value={result.effective_claim_cost} duration={0.5} className="text-xl font-semibold text-navy-900" />
-                <p className="text-[10px] text-navy-400">incl. lost NCB</p>
+                <p className="text-[11px] text-ink-500">Claiming costs you</p>
+                <AnimatedNumber value={result.effective_claim_cost} duration={0.5} className="text-xl font-semibold text-ink-900" />
+                <p className="text-[10px] text-ink-400">incl. lost NCB</p>
               </div>
             </div>
           </>
@@ -139,7 +139,7 @@ export function QuickCheck() {
         )}
       </div>
 
-      <p className="mt-3 text-[11px] leading-relaxed text-navy-500">
+      <p className="mt-3 text-[11px] leading-relaxed text-ink-500">
         Example assumptions: ₹1,000 deductible, ₹14,000 renewal premium, no zero-dep cover. The full check uses your own policy.
       </p>
       <Link href={checkHref} className="vs-btn-primary mt-4 w-full">

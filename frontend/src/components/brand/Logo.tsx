@@ -29,8 +29,8 @@ export function BrandLogo({ size = 'md', className = '', asLink, href = '/', inv
   const body = (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <BrandMark size={s.mark} />
-      <span className={`${s.text} font-semibold tracking-tight ${inverted ? 'text-white' : 'text-navy-950'}`}>
-        Clear<span className={inverted ? 'text-steel-300' : 'text-steel-600'}>Claim</span>
+      <span className={`${s.text} font-semibold tracking-tight ${inverted ? 'text-white' : 'text-ink-950'}`}>
+        Clear<span className={inverted ? 'text-forest-300' : 'text-forest-600'}>Claim</span>
       </span>
     </span>
   );

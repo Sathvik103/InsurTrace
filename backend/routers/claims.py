@@ -215,37 +215,6 @@ async def retry_ledger_commit(request: Request, claim_id: str, profile: dict = D
     return {"claim_id": claim_id, "ledger": _ledger_view(ledger), "changed": True}
 
 
-from services.ml_engine.pipeline import run_claim_intelligence  # noqa: E402
-
-
-@router.post("/{claim_id}/analyze-intelligence")
-async def analyze_claim_intelligence(claim_id: str, profile: dict = Depends(get_current_profile)):
-    if profile["role"] not in ["INSURER", "SURVEYOR", "ADMIN"]:
-        raise HTTPException(status_code=403, detail="Unauthorized")
-
-    rows = supabase.table("claims").select("*").eq("id", claim_id).execute().data
-    if not rows:
-        raise HTTPException(status_code=404, detail="Claim not found")
-    claim_data = rows[0]
-    vehicle_id = require_claim_access(profile, claim_data)
-
-    v_rows = supabase.table("vehicles").select("*").eq("id", vehicle_id).execute().data
-    vehicle_data = v_rows[0] if v_rows else {}
-
-    intelligence_result = run_claim_intelligence(claim_id, claim_data, vehicle_data, historical_claims=0)
-
-    supabase.table("ml_predictions").insert({
-        "claim_id": claim_id,
-        "model_version": intelligence_result["fraud_analysis"]["model_version"],
-        "prediction_type": "FRAUD_AND_SEVERITY",
-        "score": intelligence_result["fraud_analysis"]["risk_score"],
-        "risk_level": intelligence_result["fraud_analysis"]["risk_level"],
-        "explanation_json": intelligence_result,
-    }).execute()
-
-    return intelligence_result
-
-
 @router.get("/{claim_id}")
 async def get_claim_details(claim_id: str, profile: dict = Depends(get_current_profile)):
     """Claim dossier: claim, policy, vehicle, ledger status, documents and ML availability."""

@@ -84,7 +84,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geist.variable} ${geistMono.variable} ${display.variable}`}>
-      <body className="font-sans antialiased bg-background text-navy-900 selection:bg-signal selection:text-navy-950">
+      <body className="font-sans antialiased bg-white text-ink-900 selection:bg-signal selection:text-ink-950">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <AuthProvider>
           <VehicleProvider>

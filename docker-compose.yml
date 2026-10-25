@@ -1,15 +1,15 @@
+# Runs the whole stack on one machine. Values come from .env (see .env.example).
+# The ledger gateway needs a running Fabric network; see docs/ledger.md.
 services:
   frontend:
     build:
       context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+        NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - NEXT_PUBLIC_GATEWAY_URL=http://localhost:3001
-      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
     depends_on:
       - backend
 
@@ -19,15 +19,13 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - ENVIRONMENT=production
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
-      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
-      - GATEWAY_URL=http://blockchain_gateway:3001
-      - ALLOW_MOCK_BLOCKCHAIN=false
+      - ENVIRONMENT=development
       - ALLOWED_ORIGINS=http://localhost:3000
-    depends_on:
-      - blockchain_gateway
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SECRET_KEY=${SUPABASE_SECRET_KEY}
+      - FABRIC_MODE=auto
+      - GATEWAY_URL=http://blockchain_gateway:3001
+      - GATEWAY_API_KEY=${GATEWAY_API_KEY}
 
   blockchain_gateway:
     build:
@@ -35,7 +33,8 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - NODE_ENV=production
       - PORT=3001
+      - GATEWAY_API_KEY=${GATEWAY_API_KEY}
+      - FABRIC_RUNNER=native
       - FABRIC_CHANNEL=mychannel
       - FABRIC_CHAINCODE=vehicle

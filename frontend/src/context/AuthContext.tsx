@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase, getAuthToken, setAuthToken, clearAuthTokens } from '@/lib/supabase';
 import { apiFetch } from '@/lib/api';
+import { KEYS, migrateLegacyStorage } from '@/lib/storage';
 
 export type AuthStatus = 'hydrating' | 'authenticated' | 'unauthenticated';
 
@@ -131,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setTokenState(persona.token);
     setAuthToken(persona.token);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('verisure_demo_persona', JSON.stringify(persona));
+      localStorage.setItem(KEYS.demoPersona, JSON.stringify(persona));
     }
     setStatus('authenticated');
   };
@@ -155,7 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsDemo(false);
     setActivePersona(null);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('verisure_demo_persona');
+      localStorage.removeItem(KEYS.demoPersona);
     }
     setStatus('authenticated');
   };
@@ -201,7 +202,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // 2. Second priority: Check if an active demo persona was saved in localStorage
         if (typeof window !== 'undefined') {
-          const savedDemo = localStorage.getItem('verisure_demo_persona');
+          migrateLegacyStorage();
+          const savedDemo = localStorage.getItem(KEYS.demoPersona);
           if (savedDemo) {
             try {
               const persona: Persona = JSON.parse(savedDemo);
@@ -215,8 +217,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
 
-          // Legacy token fallback for demo
-          const legacyToken = localStorage.getItem('verisure_token') || localStorage.getItem('insuretrace_token');
+          // A stored demo token without its persona (older sessions)
+          const legacyToken = localStorage.getItem(KEYS.token);
           if (legacyToken) {
             const matched = DEMO_PERSONAS.find((p) => p.token === legacyToken);
             if (matched && isMounted) {

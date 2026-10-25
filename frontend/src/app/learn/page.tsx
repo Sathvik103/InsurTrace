@@ -18,20 +18,21 @@ const TOPICS: { key: (typeof KNOWLEDGE)[number]['topic']; title: string }[] = [
   { key: 'basics', title: 'Policy basics' },
   { key: 'claims', title: 'Making a claim' },
   { key: 'privacy', title: 'Your data' },
+  { key: 'product', title: 'About ClearClaim' },
 ];
 
 export default function LearnHub() {
   const faq = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: KNOWLEDGE.filter((k) => k.topic !== 'verisure').map((k) => ({
+    mainEntity: KNOWLEDGE.filter((k) => k.topic !== 'product').map((k) => ({
       '@type': 'Question',
       name: k.question,
       acceptedAnswer: { '@type': 'Answer', text: k.answer.join(' ') },
     })),
   };
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <PublicNavbar tone="dark" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faq) }} />
       <PageHero
@@ -48,16 +49,16 @@ export default function LearnHub() {
             if (!entries.length) return null;
             return (
               <section key={t.key}>
-                <h2 className="font-display text-3xl font-semibold tracking-tight text-navy-950">{t.title}</h2>
+                <h2 className="font-display text-3xl font-semibold tracking-tight text-ink-950">{t.title}</h2>
                 <ul className="mt-4 grid gap-3 sm:grid-cols-2">
                   {entries.map((k) => (
                     <li key={k.id}>
                       <Link href={`/learn/${k.id}`} className="vs-surface group flex h-full items-start justify-between gap-4 p-5 transition hover:-translate-y-0.5">
                         <span>
-                          <span className="block font-semibold text-navy-900">{k.question}</span>
-                          <span className="mt-1 line-clamp-2 block text-sm text-navy-500">{k.answer[0]}</span>
+                          <span className="block font-semibold text-ink-900">{k.question}</span>
+                          <span className="mt-1 line-clamp-2 block text-sm text-ink-500">{k.answer[0]}</span>
                         </span>
-                        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-navy-300 transition group-hover:translate-x-0.5 group-hover:text-navy-700" />
+                        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-ink-300 transition group-hover:translate-x-0.5 group-hover:text-ink-700" />
                       </Link>
                     </li>
                   ))}

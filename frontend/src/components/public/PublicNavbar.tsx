@@ -48,13 +48,13 @@ export function PublicNavbar({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
         className={`pointer-events-auto mx-auto flex h-14 max-w-5xl items-center justify-between rounded-xl pl-4 pr-2 transition-[background-color,box-shadow,border-color] duration-500 ${
           dark
             ? 'border border-white/10 bg-white/[0.04] text-white backdrop-blur-md'
-            : 'border border-navy-100/80 bg-white/75 text-navy-900 shadow-[0_8px_30px_-12px_rgba(20,19,16,0.25)] backdrop-blur-xl'
+            : 'border border-ink-100/80 bg-white/75 text-ink-900 shadow-[0_8px_30px_-12px_rgba(20,19,16,0.25)] backdrop-blur-xl'
         }`}
       >
         <Link href="/" className="flex items-center gap-2" aria-label="ClearClaim home">
           <BrandMark size={28} />
           <span className="font-display text-[17px] font-semibold tracking-tight">
-            Clear<span className={dark ? 'text-signal' : 'text-steel-600'}>Claim</span>
+            Clear<span className={dark ? 'text-signal' : 'text-forest-600'}>Claim</span>
           </span>
         </Link>
 
@@ -65,9 +65,9 @@ export function PublicNavbar({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
               <Link
                 key={l.href}
                 href={l.href}
-                className={`relative whitespace-nowrap rounded-md px-3.5 py-2 text-sm font-medium transition-colors ${dark ? 'text-white/70 hover:text-white' : 'text-navy-500 hover:text-navy-950'} ${active ? (dark ? 'text-white' : 'text-navy-950') : ''}`}
+                className={`relative whitespace-nowrap rounded-md px-3.5 py-2 text-sm font-medium transition-colors ${dark ? 'text-white/70 hover:text-white' : 'text-ink-500 hover:text-ink-950'} ${active ? (dark ? 'text-white' : 'text-ink-950') : ''}`}
               >
-                {active && <motion.span layoutId="pub-nav" className={`absolute inset-0 rounded-md ${dark ? 'bg-white/10' : 'bg-navy-50'}`} />}
+                {active && <motion.span layoutId="pub-nav" className={`absolute inset-0 rounded-md ${dark ? 'bg-white/10' : 'bg-ink-50'}`} />}
                 <span className="relative">{l.label}</span>
               </Link>
             );
@@ -76,7 +76,7 @@ export function PublicNavbar({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
 
         <div className="hidden items-center gap-1 lg:flex">
           {!signedIn && (
-            <Link href="/login" className={`rounded-md px-4 py-2 text-sm font-semibold transition-colors ${dark ? 'text-white/80 hover:text-white' : 'text-navy-700 hover:text-navy-950'}`}>
+            <Link href="/login" className={`rounded-md px-4 py-2 text-sm font-semibold transition-colors ${dark ? 'text-white/80 hover:text-white' : 'text-ink-700 hover:text-ink-950'}`}>
               Sign in
             </Link>
           )}
@@ -85,7 +85,7 @@ export function PublicNavbar({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
           </Link>
         </div>
 
-        <button type="button" onClick={() => setOpen((v) => !v)} className={`rounded-md p-2.5 lg:hidden ${dark ? 'text-white' : 'text-navy-800'}`} aria-expanded={open} aria-label="Menu">
+        <button type="button" onClick={() => setOpen((v) => !v)} className={`rounded-md p-2.5 lg:hidden ${dark ? 'text-white' : 'text-ink-800'}`} aria-expanded={open} aria-label="Menu">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </motion.div>
@@ -97,11 +97,11 @@ export function PublicNavbar({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.25 }}
-            className="pointer-events-auto mx-auto mt-2 max-w-5xl overflow-hidden rounded-2xl border border-navy-100 bg-white p-3 shadow-2xl lg:hidden"
+            className="pointer-events-auto mx-auto mt-2 max-w-5xl overflow-hidden rounded-2xl border border-ink-100 bg-white p-3 shadow-2xl lg:hidden"
           >
             {LINKS.map((l, i) => (
               <motion.div key={l.href} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.04 * i }}>
-                <Link href={l.href} onClick={() => setOpen(false)} className="block rounded-2xl px-4 py-3.5 font-display text-lg font-medium text-navy-900 hover:bg-navy-50">
+                <Link href={l.href} onClick={() => setOpen(false)} className="block rounded-2xl px-4 py-3.5 font-display text-lg font-medium text-ink-900 hover:bg-ink-50">
                   {l.label}
                 </Link>
               </motion.div>

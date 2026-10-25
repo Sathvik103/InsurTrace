@@ -5,6 +5,7 @@
  */
 
 import type { PartCategory } from '@/lib/claimCheck';
+import { KEYS } from '@/lib/storage';
 
 export interface HandoffItem {
   label: string;
@@ -24,7 +25,7 @@ export interface ExtractHandoff {
   total?: number;
 }
 
-const KEY = 'verisure_extract_handoff';
+const KEY = KEYS.extractHandoff;
 
 export function saveHandoff(h: ExtractHandoff) {
   try {

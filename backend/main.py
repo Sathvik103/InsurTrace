@@ -13,7 +13,7 @@ from dependencies import get_current_profile, require_role, supabase
 from services.rate_limit import limiter
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
-logger = logging.getLogger("verisure")
+logger = logging.getLogger("clearclaim")
 
 settings = get_settings()
 settings.validate_for_startup()
@@ -128,14 +128,13 @@ from routers.vehicles import router as vehicles_router  # noqa: E402
 from routers.claims import router as claims_router  # noqa: E402
 from routers.admin import router as admin_router  # noqa: E402
 from routers.documents import router as documents_router  # noqa: E402
-from routers.vision import router as vision_router  # noqa: E402
 from routers.consent import router as consent_router  # noqa: E402
 from routers.profiles import router as profiles_router  # noqa: E402
 from routers.system_status import router as system_status_router  # noqa: E402
 from routers.organizations import router as organizations_router  # noqa: E402
 
 for r in (financial_router, vehicles_router, claims_router, admin_router, documents_router,
-          vision_router, consent_router, profiles_router, system_status_router, organizations_router):
+          consent_router, profiles_router, system_status_router, organizations_router):
     app.include_router(r, prefix="/api/v1")
 
 

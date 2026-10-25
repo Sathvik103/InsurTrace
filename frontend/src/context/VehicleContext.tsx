@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { useAuth } from '@/context/AuthContext';
 import { apiFetch, describeApiError } from '@/lib/api';
 import { toast } from 'sonner';
+import { KEYS } from '@/lib/storage';
 
 export interface Vehicle {
   id: string;
@@ -174,8 +175,8 @@ interface VehicleContextType {
 
 const VehicleContext = createContext<VehicleContextType | undefined>(undefined);
 
-const STORAGE_KEY_SELECTED = 'verisure_active_vehicle_id';
-const STORAGE_KEY_CUSTOM = 'verisure_custom_vehicles';
+const STORAGE_KEY_SELECTED = KEYS.activeVehicle;
+const STORAGE_KEY_CUSTOM = KEYS.customVehicles;
 
 export function VehicleProvider({ children }: { children: React.ReactNode }) {
   const { token, status, isDemo } = useAuth();

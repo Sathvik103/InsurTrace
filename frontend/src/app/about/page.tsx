@@ -49,19 +49,19 @@ export default function AboutPage() {
           body="A small car insurance claim can quietly cost more than the repair, once you lose your No-Claim Bonus. ClearClaim exists so car owners, fleets and workshops in India can see that clearly, in plain language, before deciding."
         />
 
-        <section className="bg-[#f6f5f0] px-5 py-24">
+        <section className="bg-paper px-5 py-24">
           <div className="mx-auto max-w-6xl">
             <Reveal>
-              <p className="text-sm font-semibold text-steel-700">How we work</p>
-              <h2 className="mt-5 max-w-2xl font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">Four rules we don’t bend.</h2>
+              <p className="text-sm font-semibold text-forest-700">How we work</p>
+              <h2 className="mt-5 max-w-2xl font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-ink-950 sm:text-5xl">Four rules we don’t bend.</h2>
             </Reveal>
             <div className="mt-12 grid gap-4 md:grid-cols-2">
               {PRINCIPLES.map((p, i) => (
                 <Reveal key={p.n} delay={i * 0.06}>
-                  <div className="h-full rounded-2xl bg-white p-8 ring-1 ring-navy-100">
-                    <span className="font-display text-5xl font-semibold text-navy-100">{p.n}</span>
-                    <h3 className="mt-4 font-display text-2xl font-semibold tracking-tight text-navy-950">{p.title}</h3>
-                    <p className="mt-2 leading-relaxed text-navy-500">{p.body}</p>
+                  <div className="h-full rounded-2xl bg-white p-8 ring-1 ring-ink-100">
+                    <span className="font-display text-5xl font-semibold text-ink-100">{p.n}</span>
+                    <h3 className="mt-4 font-display text-2xl font-semibold tracking-tight text-ink-950">{p.title}</h3>
+                    <p className="mt-2 leading-relaxed text-ink-500">{p.body}</p>
                   </div>
                 </Reveal>
               ))}
@@ -72,16 +72,16 @@ export default function AboutPage() {
         <section id="how-it-is-built" className="scroll-mt-24 bg-white px-5 py-24">
           <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr]">
             <Reveal>
-              <p className="text-sm font-semibold text-steel-700">Under the hood</p>
-              <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">How it is built.</h2>
-              <p className="mt-5 text-navy-500">The short version, without the buzzwords.</p>
+              <p className="text-sm font-semibold text-forest-700">Under the hood</p>
+              <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-ink-950 sm:text-5xl">How it is built.</h2>
+              <p className="mt-5 text-ink-500">The short version, without the buzzwords.</p>
             </Reveal>
-            <dl className="border-t border-navy-100">
+            <dl className="border-t border-ink-100">
               {BUILT.map(([k, v], i) => (
                 <Reveal key={k} delay={i * 0.05}>
-                  <div className="grid gap-2 border-b border-navy-100 py-6 sm:grid-cols-[160px_1fr]">
-                    <dt className="font-display text-lg font-semibold text-navy-950">{k}</dt>
-                    <dd className="leading-relaxed text-navy-600">{v}</dd>
+                  <div className="grid gap-2 border-b border-ink-100 py-6 sm:grid-cols-[160px_1fr]">
+                    <dt className="font-display text-lg font-semibold text-ink-950">{k}</dt>
+                    <dd className="leading-relaxed text-ink-600">{v}</dd>
                   </div>
                 </Reveal>
               ))}
@@ -90,7 +90,7 @@ export default function AboutPage() {
         </section>
 
         <section className="px-3 pb-3">
-          <div className="vs-grain relative flex flex-col items-start justify-between gap-6 overflow-hidden rounded-2xl bg-navy-950 px-8 py-14 text-white sm:flex-row sm:items-center sm:px-14">
+          <div className="vs-grain relative flex flex-col items-start justify-between gap-6 overflow-hidden rounded-2xl bg-ink-950 px-8 py-14 text-white sm:flex-row sm:items-center sm:px-14">
             <div>
               <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Questions, or found a mistake?</h2>
               <p className="mt-2 text-white/60">We read every message. <a href={`mailto:${BRAND.contactEmail}`} className="text-white underline-offset-2 hover:underline">{BRAND.contactEmail}</a></p>

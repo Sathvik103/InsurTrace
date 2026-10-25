@@ -1,148 +1,71 @@
 # ClearClaim
 
-> **Insurance Intelligence & Verification**  
-> Deterministic financial decision modeling, multi-party cryptographic audit trails on Hyperledger Fabric, and automated claim adjudication grounded in IRDAI regulatory guidelines and the Digital Personal Data Protection (DPDP) Act, 2023.
+**Know if a car insurance claim is worth it.** ClearClaim shows Indian car owners, fleets and
+workshops what an insurer is likely to pay on a repair, what they will pay, and whether claiming
+or paying directly costs less once the No-Claim Bonus is counted.
 
----
+- Live site: https://insur-trace.vercel.app
+- How it is built (interactive): https://insur-trace.vercel.app/system
 
-## Executive Overview
+ClearClaim is independent: it is not an insurer, it never files or decides claims, and every
+figure it shows is an estimate from standard motor-insurance rules.
 
-**ClearClaim** is an enterprise InsurTech platform engineered to eliminate information asymmetry, fraudulent claims, and predatory repair estimates in the Indian automotive market.
+## What it does
 
-By integrating **deterministic financial modeling**, **document intelligence**, **PostgreSQL Row-Level Security (RLS)**, and a dual-peer **Hyperledger Fabric distributed ledger**, ClearClaim provides:
+| Feature | Where |
+|---|---|
+| Claim check: insurer's share, your cost, bonus loss and a verdict, with the working shown | `/decision` |
+| Repair or sell: compares repairing, selling as it is, and a total-loss settlement | inside the claim result |
+| 3D car to mark the damaged parts | claim check, damage step |
+| Read a policy or estimate from a PDF or a photo (OCR), then check the values | `/decision/extract`, policy steps |
+| Repair-quote X-ray: each line split into insurer and owner share | `/xray` |
+| Fleet triage: the claim-or-pay plan with the lowest total cost across vehicles | `/org/fleet` |
+| Workshop estimates customers can understand | `/org/workshop` |
+| Sharing records with a workshop or insurer, time-limited and revocable | `/decision/consent` |
+| Tamper-evident records: fingerprints on a Hyperledger Fabric ledger | `/verification` |
+| Guide and assistant (no language model) | `/learn`, the Ask button |
 
-1. **Claim vs Self-Pay Decision Terminal**: Instant mathematical evaluation of repair costs vs. depreciation by part material, compulsory/voluntary deductibles, and 3-year projected No-Claim Bonus (NCB) loss.
-2. **Document Intelligence & Provenance Audit**: Transparent extraction of policy schedules and workshop repair estimates with provenance markers (`EXTRACTED`, `MANUAL_CORRECTION`, `CONFIRMED`).
-3. **Vehicle Intelligence Dossier**: A cryptographically verifiable vehicle lifecycle passport tracing policy issuance, workshop estimates, loss surveys, and settlements.
-4. **Consortium Ledger Verification**: Dual-peer Hyperledger Fabric blockchain with Raft consensus, certifying state integrity and detecting database tampering instantly.
-5. **DPDP 2023 Consent Controls**: Granular data sharing governance allowing policyholders to inspect, grant, and revoke workshop and insurer access privileges in real-time.
-
----
-
-## System Architecture
+## Repository
 
 ```
-+---------------------------------------------------------------------------------+
-|                                Next.js 14 Web UI                                |
-|  - Public Showcase (/, /about, /technology, /security, /contact)               |
-|  - Financial Decision Engine (/decision)  - Document Extraction (/extract)     |
-|  - Vehicle Dossier (/vehicles/:id)        - Ledger Verification (/verification)|
-|  - Role Portals: Insurer (/insurer), Surveyor (/surveyor), Garage (/garage)    |
-+----------------------------------------+----------------------------------------+
-                                         | HTTP / REST
-+----------------------------------------v----------------------------------------+
-|                               FastAPI Backend (Python)                          |
-|  - Financial Engine (IRDAI Rules)      - Document Parser (pdfplumber, regex)    |
-|  - Multi-Tenant Auth & RBAC            - Canonical SHA-256 State Hashing        |
-|  - Blockchain Service Bridge           - DPDP Consent Enforcement               |
-+--------------------+-----------------------------------+------------------------+
-                     |                                   | HTTP / gRPC
-+--------------------v-------------------+       +-------v------------------------+
-|      PostgreSQL / Supabase (RLS)       |       |  Node.js Fabric REST Gateway   |
-|  - 16 Relational Tables with RLS       |       |  (Port 3001)                   |
-|  - Automatic Profile Auth Trigger      |       +---------------+----------------+
-|  - Storage Buckets (Policies/Photos)   |                       |
-|  - Audit Logs & Ledger References      |       +---------------v----------------+
-+----------------------------------------+       |   Hyperledger Fabric Network   |
-                                                 |  - Raft Orderer (7050)         |
-                                                 |  - Peer0 Org1 (7051)           |
-                                                 |  - Peer0 Org2 (9051)           |
-                                                 |  - Chaincode: VehicleHistory   |
-                                                 +--------------------------------+
+frontend/   Next.js 16 website and app (deployed on Vercel)
+backend/    FastAPI API (deployed on Render), document reader, ledger client
+  blockchain/   Fabric chaincode, gateway and local network scripts
+database/   schema.sql and numbered migrations for Supabase
+docs/       architecture.md, deployment.md, ledger.md
+render.yaml Render blueprint for the API
 ```
 
----
+Start with [docs/architecture.md](docs/architecture.md) for a map of the code.
 
-## Role Workspaces & RBAC Personas
+## Run it locally
 
-ClearClaim enforces strict tenant isolation and role-based access control across 5 distinct operational workspaces:
-
-| Role | Default Demo Identity | Workspace Route | Primary Capabilities |
-| :--- | :--- | :--- | :--- |
-| **Policyholder** | Rahul Sharma (`demo-policyholder@insuretrace.in`) | `/decision` | Claim financial analysis, document upload, consent management, timeline view |
-| **Insurer** | Underwriting Officer (`demo-insurer@insuretrace.in`) | `/dashboards/insurer` | Claims queue audit, loss ratio analysis, fraud detection, settlement review |
-| **Surveyor** | Motor Loss Assessor (`demo-surveyor@insuretrace.in`) | `/dashboards/surveyor` | Physical inspection reports, parts admissibility verification, photo hash sealing |
-| **Garage** | Auto Workshop (`demo-garage@insuretrace.in`) | `/dashboards/garage` | Itemized repair estimates, labor operations, parts depreciation, GST 18% |
-| **Admin & Auditor** | System Security Auditor (`demo-admin@insuretrace.in`) | `/verification` | Fabric network health, consensus monitoring, ledger tamper audit |
-
----
-
-## Quick Start Guide
-
-### Prerequisites
-- Node.js 18+ & npm
-- Python 3.11+
-- Docker Desktop with WSL 2 (for Hyperledger Fabric)
-
-### 1. Clone & Configure Environment
 ```bash
-git clone https://github.com/Sathvik103/InsurTrace.git
-cd InsurTrace
-
-# Copy environment templates
-cp .env.example .env
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-```
-
-### 2. Start Hyperledger Fabric Network (WSL 2)
-```bash
-cd backend/blockchain
-./start_and_verify.sh
-```
-
-### 3. Start FastAPI Backend
-```bash
+# API on http://localhost:8000 (in-memory demo data, no ledger)
 cd backend
 python -m venv venv
-.\venv\Scripts\activate   # Windows
-# source venv/bin/activate  # Linux/macOS
-pip install -r requirements-dev.txt
-uvicorn main:app --port 8000 --reload
-```
-With no `SUPABASE_URL` the API runs on the in-memory **demo sandbox** (fictional data, reset on restart).
-With `FABRIC_MODE=auto` (default) on a machine with WSL/Docker, it talks to the local Fabric network
-directly through the peer CLI; the optional gateway in `backend/blockchain/gateway` is only needed when
-the API runs on a different host from the peers (see [docs/deployment.md](docs/deployment.md)).
+venv/Scripts/pip install -r requirements-dev.txt     # macOS/Linux: venv/bin/pip
+venv/Scripts/uvicorn main:app --reload
 
-### 4. (Optional) Fabric gateway
-```bash
-cd backend/blockchain/gateway
-npm install
-GATEWAY_API_KEY=$(openssl rand -hex 32) npm start   # listens on :3001, requires X-Gateway-Key
-```
-
-### 5. Start Next.js Frontend
-```bash
+# Website on http://localhost:3000
 cd frontend
 npm install
+echo NEXT_PUBLIC_API_URL=http://localhost:8000 > .env.local
 npm run dev
-# Open http://localhost:3000 in your browser
 ```
 
----
+On the sign-in page choose **Explore with sample data** to try it without an account. Reading
+photos needs [Tesseract](https://github.com/tesseract-ocr/tesseract) installed; PDFs work without it.
+To run the ledger locally, see [docs/ledger.md](docs/ledger.md).
 
-## Verification & Automated Testing
+## Tests
 
-### Backend Test Suite
 ```bash
-cd backend
-.\venv\Scripts\python -m pytest            # unit + API tests, ledger disabled
-FABRIC_TESTS=1 .\venv\Scripts\python -m pytest -m fabric   # live tests against the local Fabric network
+cd backend && venv/Scripts/python -m pytest      # API: access rules, ledger states, uploads, OCR handling
+cd frontend && npm run test:unit                 # engine parity (305 cases), triage, body types, repair-or-sell
+cd frontend && npm run lint && npx tsc --noEmit
 ```
 
-### Frontend Type Safety & Production Build
-```bash
-cd frontend
-npx tsc --noEmit
-npm run lint
-npm run build
-```
+## Contact
 
----
-
-## Maintainer & Contact
-
-- **Lead Engineer**: Sathvik Kandukuri
-- **Contact Email**: [sathvikkandukuri202@gmail.com](mailto:sathvikkandukuri202@gmail.com)
-- **Repository**: [https://github.com/Sathvik103/InsurTrace](https://github.com/Sathvik103/InsurTrace)
+Sathvik Kandukuri, [sathvikkandukuri202@gmail.com](mailto:sathvikkandukuri202@gmail.com)

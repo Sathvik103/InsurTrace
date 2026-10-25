@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function XRayPage() {
   return (
-    <div className="min-h-screen bg-[#f6f5f0]">
+    <div className="min-h-screen bg-paper">
       <PublicNavbar tone="dark" />
       <PageHero
         compact

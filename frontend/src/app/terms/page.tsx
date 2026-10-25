@@ -44,7 +44,7 @@ export default function TermsPage() {
         {
           id: 'contact',
           title: 'Contact',
-          body: <p>Questions about these terms: <a href={`mailto:${BRAND.contactEmail}`} className="font-medium text-navy-950 underline underline-offset-2">{BRAND.contactEmail}</a>.</p>,
+          body: <p>Questions about these terms: <a href={`mailto:${BRAND.contactEmail}`} className="font-medium text-ink-950 underline underline-offset-2">{BRAND.contactEmail}</a>.</p>,
         },
       ]}
     />

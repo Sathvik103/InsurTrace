@@ -64,22 +64,22 @@ export default function ForFleetsPage() {
           aside={<Insight />}
         />
 
-        <section className="bg-[#f6f5f0] px-5 py-24 lg:py-32">
+        <section className="bg-paper px-5 py-24 lg:py-32">
           <div className="mx-auto max-w-6xl">
             <Reveal>
-              <p className="text-sm font-semibold text-steel-700">How it works</p>
-              <h2 className="mt-5 max-w-2xl font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">From maintenance log to claim plan in minutes.</h2>
+              <p className="text-sm font-semibold text-forest-700">How it works</p>
+              <h2 className="mt-5 max-w-2xl font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-ink-950 sm:text-5xl">From maintenance log to claim plan in minutes.</h2>
             </Reveal>
             <div className="mt-14 grid gap-4 md:grid-cols-3">
               {STEPS.map((s, i) => (
                 <Reveal key={s.title} delay={i * 0.08}>
-                  <div className="group h-full rounded-2xl bg-white p-8 ring-1 ring-navy-100 transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(20,19,16,0.35)]">
+                  <div className="group h-full rounded-2xl bg-white p-8 ring-1 ring-ink-100 transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(20,19,16,0.35)]">
                     <div className="flex items-center justify-between">
-                      <span className="font-display text-6xl font-semibold tracking-tight text-navy-100 transition group-hover:text-signal-600">0{i + 1}</span>
-                      <s.icon className="h-6 w-6 text-navy-400" />
+                      <span className="font-display text-6xl font-semibold tracking-tight text-ink-100 transition group-hover:text-signal-600">0{i + 1}</span>
+                      <s.icon className="h-6 w-6 text-ink-400" />
                     </div>
-                    <h3 className="mt-8 font-display text-2xl font-semibold tracking-tight text-navy-950">{s.title}</h3>
-                    <p className="mt-2 leading-relaxed text-navy-500">{s.body}</p>
+                    <h3 className="mt-8 font-display text-2xl font-semibold tracking-tight text-ink-950">{s.title}</h3>
+                    <p className="mt-2 leading-relaxed text-ink-500">{s.body}</p>
                   </div>
                 </Reveal>
               ))}
@@ -90,14 +90,14 @@ export default function ForFleetsPage() {
         <section className="bg-white px-5 py-24 lg:py-32">
           <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.8fr_1.2fr]">
             <Reveal>
-              <p className="text-sm font-semibold text-steel-700">For operations teams</p>
-              <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-navy-950 sm:text-5xl">Fast enough for the daily stand-up.</h2>
-              <p className="mt-6 flex items-start gap-2 text-sm text-navy-500"><Share2 className="mt-0.5 h-4 w-4 shrink-0" /> ClearClaim is independent and never files claims. Your insurer and surveyor decide settlements.</p>
+              <p className="text-sm font-semibold text-forest-700">For operations teams</p>
+              <h2 className="mt-5 font-display text-4xl font-semibold leading-[1] tracking-[-0.04em] text-ink-950 sm:text-5xl">Fast enough for the daily stand-up.</h2>
+              <p className="mt-6 flex items-start gap-2 text-sm text-ink-500"><Share2 className="mt-0.5 h-4 w-4 shrink-0" /> ClearClaim is independent and never files claims. Your insurer and surveyor decide settlements.</p>
             </Reveal>
-            <ul className="border-t border-navy-100">
+            <ul className="border-t border-ink-100">
               {FEATURES.map((t, i) => (
                 <Reveal key={t} delay={i * 0.04}>
-                  <li className="flex gap-4 border-b border-navy-100 py-5 text-lg text-navy-800">
+                  <li className="flex gap-4 border-b border-ink-100 py-5 text-lg text-ink-800">
                     <Check className="mt-1 h-5 w-5 shrink-0 text-signal-700" /> {t}
                   </li>
                 </Reveal>

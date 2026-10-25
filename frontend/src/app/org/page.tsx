@@ -14,5 +14,5 @@ export default function OrgHome() {
     if (status !== 'authenticated') router.replace('/login?next=%2Forg');
     else router.replace(orgHomeFor(role));
   }, [initialized, status, role, router]);
-  return <div className="min-h-screen bg-navy-950" />;
+  return <div className="min-h-screen bg-ink-950" />;
 }
