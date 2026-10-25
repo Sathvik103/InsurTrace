@@ -28,7 +28,7 @@ app/                     one folder per route (Next.js App Router)
   system/                the "How it works inside" page
   learn/                 the guide (generated from content/assistantKnowledge.ts)
 components/
-  claim-check/           the claim check flow, 3D car, result, repair-or-sell
+  claim-check/           the claim check flow, car diagram, result, repair-or-sell
   documents/             policy upload that fills forms in
   vehicle/               vehicle drawings, number plate, add-car flow
   system/                sections and diagrams of the System page

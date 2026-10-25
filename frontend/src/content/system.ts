@@ -23,7 +23,7 @@ export const NODES: Node[] = [
   {
     id: 'web', x: 30, y: 40, w: 230, h: 92, title: 'Web app', sub: 'Next.js · React', zone: 'device',
     role: 'Everything you see and click. Runs in your browser after the first page load.',
-    tech: ['Next.js 16 (App Router)', 'React 19', 'TypeScript', 'Tailwind CSS 4', 'Framer Motion', 'three.js (3D car)'],
+    tech: ['Next.js 16 (App Router)', 'React 19', 'TypeScript', 'Tailwind CSS 4', 'Framer Motion'],
     notes: ['Signed-in pages call the API with your session token.', 'Public pages and the 26 guide articles are pre-rendered, so they need no server work.'],
   },
   {
@@ -230,7 +230,6 @@ export const STACK: { group: string; items: { name: string; version?: string; wh
       { name: 'TypeScript', version: '5', why: 'Catches mistakes in money calculations before they ship.' },
       { name: 'Tailwind CSS', version: '4', why: 'Design tokens (colours, type, spacing) in one place.' },
       { name: 'Framer Motion', version: '13', why: 'Animations that switch off when your device asks for reduced motion.' },
-      { name: 'three.js', version: '0.170', why: 'The 3D car for marking damage, loaded only on that step.' },
       { name: 'Sonner and Lucide', why: 'Notifications and icons.' },
     ],
   },

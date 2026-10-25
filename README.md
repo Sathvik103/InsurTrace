@@ -16,7 +16,7 @@ figure it shows is an estimate from standard motor-insurance rules.
 |---|---|
 | Claim check: insurer's share, your cost, bonus loss and a verdict, with the working shown | `/decision` |
 | Repair or sell: compares repairing, selling as it is, and a total-loss settlement | inside the claim result |
-| 3D car to mark the damaged parts | claim check, damage step |
+| Car diagram to mark the damaged parts | claim check, damage step |
 | Read a policy or estimate from a PDF or a photo (OCR), then check the values | `/decision/extract`, policy steps |
 | Repair-quote X-ray: each line split into insurer and owner share | `/xray` |
 | Fleet triage: the claim-or-pay plan with the lowest total cost across vehicles | `/org/fleet` |

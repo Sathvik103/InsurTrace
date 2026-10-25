@@ -8,14 +8,14 @@ import { ArrowLeft, ArrowRight, Check, FileUp, HelpCircle, Plus, Wrench, X } fro
 import { useVehicle } from '@/context/VehicleContext';
 import { useAssistant, useAssistantPageContext } from '@/context/AssistantContext';
 import { analyzeClaim, DAMAGE_PARTS, EngineResult, NCB_STEPS, PartCategory, PolicyInputs, RepairLine, rupees } from '@/lib/claimCheck';
-import { DamagePicker } from './DamagePicker';
+import { CarDiagram } from './CarDiagram';
 import { ResultView } from './ResultView';
 import { ApiErrorNotice } from '@/components/common/ApiErrorNotice';
 import { takeHandoff } from '@/lib/extractHandoff';
 import { LedgerCommitPanel } from '@/components/common/LedgerCommitPanel';
 import { PolicyAutofill, PolicyValues } from '@/components/documents/PolicyAutofill';
 import { CarSilhouette } from '@/components/vehicle/CarSilhouette';
-import { BODY_LABEL, bodyTypeOf, paintFor } from '@/lib/bodyType';
+import { BODY_LABEL, bodyTypeOf } from '@/lib/bodyType';
 
 const STEPS = ['Your car', 'What’s damaged', 'Your policy', 'Your answer'] as const;
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -337,10 +337,9 @@ export function ClaimCheckFlow() {
               </div>
 
               {mode === 'parts' ? (
-                <div className="grid gap-8 lg:grid-cols-[1.15fr_1fr]">
-                  <DamagePicker
+                <div className="grid gap-8 md:grid-cols-[260px_1fr]">
+                  <CarDiagram
                     type={car ? bodyTypeOf(car) : 'hatchback'}
-                    paint={paintFor(car?.id || 'other').body}
                     selected={selectedParts}
                     onToggle={(id) =>
                       setCosts((c) => {
