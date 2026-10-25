@@ -111,9 +111,8 @@ function LoginContent() {
   return (
     <div className="grid min-h-screen bg-background lg:grid-cols-[1fr_1.05fr]">
       {/* Brand panel */}
-      <aside className="relative hidden overflow-hidden bg-gradient-to-br from-navy-950 via-navy-900 to-steel-800 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+      <aside className="relative hidden overflow-hidden bg-navy-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="vs-grid-bg pointer-events-none absolute inset-0 opacity-25" aria-hidden="true" />
-        <motion.div aria-hidden="true" className="absolute -bottom-40 -left-20 h-[460px] w-[460px] rounded-full bg-steel-500/30 blur-3xl" animate={reduce ? undefined : { scale: [1, 1.12, 1] }} transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }} />
         <Link href="/" className="relative w-fit rounded-2xl bg-white px-3 py-2"><BrandLogo size="sm" /></Link>
         <div className="relative space-y-6">
           <h2 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">Understand your car insurance before you make a call.</h2>

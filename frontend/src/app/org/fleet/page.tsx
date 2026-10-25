@@ -50,8 +50,7 @@ function Strategy({ plan, count }: { plan: FleetPlan; count: number }) {
   const saving = Math.max(0, nextBest - plan.planCost);
 
   return (
-    <section className="vs-grain relative overflow-hidden rounded-[28px] bg-navy-950 p-6 text-white sm:p-8">
-      <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-signal/10 blur-[90px]" />
+    <section className="vs-grain relative overflow-hidden rounded-2xl bg-navy-950 p-6 text-white sm:p-8">
       <div className="relative grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/45">This month’s plan saves</p>
@@ -85,9 +84,9 @@ function Strategy({ plan, count }: { plan: FleetPlan; count: number }) {
                   <span className={mine ? 'font-semibold text-white' : 'text-white/60'}>{r.label}</span>
                   <span className={`tabular font-mono ${mine ? 'text-signal' : 'text-white/70'}`}>{rupees(r.value)}</span>
                 </div>
-                <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/[0.06]">
+                <div className="mt-2 h-3 overflow-hidden rounded-md bg-white/[0.06]">
                   <motion.div
-                    className={`h-full rounded-full ${mine ? 'bg-signal' : 'bg-white/25'}`}
+                    className={`h-full rounded-md ${mine ? 'bg-signal' : 'bg-white/25'}`}
                     initial={reduce ? false : { width: 0 }}
                     animate={{ width: `${(r.value / max) * 100}%` }}
                     transition={{ duration: 0.9, ease: EASE }}
@@ -233,7 +232,7 @@ export default function FleetTriagePage() {
       )}
 
       {live.length === 0 ? (
-        <section className="mt-2 flex flex-col items-center gap-4 rounded-[28px] border border-navy-100 bg-white p-12 text-center">
+        <section className="mt-2 flex flex-col items-center gap-4 rounded-2xl border border-navy-100 bg-white p-12 text-center">
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy-950 text-signal"><Layers className="h-6 w-6" /></span>
           <h2 className="font-display text-2xl font-semibold tracking-tight text-navy-950">No incidents this month</h2>
           <p className="max-w-md text-sm text-navy-500">Add incidents one by one, import a CSV from your maintenance log, or load a sample month to see how triage decides.</p>
@@ -257,7 +256,7 @@ export default function FleetTriagePage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.5, delay: gi * 0.04, ease: EASE }}
-                  className="overflow-hidden rounded-[28px] border border-navy-100 bg-white"
+                  className="overflow-hidden rounded-2xl border border-navy-100 bg-white"
                 >
                   <header className="flex flex-col gap-4 border-b border-navy-100 bg-[#f6f5f0] p-5 sm:flex-row sm:items-center">
                     <CarSilhouette vehicle={v} className="h-14 w-36 shrink-0" />
@@ -266,7 +265,7 @@ export default function FleetTriagePage() {
                         <h2 className="font-display text-xl font-semibold tracking-tight text-navy-950">{f.label}</h2>
                         <NumberPlate value={f.registration} commercial={!!v.usage_type && v.usage_type !== 'PERSONAL'} />
                         {vp?.bundled && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-navy-950 px-2.5 py-1 text-[11px] font-semibold text-signal">
+                          <span className="inline-flex items-center gap-1 rounded-md bg-navy-950 px-2.5 py-1 text-[11px] font-semibold text-signal">
                             <Link2 className="h-3 w-3" /> Bundled
                           </span>
                         )}
@@ -349,10 +348,10 @@ function IncidentRow({
           <select value={inc.vehicleId} onChange={(e) => onChange({ vehicleId: e.target.value })} className="max-w-[14rem] truncate rounded-lg border border-navy-100 bg-white px-2 py-1 text-xs text-navy-600" aria-label="Move to another vehicle">
             {fleet.map((v) => <option key={v.id} value={v.id}>{v.registration} · {v.label}</option>)}
           </select>
-          {inc.sample && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800 ring-1 ring-amber-200">Sample</span>}
-          {inc.savedAt && <span className="inline-flex items-center gap-1 rounded-full bg-gain-soft px-2 py-0.5 text-[10px] font-semibold text-gain"><Check className="h-3 w-3" /> Saved</span>}
+          {inc.sample && <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800 ring-1 ring-amber-200">Sample</span>}
+          {inc.savedAt && <span className="inline-flex items-center gap-1 rounded-md bg-gain-soft px-2 py-0.5 text-[10px] font-semibold text-gain"><Check className="h-3 w-3" /> Saved</span>}
           {vp && vp.vehicle.idv > 0 && inc.amount >= vp.vehicle.idv * TOTAL_LOSS_RATIO && (
-            <span title="Many policies treat repairs above about 75% of the IDV as a total loss. Compare repairing with selling or a total-loss settlement." className="rounded-full bg-ember/15 px-2 py-0.5 text-[10px] font-semibold text-loss">
+            <span title="Many policies treat repairs above about 75% of the IDV as a total loss. Compare repairing with selling or a total-loss settlement." className="rounded-md bg-ember/15 px-2 py-0.5 text-[10px] font-semibold text-loss">
               Over 75% of IDV: total-loss territory
             </span>
           )}
@@ -379,14 +378,14 @@ function IncidentRow({
       <div className="min-w-0 sm:col-span-2 lg:col-span-1">
         {reason ? (
           <motion.div key={d!.decision} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="flex items-start gap-2.5">
-            <span className={`mt-0.5 shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${claim ? 'bg-signal text-navy-950' : 'bg-navy-100 text-navy-800'}`}>{claim ? 'Claim' : 'Pay'}</span>
+            <span className={`mt-0.5 shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold ${claim ? 'bg-signal text-navy-950' : 'bg-navy-100 text-navy-800'}`}>{claim ? 'Claim' : 'Pay'}</span>
             <p className="text-xs leading-relaxed text-navy-500">{reason}</p>
           </motion.div>
         ) : (
           <span className="text-xs text-navy-400">Enter the quote to see a decision</span>
         )}
       </div>
-      <button type="button" onClick={onRemove} className="justify-self-end rounded-full p-2 text-navy-300 transition hover:bg-red-50 hover:text-red-600" aria-label="Remove incident">
+      <button type="button" onClick={onRemove} className="justify-self-end rounded-md p-2 text-navy-300 transition hover:bg-red-50 hover:text-red-600" aria-label="Remove incident">
         <Trash2 className="h-4 w-4" />
       </button>
     </motion.li>

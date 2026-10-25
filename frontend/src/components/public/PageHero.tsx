@@ -34,11 +34,6 @@ export function PageHero({
 
   return (
     <section className="vs-grain relative isolate overflow-hidden bg-navy-950 text-white">
-      <div aria-hidden="true" className="pointer-events-none absolute -left-32 top-10 -z-10 h-[420px] w-[420px] rounded-full bg-steel-600/25 blur-[120px]" />
-      <div aria-hidden="true" className="pointer-events-none absolute -right-20 bottom-0 -z-10 h-[320px] w-[320px] rounded-full bg-signal/10 blur-[110px]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-[-20%] bottom-[-20%] -z-10 h-[60%] opacity-50">
-        <div className="vs-floor h-full w-full" />
-      </div>
 
       <div className={`mx-auto grid max-w-6xl items-center gap-12 px-5 ${compact ? 'pb-16 pt-32 lg:pb-20 lg:pt-40' : 'pb-20 pt-32 lg:grid-cols-[1.1fr_0.9fr] lg:pb-28 lg:pt-40'}`}>
         <div>

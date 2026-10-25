@@ -42,8 +42,7 @@ export function XRay({
   return (
     <div className="space-y-5">
       {/* Summary */}
-      <section className="vs-grain relative overflow-hidden rounded-[28px] bg-navy-950 p-6 text-white sm:p-8">
-        <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-signal/10 blur-[90px]" />
+      <section className="vs-grain relative overflow-hidden rounded-2xl bg-navy-950 p-6 text-white sm:p-8">
         <div className="relative grid gap-6 sm:grid-cols-3">
           <Stat label="Repair quote" value={r.total} />
           <Stat label="Insurer would pay" value={r.insurerPays} tone="text-signal" />
@@ -109,7 +108,7 @@ export function XRay({
       </section>
 
       {share >= TOTAL_LOSS_RATIO && (
-        <div className="flex flex-col gap-3 rounded-[22px] border border-ember/40 bg-loss-soft p-5 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 rounded-xl border border-ember/40 bg-loss-soft p-5 sm:flex-row sm:items-center">
           <AlertTriangle className="h-5 w-5 shrink-0 text-loss" />
           <p className="flex-1 text-sm text-navy-800">
             <span className="font-semibold">This quote is {Math.round(share * 100)}% of the IDV.</span> Many policies treat repairs above about 75% of the IDV as a total loss, and selling the car as it is might also beat repairing.
@@ -120,7 +119,7 @@ export function XRay({
 
       {/* Policy controls */}
       {onPolicyChange && (
-        <section className="grid gap-5 rounded-[28px] border border-navy-100 bg-white p-6 md:grid-cols-[1.4fr_1fr_1fr]">
+        <section className="grid gap-5 rounded-2xl border border-navy-100 bg-white p-6 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <div className="flex items-baseline justify-between">
               <span className="text-sm font-medium text-navy-800">Car age</span>
@@ -144,7 +143,7 @@ export function XRay({
             <span className="text-sm font-medium text-navy-800">Deductible</span>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {[1000, 2000].map((d) => (
-                <button key={d} type="button" onClick={() => onPolicyChange({ ...policy, deductible: d })} aria-pressed={policy.deductible === d} className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${policy.deductible === d ? 'bg-navy-950 text-white' : 'bg-navy-50 text-navy-700 hover:bg-navy-100'}`}>
+                <button key={d} type="button" onClick={() => onPolicyChange({ ...policy, deductible: d })} aria-pressed={policy.deductible === d} className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${policy.deductible === d ? 'bg-navy-950 text-white' : 'bg-navy-50 text-navy-700 hover:bg-navy-100'}`}>
                   {rupees(d)}
                 </button>
               ))}
@@ -167,7 +166,7 @@ export function XRay({
       )}
 
       {/* Lines */}
-      <section className="overflow-hidden rounded-[28px] border border-navy-100 bg-white">
+      <section className="overflow-hidden rounded-2xl border border-navy-100 bg-white">
         <ul className="divide-y divide-navy-50">
           <AnimatePresence initial={false}>
             {r.lines.map((l) => {
@@ -192,7 +191,7 @@ export function XRay({
                       ) : (
                         <p className="font-medium text-navy-950">{l.label || 'Item'}</p>
                       )}
-                      {top && <span className="shrink-0 rounded-full bg-loss/10 px-2 py-0.5 text-[10px] font-semibold text-loss">Big cost to you</span>}
+                      {top && <span className="shrink-0 rounded-md bg-loss/10 px-2 py-0.5 text-[10px] font-semibold text-loss">Big cost to you</span>}
                     </div>
                     {editable ? (
                       <div className="flex flex-wrap gap-1" role="radiogroup" aria-label="Material">
@@ -203,7 +202,7 @@ export function XRay({
                             role="radio"
                             aria-checked={l.category === c}
                             onClick={() => update(l.id, { category: c })}
-                            className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${l.category === c ? 'bg-navy-950 text-white' : 'bg-navy-50 text-navy-600 hover:bg-navy-100'}`}
+                            className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${l.category === c ? 'bg-navy-950 text-white' : 'bg-navy-50 text-navy-600 hover:bg-navy-100'}`}
                           >
                             {SHORT[c]}
                           </button>
@@ -219,7 +218,7 @@ export function XRay({
                     <p className="tabular text-right font-medium text-navy-950">{rupees(l.cost)}</p>
                   )}
                   <div className="space-y-1.5">
-                    <div className="flex h-2.5 overflow-hidden rounded-full bg-navy-50">
+                    <div className="flex h-2.5 overflow-hidden rounded-md bg-navy-50">
                       <motion.span className="h-full bg-signal-600" initial={false} animate={{ width: `${100 - youPct}%` }} transition={{ duration: reduce ? 0 : 0.5, ease: EASE }} />
                       <motion.span className="h-full bg-ember" initial={false} animate={{ width: `${youPct}%` }} transition={{ duration: reduce ? 0 : 0.5, ease: EASE }} />
                     </div>
@@ -227,7 +226,7 @@ export function XRay({
                       <span className="tabular font-medium text-signal-700">Insurer {rupees(l.insurerShare)}</span>
                       <span className="tabular font-medium text-loss">You {rupees(l.depreciation)}{l.depRate ? ` · ${Math.round(l.depRate * 100)}%` : ''}</span>
                       {editable && (
-                        <button type="button" onClick={() => onLinesChange?.(lines.filter((x) => x.id !== l.id))} className="ml-2 rounded-full p-1 text-navy-300 transition hover:bg-red-50 hover:text-red-600" aria-label={`Remove ${l.label || 'item'}`}>
+                        <button type="button" onClick={() => onLinesChange?.(lines.filter((x) => x.id !== l.id))} className="ml-2 rounded-md p-1 text-navy-300 transition hover:bg-red-50 hover:text-red-600" aria-label={`Remove ${l.label || 'item'}`}>
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       )}

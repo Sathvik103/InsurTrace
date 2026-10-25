@@ -66,27 +66,3 @@ export function CountUp({ value, start, duration = 1.2, format = rupees, classNa
   }, [go, value, duration, reduce, mv]);
   return <motion.span ref={ref} className={`tabular ${className}`}>{text}</motion.span>;
 }
-
-/** Card with a soft light that follows the pointer. */
-export function Spotlight({ children, className = '', color = 'rgba(212,242,92,0.14)' }: { children: React.ReactNode; className?: string; color?: string }) {
-  const mx = useMotionValue(-400);
-  const my = useMotionValue(-400);
-  const bg = useTransform([mx, my], ([x, y]) => `radial-gradient(420px circle at ${x}px ${y}px, ${color}, transparent 70%)`);
-  return (
-    <div
-      className={`group relative overflow-hidden ${className}`}
-      onPointerMove={(e) => {
-        const r = e.currentTarget.getBoundingClientRect();
-        mx.set(e.clientX - r.left);
-        my.set(e.clientY - r.top);
-      }}
-      onPointerLeave={() => {
-        mx.set(-400);
-        my.set(-400);
-      }}
-    >
-      <motion.div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ background: bg }} />
-      {children}
-    </div>
-  );
-}

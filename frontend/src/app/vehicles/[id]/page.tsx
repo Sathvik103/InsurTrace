@@ -102,7 +102,7 @@ export default function VehicleHistoryPage() {
   if (!vehicle && !data && error == null) {
     return (
       <AppShell>
-        <div className="vs-shimmer h-64 rounded-[32px]" />
+        <div className="vs-shimmer h-64 rounded-2xl" />
       </AppShell>
     );
   }
@@ -113,11 +113,10 @@ export default function VehicleHistoryPage() {
         {/* Summary */}
         <motion.section initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }} className="vs-surface overflow-hidden">
           <div className="vs-grain relative grid items-center gap-6 overflow-hidden bg-navy-950 p-6 text-white sm:p-8 lg:grid-cols-[1fr_0.9fr]">
-            <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-steel-600/30 blur-[100px]" />
             <div className="relative min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-white/15 px-2.5 py-0.5 text-xs font-medium text-white/70">{vehicle ? BODY_LABEL[bodyTypeOf(vehicle)] : 'Vehicle'}</span>
-                {vehicle?.is_demo && <span className="rounded-full bg-amber-400/15 px-2.5 py-0.5 text-xs font-semibold text-amber-300">Demo</span>}
+                <span className="rounded-md border border-white/15 px-2.5 py-0.5 text-xs font-medium text-white/70">{vehicle ? BODY_LABEL[bodyTypeOf(vehicle)] : 'Vehicle'}</span>
+                {vehicle?.is_demo && <span className="rounded-md bg-amber-400/15 px-2.5 py-0.5 text-xs font-semibold text-amber-300">Demo</span>}
               </div>
               <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight sm:text-5xl">{vehicle ? `${vehicle.make} ${vehicle.model}` : 'Vehicle'}</h1>
               <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-white/55">
@@ -141,7 +140,7 @@ export default function VehicleHistoryPage() {
               { label: 'IDV (cover)', value: vehicle?.idv ? rupees(vehicle.idv) : 'Not added' },
               { label: 'No-Claim Bonus', value: vehicle?.ncb_percentage != null ? `${vehicle.ncb_percentage}%` : 'Not added' },
               { label: 'Policy renewal', value: days === null ? 'Not added' : days < 0 ? `Expired ${-days}d ago` : `In ${days} days` },
-              { label: 'Ledger-anchored records', value: data ? String(anchored) : '–' },
+              { label: 'Ledger-anchored records', value: data ? String(anchored) : '...' },
             ].map((s, i) => (
               <div key={s.label} className={`p-5 ${i > 0 ? 'border-l border-navy-100' : ''} ${i === 2 ? 'max-sm:border-l-0 max-sm:border-t' : ''} ${i === 3 ? 'max-sm:border-t' : ''}`}>
                 <dt className="text-xs text-navy-500">{s.label}</dt>
@@ -179,12 +178,12 @@ export default function VehicleHistoryPage() {
                           <time className="shrink-0 text-xs text-navy-400">{e.date ? new Date(e.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</time>
                         </div>
                         <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-medium">
-                          <span className="rounded-full bg-navy-50 px-2 py-0.5 text-navy-600">{PROVENANCE[e.provenance_type] || 'Record'}</span>
+                          <span className="rounded-md bg-navy-50 px-2 py-0.5 text-navy-600">{PROVENANCE[e.provenance_type] || 'Record'}</span>
                           {e.event_type === 'CLAIM_FILED' &&
                             (e.blockchain_verified ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-gain-soft px-2 py-0.5 text-gain"><ShieldCheck className="h-3 w-3" /> Anchored on ledger</span>
+                              <span className="inline-flex items-center gap-1 rounded-md bg-gain-soft px-2 py-0.5 text-gain"><ShieldCheck className="h-3 w-3" /> Anchored on ledger</span>
                             ) : (
-                              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-amber-800">Anchoring pending</span>
+                              <span className="rounded-md bg-amber-50 px-2 py-0.5 text-amber-800">Anchoring pending</span>
                             ))}
                           {e.claim_id && (
                             <Link href={`/verification?claimId=${encodeURIComponent(e.claim_id)}`} className="text-steel-700 hover:underline">Verify →</Link>
@@ -204,8 +203,8 @@ export default function VehicleHistoryPage() {
             <div className="vs-surface p-6">
               <div className="flex items-center gap-4">
                 <svg viewBox="0 0 44 44" className="h-16 w-16 -rotate-90" aria-hidden="true">
-                  <circle cx="22" cy="22" r="18" fill="none" stroke="#e3e9f3" strokeWidth="5" />
-                  <motion.circle cx="22" cy="22" r="18" fill="none" stroke="#0f8a5f" strokeWidth="5" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: pct }} transition={{ duration: 1.1, ease: EASE, delay: 0.2 }} />
+                  <circle cx="22" cy="22" r="18" fill="none" stroke="#e8e4da" strokeWidth="5" />
+                  <motion.circle cx="22" cy="22" r="18" fill="none" stroke="#2f6b4f" strokeWidth="5" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: pct }} transition={{ duration: 1.1, ease: EASE, delay: 0.2 }} />
                 </svg>
                 <div>
                   <p className="text-lg font-semibold text-navy-900">{doneCount} of {checklist.length}</p>

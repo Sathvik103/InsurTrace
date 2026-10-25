@@ -54,14 +54,14 @@ export default function FleetVehiclesPage() {
     >
       {fleet.length > 0 && (
         <div className="mb-5 flex items-center gap-4 rounded-2xl border border-navy-100 bg-white p-4">
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-navy-50">
-            <motion.div className="h-full rounded-full bg-signal-600" initial={reduce ? false : { width: 0 }} animate={{ width: `${(ready / fleet.length) * 100}%` }} transition={{ duration: 0.8 }} />
+          <div className="h-2 flex-1 overflow-hidden rounded-md bg-navy-50">
+            <motion.div className="h-full rounded-md bg-signal-600" initial={reduce ? false : { width: 0 }} animate={{ width: `${(ready / fleet.length) * 100}%` }} transition={{ duration: 0.8 }} />
           </div>
           <p className="shrink-0 text-sm text-navy-600"><span className="font-semibold text-navy-950">{ready} of {fleet.length}</span> ready for triage</p>
         </div>
       )}
 
-      {fleet.length === 0 && <p className="rounded-[28px] border border-navy-100 bg-white p-10 text-center text-sm text-navy-500">No vehicles yet. Add your first vehicle to start triaging claims.</p>}
+      {fleet.length === 0 && <p className="rounded-2xl border border-navy-100 bg-white p-10 text-center text-sm text-navy-500">No vehicles yet. Add your first vehicle to start triaging claims.</p>}
 
       <div className="grid gap-4 md:grid-cols-2">
         {fleet.map(({ v, f }, i) => {
@@ -72,7 +72,7 @@ export default function FleetVehiclesPage() {
               initial={reduce ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04, duration: 0.5 }}
-              className="overflow-hidden rounded-[28px] border border-navy-100 bg-white"
+              className="overflow-hidden rounded-2xl border border-navy-100 bg-white"
             >
               <div className="flex items-center gap-4 bg-[#f6f5f0] p-5">
                 <CarSilhouette vehicle={v} className="h-14 w-32 shrink-0" />

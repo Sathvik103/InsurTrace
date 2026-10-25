@@ -8,7 +8,7 @@ import { PublicNavbar } from '@/components/public/PublicNavbar';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { QuickCheck } from '@/components/home/QuickCheck';
 import { Hero } from '@/components/home/Hero';
-import { CountUp, EASE, Reveal, SplitWords, Spotlight } from '@/components/home/fx';
+import { CountUp, EASE, Reveal, SplitWords } from '@/components/home/fx';
 import { useAssistant } from '@/context/AssistantContext';
 import { useAuth } from '@/context/AuthContext';
 import { KNOWLEDGE } from '@/content/assistantKnowledge';
@@ -42,7 +42,7 @@ function Example() {
           <p className="mt-4 text-sm text-navy-400">Example: 3-year-old car, 35% No-Claim Bonus, ₹18,000 renewal premium.</p>
         </Reveal>
         <Reveal delay={0.1}>
-          <div className="rounded-[28px] bg-white p-7 ring-1 ring-navy-100 sm:p-9">
+          <div className="rounded-2xl bg-white p-7 ring-1 ring-navy-100 sm:p-9">
             {[
               { label: 'If you claim', total: claimTotal, lines: [['You pay the workshop', claimNow], ['Bonus lost at renewal', bonus]] as [string, number][], win: claimTotal < payTotal },
               { label: 'If you pay yourself', total: payTotal, lines: [['Full repair bill', payTotal]] as [string, number][], win: payTotal <= claimTotal },
@@ -52,8 +52,8 @@ function Example() {
                   <p className="font-medium text-navy-700">{o.label}</p>
                   <p className={`tabular font-display text-3xl font-semibold tracking-tight ${o.win ? 'text-navy-950' : 'text-navy-400'}`}>{rupees(o.total)}</p>
                 </div>
-                <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-navy-50">
-                  <motion.div className={`h-full rounded-full ${o.win ? 'bg-signal-600' : 'bg-navy-300'}`} initial={{ width: 0 }} whileInView={{ width: `${(o.total / max) * 100}%` }} viewport={{ once: true }} transition={{ duration: 0.9, ease: EASE }} />
+                <div className="mt-3 h-2.5 overflow-hidden rounded-md bg-navy-50">
+                  <motion.div className={`h-full rounded-md ${o.win ? 'bg-signal-600' : 'bg-navy-300'}`} initial={{ width: 0 }} whileInView={{ width: `${(o.total / max) * 100}%` }} viewport={{ once: true }} transition={{ duration: 0.9, ease: EASE }} />
                 </div>
                 <dl className="mt-3 space-y-1 text-sm">
                   {o.lines.map(([k, v]) => (
@@ -159,19 +159,19 @@ function Bento() {
         </Reveal>
         <div className="mt-14 grid gap-4 md:grid-cols-6">
           <Reveal className="md:col-span-4">
-            <div className="h-full rounded-[32px] bg-white p-7 ring-1 ring-navy-100 sm:p-9">
+            <div className="h-full rounded-2xl bg-white p-7 ring-1 ring-navy-100 sm:p-9">
               <div className="flex items-start justify-between gap-6">
                 <div>
                   <h3 className="font-display text-2xl font-semibold tracking-tight text-navy-950">Your No-Claim Bonus, climbing for years</h3>
                   <p className="mt-2 max-w-md text-navy-500">Each claim-free year raises the discount. One claim drops it to zero. ClearClaim prices that loss in rupees.</p>
                 </div>
-                <span className="hidden shrink-0 rounded-full bg-loss/10 px-3 py-1 text-xs font-semibold text-loss sm:inline">after a claim</span>
+                <span className="hidden shrink-0 rounded-md bg-loss/10 px-3 py-1 text-xs font-semibold text-loss sm:inline">after a claim</span>
               </div>
               <div className="mt-10"><NcbLadder /></div>
             </div>
           </Reveal>
           <Reveal className="md:col-span-2" delay={0.08}>
-            <div className="flex h-full flex-col justify-between rounded-[32px] bg-navy-950 p-7 text-white sm:p-9">
+            <div className="flex h-full flex-col justify-between rounded-2xl bg-navy-950 p-7 text-white sm:p-9">
               <p className="font-mono text-xs uppercase tracking-[0.16em] text-white/40">Plastic bumper, ₹10,000 quote</p>
               <div>
                 <p className="font-display text-6xl font-semibold tracking-tight text-signal">
@@ -182,14 +182,14 @@ function Bento() {
             </div>
           </Reveal>
           <Reveal className="md:col-span-3" delay={0.05}>
-            <div className="h-full rounded-[32px] bg-signal p-7 text-navy-950 sm:p-9">
+            <div className="h-full rounded-2xl bg-signal p-7 text-navy-950 sm:p-9">
               <Scale className="h-7 w-7" />
               <h3 className="mt-6 font-display text-3xl font-semibold tracking-tight">A verdict, with the working shown</h3>
               <p className="mt-2 text-navy-800">Claim, pay yourself, or too close to call, and every rule behind it. Fixed rules, not AI guesses: same inputs, same answer.</p>
             </div>
           </Reveal>
           <Reveal className="md:col-span-3" delay={0.12}>
-            <div className="h-full overflow-hidden rounded-[32px] bg-white p-7 ring-1 ring-navy-100 sm:p-9">
+            <div className="h-full overflow-hidden rounded-2xl bg-white p-7 ring-1 ring-navy-100 sm:p-9">
               <Fingerprint className="h-7 w-7 text-steel-600" />
               <h3 className="mt-6 font-display text-3xl font-semibold tracking-tight text-navy-950">A record you can prove later</h3>
               <p className="mt-2 text-navy-500">Saved checks get a fingerprint. If anyone edits the record afterwards, the mismatch shows.</p>
@@ -206,7 +206,6 @@ function Bento() {
 function TryIt() {
   return (
     <section className="vs-grain relative overflow-hidden bg-navy-950 px-5 py-28 text-white lg:py-36">
-      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-steel-600/20 blur-[140px]" />
       <div className="relative mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[0.9fr_1.1fr]">
         <Reveal>
           <p className="text-sm font-semibold text-signal">Try it, no sign-up</p>
@@ -241,10 +240,10 @@ function Orgs() {
         <div className="mt-14 grid gap-4 md:grid-cols-2">
           {items.map((o, i) => (
             <Reveal key={o.href} delay={i * 0.08}>
-              <Spotlight className="h-full rounded-[32px] bg-navy-950 text-white">
+              <div className="group h-full rounded-2xl bg-navy-950 text-white transition duration-500 hover:-translate-y-1">
                 <Link href={o.href} className="relative flex h-full min-h-[340px] flex-col justify-between p-8 sm:p-10">
                   <div className="flex items-center justify-between">
-                    <span className="rounded-full border border-white/15 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-white/60">{o.tag}</span>
+                    <span className="rounded-md border border-white/15 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.14em] text-white/60">{o.tag}</span>
                     <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 transition duration-500 group-hover:rotate-45 group-hover:bg-signal group-hover:text-navy-950">
                       <ArrowUpRight className="h-5 w-5" />
                     </span>
@@ -255,7 +254,7 @@ function Orgs() {
                     <p className="mt-3 max-w-md leading-relaxed text-white/60">{o.body}</p>
                   </div>
                 </Link>
-              </Spotlight>
+              </div>
             </Reveal>
           ))}
         </div>
@@ -272,7 +271,7 @@ function StrikeItem({ text, delay }: { text: string; delay: number }) {
     <li className="py-1">
       <motion.span
         className="bg-no-repeat text-white/40"
-        style={{ backgroundImage: 'linear-gradient(#ff9b6a, #ff9b6a)', backgroundPosition: '0 58%' }}
+        style={{ backgroundImage: 'linear-gradient(#e0805f, #e0805f)', backgroundPosition: '0 58%' }}
         initial={reduce ? { backgroundSize: '100% 2px' } : { backgroundSize: '0% 2px' }}
         whileInView={{ backgroundSize: '100% 2px' }}
         viewport={{ once: true, margin: '-60px' }}
@@ -366,11 +365,7 @@ function Faq() {
 function FinalCta({ checkHref }: { checkHref: string }) {
   return (
     <section className="bg-white px-3 pb-3">
-      <div className="vs-grain relative overflow-hidden rounded-[40px] bg-navy-950 px-6 py-24 text-center text-white sm:py-32">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-x-[-20%] bottom-[-30%] h-[80%] opacity-60">
-          <div className="vs-floor h-full w-full" />
-        </div>
-        <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-[400px] w-[700px] -translate-x-1/2 rounded-full bg-signal/15 blur-[120px]" />
+      <div className="vs-grain relative overflow-hidden rounded-2xl bg-navy-950 px-6 py-24 text-center text-white sm:py-32">
         <div className="relative">
           <h2 className="mx-auto max-w-5xl font-display text-[clamp(3rem,10vw,8rem)] font-semibold leading-[0.9] tracking-[-0.05em]">
             <SplitWords text="Know before" inView />

@@ -58,7 +58,7 @@ export default function AboutPage() {
             <div className="mt-12 grid gap-4 md:grid-cols-2">
               {PRINCIPLES.map((p, i) => (
                 <Reveal key={p.n} delay={i * 0.06}>
-                  <div className="h-full rounded-[28px] bg-white p-8 ring-1 ring-navy-100">
+                  <div className="h-full rounded-2xl bg-white p-8 ring-1 ring-navy-100">
                     <span className="font-display text-5xl font-semibold text-navy-100">{p.n}</span>
                     <h3 className="mt-4 font-display text-2xl font-semibold tracking-tight text-navy-950">{p.title}</h3>
                     <p className="mt-2 leading-relaxed text-navy-500">{p.body}</p>
@@ -90,7 +90,7 @@ export default function AboutPage() {
         </section>
 
         <section className="px-3 pb-3">
-          <div className="vs-grain relative flex flex-col items-start justify-between gap-6 overflow-hidden rounded-[40px] bg-navy-950 px-8 py-14 text-white sm:flex-row sm:items-center sm:px-14">
+          <div className="vs-grain relative flex flex-col items-start justify-between gap-6 overflow-hidden rounded-2xl bg-navy-950 px-8 py-14 text-white sm:flex-row sm:items-center sm:px-14">
             <div>
               <h2 className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">Questions, or found a mistake?</h2>
               <p className="mt-2 text-white/60">We read every message. <a href={`mailto:${BRAND.contactEmail}`} className="text-white underline-offset-2 hover:underline">{BRAND.contactEmail}</a></p>

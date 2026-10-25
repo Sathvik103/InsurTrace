@@ -20,7 +20,7 @@ export function formatDate(dateStr: string | null | undefined): string {
 }
 
 export function truncateHash(hash: string | null | undefined, head = 8, tail = 8): string {
-  if (!hash) return "—";
+  if (!hash) return "Not available";
   if (hash.length <= head + tail + 3) return hash;
   return `${hash.slice(0, head)}...${hash.slice(-tail)}`;
 }

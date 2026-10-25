@@ -7,7 +7,7 @@ import { ClaimCheckFlow } from '@/components/claim-check/ClaimCheckFlow';
 export default function ClaimDecisionPage() {
   return (
     <AppShell>
-      <Suspense fallback={<div className="vs-shimmer mx-auto h-96 max-w-3xl rounded-[28px]" />}>
+      <Suspense fallback={<div className="vs-shimmer mx-auto h-96 max-w-3xl rounded-2xl" />}>
         <ClaimCheckFlow />
       </Suspense>
     </AppShell>

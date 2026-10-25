@@ -261,8 +261,8 @@ export function ClaimCheckFlow() {
                         if (v.has_zero_dep != null) setZeroDep(v.has_zero_dep ? 'yes' : 'no');
                         if (v.od_premium) setPremium(String(v.od_premium));
                       }}
-                      className={`relative overflow-hidden rounded-[22px] border p-4 text-left transition duration-300 ${
-                        on ? 'border-navy-950 bg-navy-950 text-white shadow-[0_20px_40px_-20px_rgba(10,16,34,0.6)]' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'
+                      className={`relative overflow-hidden rounded-xl border p-4 text-left transition duration-300 ${
+                        on ? 'border-navy-950 bg-navy-950 text-white shadow-[0_20px_40px_-20px_rgba(20,19,16,0.6)]' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'
                       }`}
                     >
                       <div className={`-mx-1 mb-3 rounded-2xl px-3 pt-2 ${on ? 'bg-white/[0.07]' : 'bg-[#f6f5f0]'}`}>
@@ -288,7 +288,7 @@ export function ClaimCheckFlow() {
                     setCarId('other');
                     setIdv('');
                   }}
-                  className={`flex min-h-36 flex-col items-center justify-center gap-2 rounded-[22px] border-2 border-dashed p-4 text-center transition ${
+                  className={`flex min-h-36 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 text-center transition ${
                     carId === 'other' ? 'border-navy-950 bg-navy-50' : 'border-navy-200 bg-white hover:border-navy-400'
                   }`}
                 >
@@ -347,7 +347,7 @@ export function ClaimCheckFlow() {
                           <p className="text-xs text-steel-700">From your document · {d.category === 'labour' ? 'labour' : `${d.category} part`}</p>
                         </div>
                         <div className="w-36"><RupeeInput value={d.cost} onChange={(v) => setDocItems((all) => all.map((x, k) => (k === idx ? { ...x, cost: v } : x)))} placeholder="Cost" compact /></div>
-                        <button type="button" onClick={() => setDocItems((all) => all.filter((_, k) => k !== idx))} className="rounded-full p-1.5 text-navy-300 hover:bg-navy-50 hover:text-navy-700" aria-label={`Remove ${d.label}`}>
+                        <button type="button" onClick={() => setDocItems((all) => all.filter((_, k) => k !== idx))} className="rounded-md p-1.5 text-navy-300 hover:bg-navy-50 hover:text-navy-700" aria-label={`Remove ${d.label}`}>
                           <X className="h-4 w-4" />
                         </button>
                       </div>
@@ -369,7 +369,7 @@ export function ClaimCheckFlow() {
                               <p className="text-xs text-navy-500">{p.hint}</p>
                             </div>
                             <div className="w-36"><RupeeInput value={costs[p.id]} onChange={(v) => setCosts((c) => ({ ...c, [p.id]: v }))} placeholder="Cost" compact autoFocus /></div>
-                            <button type="button" onClick={() => setCosts((c) => { const n = { ...c }; delete n[p.id]; return n; })} className="rounded-full p-1.5 text-navy-300 hover:bg-navy-50 hover:text-navy-700" aria-label={`Remove ${p.label}`}>
+                            <button type="button" onClick={() => setCosts((c) => { const n = { ...c }; delete n[p.id]; return n; })} className="rounded-md p-1.5 text-navy-300 hover:bg-navy-50 hover:text-navy-700" aria-label={`Remove ${p.label}`}>
                               <X className="h-4 w-4" />
                             </button>
                           </div>
@@ -494,7 +494,7 @@ export function ClaimCheckFlow() {
       </AnimatePresence>
 
       {/* Navigation */}
-      <div className="sticky bottom-[84px] z-10 -mx-4 mt-8 rounded-3xl border border-navy-100 bg-white/90 px-4 py-3 backdrop-blur lg:bottom-0 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-none">
+      <div className="sticky bottom-[84px] z-10 -mx-4 mt-8 rounded-2xl border border-navy-100 bg-white/90 px-4 py-3 backdrop-blur lg:bottom-0 sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-none">
         <div className="flex items-center justify-between gap-3">
           {step > 0 ? (
             <button type="button" onClick={() => go(step - 1)} className="vs-btn-secondary">
@@ -524,7 +524,7 @@ export function ClaimCheckFlow() {
 
 function StepCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-[28px] border border-navy-100 bg-white p-6 shadow-[0_1px_2px_rgba(10,16,34,0.04),0_24px_48px_-28px_rgba(10,16,34,0.18)] sm:p-8">
+    <section className="rounded-2xl border border-navy-100 bg-white p-6 shadow-[0_1px_2px_rgba(20,19,16,0.04),0_24px_48px_-28px_rgba(20,19,16,0.18)] sm:p-8">
       <h2 className="font-display text-2xl font-semibold tracking-tight text-navy-950">{title}</h2>
       <p className="mt-1 text-sm text-navy-500">{subtitle}</p>
       <div className="mt-6">{children}</div>
@@ -546,7 +546,7 @@ function Field({ label, htmlFor, hint, help, children }: { label: string; htmlFo
 
 function HelpBtn({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="rounded-full text-navy-400 transition hover:text-steel-600" aria-label="Explain this">
+    <button type="button" onClick={onClick} className="rounded-md text-navy-400 transition hover:text-steel-600" aria-label="Explain this">
       <HelpCircle className="h-4 w-4" />
     </button>
   );
@@ -559,7 +559,7 @@ function Choice({ on, onClick, label, hint }: { on: boolean; onClick: () => void
       onClick={onClick}
       whileTap={{ scale: 0.97 }}
       aria-pressed={on}
-      className={`relative rounded-2xl border px-3 py-3 text-left transition duration-300 ${on ? 'border-navy-950 bg-navy-950 text-white shadow-[0_12px_24px_-14px_rgba(10,16,34,0.7)]' : 'border-navy-100 bg-white text-navy-900 hover:-translate-y-0.5 hover:border-navy-300'}`}
+      className={`relative rounded-2xl border px-3 py-3 text-left transition duration-300 ${on ? 'border-navy-950 bg-navy-950 text-white shadow-[0_12px_24px_-14px_rgba(20,19,16,0.7)]' : 'border-navy-100 bg-white text-navy-900 hover:-translate-y-0.5 hover:border-navy-300'}`}
     >
       {on && <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-signal" />}
       <span className="block text-sm font-semibold">{label}</span>
@@ -599,13 +599,13 @@ function Working({ car }: { car?: { id?: string; make?: string; model?: string; 
     return () => clearInterval(t);
   }, [lines.length]);
   return (
-    <div className="vs-grain relative flex flex-col items-center gap-6 overflow-hidden rounded-[28px] bg-navy-950 p-10 text-center text-white" role="status">
+    <div className="vs-grain relative flex flex-col items-center gap-6 overflow-hidden rounded-2xl bg-navy-950 p-10 text-center text-white" role="status">
       <div className="relative w-full max-w-sm">
         <CarSilhouette vehicle={car} variant="line" className="w-full" />
         {!reduce && (
           <motion.span
             aria-hidden="true"
-            className="absolute inset-y-0 w-px bg-signal shadow-[0_0_24px_6px_rgba(212,242,92,0.45)]"
+            className="absolute inset-y-0 w-px bg-signal"
             initial={{ left: '0%' }}
             animate={{ left: ['0%', '100%'] }}
             transition={{ duration: 0.9, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}

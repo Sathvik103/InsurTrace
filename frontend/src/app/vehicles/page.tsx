@@ -43,12 +43,12 @@ function daysUntil(date?: string) {
 function LedgerState({ ledger }: { ledger?: ClaimRow['ledger'] }) {
   const s = ledger?.sync_status;
   if (s === 'COMMITTED' && ledger?.network_mode === 'MOCK')
-    return <span className="inline-flex w-fit items-center rounded-full bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-600">Sample · no ledger</span>;
+    return <span className="inline-flex w-fit items-center rounded-md bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-600">Sample · no ledger</span>;
   if (s === 'COMMITTED')
-    return <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-gain-soft px-2.5 py-1 text-xs font-semibold text-gain"><ShieldCheck className="h-3.5 w-3.5" /> Anchored on ledger</span>;
+    return <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-gain-soft px-2.5 py-1 text-xs font-semibold text-gain"><ShieldCheck className="h-3.5 w-3.5" /> Anchored on ledger</span>;
   if (s === 'FAILED')
-    return <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700"><AlertTriangle className="h-3.5 w-3.5" /> Anchoring failed</span>;
-  return <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800"><Clock className="h-3.5 w-3.5" /> Anchoring pending</span>;
+    return <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700"><AlertTriangle className="h-3.5 w-3.5" /> Anchoring failed</span>;
+  return <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800"><Clock className="h-3.5 w-3.5" /> Anchoring pending</span>;
 }
 
 export default function VehiclesPage() {
@@ -95,10 +95,8 @@ export default function VehiclesPage() {
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: EASE }}
-          className="vs-grain relative overflow-hidden rounded-[32px] bg-navy-950 text-white"
+          className="vs-grain relative overflow-hidden rounded-2xl bg-navy-950 text-white"
         >
-          <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-steel-600/30 blur-[100px]" />
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-[-20%] bottom-[-35%] h-[70%] opacity-40"><div className="vs-floor h-full w-full" /></div>
           <div className="relative grid items-center gap-8 p-7 sm:p-10 lg:grid-cols-[1.1fr_0.9fr]">
             <div>
               <p className="font-mono text-xs uppercase tracking-[0.18em] text-white/45">{greeting()}{firstName ? `, ${firstName}` : ''}</p>
@@ -135,7 +133,7 @@ export default function VehiclesPage() {
             { href: '/reports', icon: FileText, title: 'Vehicle passport', body: 'A verifiable history for resale' },
           ].map((a, i) => (
             <motion.div key={a.href} initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.06, duration: 0.5, ease: EASE }}>
-              <Link href={a.href} className="group flex h-full items-center gap-4 rounded-[22px] border border-navy-100 bg-white p-4 transition duration-300 hover:-translate-y-0.5 hover:border-navy-200 hover:shadow-[0_18px_36px_-24px_rgba(10,16,34,0.35)]">
+              <Link href={a.href} className="group flex h-full items-center gap-4 rounded-xl border border-navy-100 bg-white p-4 transition duration-300 hover:-translate-y-0.5 hover:border-navy-200 hover:shadow-[0_18px_36px_-24px_rgba(20,19,16,0.35)]">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-navy-950 text-signal"><a.icon className="h-5 w-5" /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-semibold text-navy-950">{a.title}</span>
@@ -166,13 +164,13 @@ export default function VehiclesPage() {
                   initial={reduce ? false : { opacity: 0, y: 24 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 * i, duration: 0.6, ease: EASE }}
-                  className="group flex flex-col overflow-hidden rounded-[28px] border border-navy-100 bg-white transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(10,16,34,0.35)]"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-navy-100 bg-white transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(20,19,16,0.35)]"
                 >
                   <div className="relative bg-[#f6f5f0] px-6 pb-3 pt-8">
                     <div className="absolute left-4 top-4 flex gap-1.5">
-                      <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-navy-700 ring-1 ring-navy-100">{BODY_LABEL[bodyTypeOf(v)]}</span>
-                      {v.is_demo && <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200">Demo</span>}
-                      {v.is_local_only && <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-navy-600 ring-1 ring-navy-100">This browser only</span>}
+                      <span className="rounded-md bg-white px-2.5 py-1 text-[11px] font-semibold text-navy-700 ring-1 ring-navy-100">{BODY_LABEL[bodyTypeOf(v)]}</span>
+                      {v.is_demo && <span className="rounded-md bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200">Demo</span>}
+                      {v.is_local_only && <span className="rounded-md bg-white px-2.5 py-1 text-[11px] font-semibold text-navy-600 ring-1 ring-navy-100">This browser only</span>}
                     </div>
                     <CarSilhouette vehicle={v} className="h-28 w-full transition duration-700 ease-out group-hover:translate-x-2" />
                   </div>
@@ -195,7 +193,7 @@ export default function VehiclesPage() {
                         <dd className="mt-0.5 font-semibold text-navy-950">{v.ncb_percentage != null ? `${v.ncb_percentage}%` : 'Not added'}</dd>
                         <div className="mt-1.5 flex gap-0.5" aria-hidden="true">
                           {NCB_STEPS.slice(1).map((_, k) => (
-                            <motion.span key={k} className={`h-1.5 flex-1 rounded-full ${k < ncbIdx ? 'bg-signal-600' : 'bg-navy-100'}`} initial={reduce ? false : { scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.3 + k * 0.06 }} style={{ originX: 0 }} />
+                            <motion.span key={k} className={`h-1.5 flex-1 rounded-md ${k < ncbIdx ? 'bg-signal-600' : 'bg-navy-100'}`} initial={reduce ? false : { scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.3 + k * 0.06 }} style={{ originX: 0 }} />
                           ))}
                         </div>
                       </div>
@@ -216,7 +214,7 @@ export default function VehiclesPage() {
                 </motion.article>
               );
             })}
-            <Link href="/onboarding" className="group flex min-h-72 flex-col items-center justify-center gap-3 rounded-[28px] border-2 border-dashed border-navy-200 p-6 text-center transition hover:border-navy-950 hover:bg-white">
+            <Link href="/onboarding" className="group flex min-h-72 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-navy-200 p-6 text-center transition hover:border-navy-950 hover:bg-white">
               <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy-950 text-signal transition duration-500 group-hover:rotate-90"><Plus className="h-6 w-6" /></span>
               <span className="font-display text-xl font-semibold text-navy-950">Add a vehicle</span>
               <span className="max-w-[16rem] text-sm text-navy-500">Registration and policy details take about a minute</span>
@@ -234,13 +232,13 @@ export default function VehiclesPage() {
           {claims === null ? (
             <div className="space-y-2">{[0, 1].map((k) => <div key={k} className="vs-shimmer h-16 rounded-2xl" />)}</div>
           ) : claims.length === 0 && claimsError == null ? (
-            <div className="flex flex-col items-center gap-2 rounded-[28px] border border-navy-100 bg-white p-10 text-center">
+            <div className="flex flex-col items-center gap-2 rounded-2xl border border-navy-100 bg-white p-10 text-center">
               <ScrollText className="h-8 w-8 text-navy-300" />
               <p className="font-semibold text-navy-950">No saved checks yet</p>
               <p className="text-sm text-navy-500">Run a claim check and press “Save claim record” to keep it here.</p>
             </div>
           ) : (
-            <ul className="overflow-hidden rounded-[28px] border border-navy-100 bg-white">
+            <ul className="overflow-hidden rounded-2xl border border-navy-100 bg-white">
               {claims.map((c, i) => (
                 <motion.li key={c.id} initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }} className="border-b border-navy-50 last:border-0">
                   <Link href={`/verification?claimId=${encodeURIComponent(c.id)}`} className="group flex flex-col gap-2 px-5 py-4 transition hover:bg-[#f6f5f0] sm:flex-row sm:items-center">

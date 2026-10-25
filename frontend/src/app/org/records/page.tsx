@@ -58,7 +58,7 @@ export default function OrgRecordsPage() {
                         {r.calculated_payout != null ? ` · insurer ~${rupees(r.calculated_payout)}` : ''}
                       </p>
                     </div>
-                    <span className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${anchored ? 'bg-gain-soft text-gain' : 'bg-amber-50 text-amber-800'}`}>
+                    <span className={`inline-flex w-fit items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold ${anchored ? 'bg-gain-soft text-gain' : 'bg-amber-50 text-amber-800'}`}>
                       {anchored ? <ShieldCheck className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
                       {anchored ? 'Anchored' : r.ledger?.network_mode === 'MOCK' ? 'Sample · no ledger' : 'Anchoring pending'}
                     </span>

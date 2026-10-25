@@ -9,40 +9,40 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --color-navy-50: #f2f5fa;
-  --color-navy-100: #e3e9f3;
-  --color-navy-200: #c4d0e4;
-  --color-navy-300: #95a8c9;
-  --color-navy-400: #637ca6;
-  --color-navy-500: #43598a;
-  --color-navy-600: #324571;
-  --color-navy-700: #26365b;
-  --color-navy-800: #1a2644;
-  --color-navy-900: #111a31;
-  --color-navy-950: #0a1022;
-  --color-steel-50: #eff7fc;
-  --color-steel-100: #daedf8;
-  --color-steel-200: #b5dbf1;
-  --color-steel-300: #7fc0e6;
-  --color-steel-400: #45a0d6;
-  --color-steel-500: #2283c1;
-  --color-steel-600: #1468a3;
-  --color-steel-700: #135485;
-  --color-steel-800: #15476e;
-  --color-steel-900: #163c5c;
-  --color-gain: #0f8a5f;
-  --color-gain-soft: #e6f5ee;
-  --color-loss: #c2410c;
-  --color-loss-soft: #fdf0e8;
-  --color-ember: #ff9b6a;
+  --color-navy-50: #f5f3ee;
+  --color-navy-100: #e8e4da;
+  --color-navy-200: #d4cebf;
+  --color-navy-300: #ada594;
+  --color-navy-400: #857d6d;
+  --color-navy-500: #655e51;
+  --color-navy-600: #4b453b;
+  --color-navy-700: #38332b;
+  --color-navy-800: #27241e;
+  --color-navy-900: #1c1a16;
+  --color-navy-950: #141310;
+  --color-steel-50: #eef4f0;
+  --color-steel-100: #d6e6dc;
+  --color-steel-200: #aecdb9;
+  --color-steel-300: #7fae91;
+  --color-steel-400: #56906d;
+  --color-steel-500: #3b7654;
+  --color-steel-600: #2f6146;
+  --color-steel-700: #264f3a;
+  --color-steel-800: #1f4030;
+  --color-steel-900: #1a3528;
+  --color-gain: #2f6b4f;
+  --color-gain-soft: #e7f0ea;
+  --color-loss: #a8432a;
+  --color-loss-soft: #f8ebe4;
+  --color-ember: #e0805f;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --font-heading: var(--font-display);
   --font-display: var(--font-display);
   /* Signal: the brand accent. Used sparingly for the one thing to look at. */
-  --color-signal: #d4f25c;
-  --color-signal-300: #e6f89d;
-  --color-signal-600: #a9cc28;
-  --color-signal-700: #7e9a17;
+  --color-signal: #d9a441;
+  --color-signal-300: #ebcd8c;
+  --color-signal-600: #b7862c;
+  --color-signal-700: #8a6219;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -84,40 +84,40 @@
 /* Legacy palette remap: older screens use Tailwind's stock zinc/sky/indigo/blue.
    Pointing them at the brand scales keeps every page visually consistent. */
 @theme {
-  --color-zinc-50: #f6f8fc;
-  --color-zinc-100: #eef2f8;
-  --color-zinc-200: #e3e9f3;
-  --color-zinc-300: #c4d0e4;
-  --color-zinc-400: #95a8c9;
-  --color-zinc-500: #637ca6;
-  --color-zinc-600: #43598a;
-  --color-zinc-700: #324571;
-  --color-zinc-800: #1a2644;
-  --color-zinc-900: #111a31;
-  --color-zinc-950: #0a1022;
-  --color-sky-50: #eff7fc;
-  --color-sky-100: #daedf8;
-  --color-sky-200: #b5dbf1;
-  --color-sky-300: #7fc0e6;
-  --color-sky-400: #45a0d6;
-  --color-sky-500: #2283c1;
-  --color-sky-600: #1468a3;
-  --color-sky-700: #135485;
-  --color-sky-800: #15476e;
-  --color-sky-900: #163c5c;
-  --color-indigo-50: #eff7fc;
-  --color-indigo-100: #daedf8;
-  --color-indigo-200: #b5dbf1;
-  --color-indigo-400: #45a0d6;
-  --color-indigo-500: #2283c1;
-  --color-indigo-600: #1468a3;
-  --color-indigo-700: #135485;
-  --color-blue-50: #eff7fc;
-  --color-blue-100: #daedf8;
-  --color-blue-200: #b5dbf1;
-  --color-blue-500: #2283c1;
-  --color-blue-600: #1468a3;
-  --color-blue-700: #135485;
+  --color-zinc-50: #f7f5f0;
+  --color-zinc-100: #efece5;
+  --color-zinc-200: #e8e4da;
+  --color-zinc-300: #d4cebf;
+  --color-zinc-400: #ada594;
+  --color-zinc-500: #857d6d;
+  --color-zinc-600: #655e51;
+  --color-zinc-700: #4b453b;
+  --color-zinc-800: #27241e;
+  --color-zinc-900: #1c1a16;
+  --color-zinc-950: #141310;
+  --color-sky-50: #eef4f0;
+  --color-sky-100: #d6e6dc;
+  --color-sky-200: #aecdb9;
+  --color-sky-300: #7fae91;
+  --color-sky-400: #56906d;
+  --color-sky-500: #3b7654;
+  --color-sky-600: #2f6146;
+  --color-sky-700: #264f3a;
+  --color-sky-800: #1f4030;
+  --color-sky-900: #1a3528;
+  --color-indigo-50: #eef4f0;
+  --color-indigo-100: #d6e6dc;
+  --color-indigo-200: #aecdb9;
+  --color-indigo-400: #56906d;
+  --color-indigo-500: #3b7654;
+  --color-indigo-600: #2f6146;
+  --color-indigo-700: #264f3a;
+  --color-blue-50: #eef4f0;
+  --color-blue-100: #d6e6dc;
+  --color-blue-200: #aecdb9;
+  --color-blue-500: #3b7654;
+  --color-blue-600: #2f6146;
+  --color-blue-700: #264f3a;
 }
 
 :root {
@@ -127,7 +127,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: #1a2644;
+  --primary: #27241e;
   --primary-foreground: #ffffff;
   --secondary: oklch(0.97 0.005 250);
   --secondary-foreground: oklch(0.205 0 0);
@@ -138,7 +138,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: #2283c1;
+  --ring: #3b7654;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -205,54 +205,48 @@
 @layer base {
   h1, h2, h3 { letter-spacing: -0.022em; font-family: var(--font-display), var(--font-sans), sans-serif; }
   .tabular { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
-  :focus-visible { outline: 2px solid #2283c1; outline-offset: 2px; }
+  :focus-visible { outline: 2px solid #3b7654; outline-offset: 2px; }
 }
 
 @layer components {
   .vs-surface {
-    @apply rounded-[28px] border border-navy-100 bg-white shadow-[0_1px_2px_rgba(10,16,34,0.04),0_24px_48px_-32px_rgba(10,16,34,0.22)];
+    @apply rounded-xl border border-navy-100 bg-white shadow-[0_1px_2px_rgba(20,19,16,0.04),0_24px_48px_-32px_rgba(20,19,16,0.22)];
   }
   .vs-glass {
-    @apply border border-white/60 bg-white/70 backdrop-blur-xl shadow-[0_8px_32px_-8px_rgba(17,26,49,0.18)];
+    @apply border border-white/60 bg-white/70 backdrop-blur-xl shadow-[0_8px_32px_-8px_rgba(20,19,16,0.18)];
   }
   .vs-chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-800 transition hover:border-navy-950;
+    @apply inline-flex items-center gap-1.5 rounded-md border border-navy-200 bg-white px-3 py-1.5 text-xs font-semibold text-navy-800 transition hover:border-navy-950;
   }
-  /* Buttons: a lit top edge, a lift on hover, and a press. Arrows inside slide on hover. */
+  /* Buttons: solid, square-cornered, no glow. A small press on click. */
   .vs-btn-primary {
-    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-navy-950 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 ease-out-expo hover:-translate-y-0.5 hover:bg-navy-900 active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), 0 1px 2px rgba(10,16,34,0.3), 0 10px 24px -10px rgba(10,16,34,0.6);
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-navy-950 px-5 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-navy-800 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50;
   }
-  .vs-btn-primary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 4px rgba(10,16,34,0.3), 0 18px 34px -12px rgba(10,16,34,0.65); }
   .vs-btn-signal {
-    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-signal px-6 py-3.5 text-base font-semibold text-navy-950 transition-all duration-300 ease-out-expo hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98];
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), inset 0 -2px 0 rgba(126,154,23,0.35), 0 0 0 1px rgba(169,204,40,0.5), 0 14px 40px -12px rgba(212,242,92,0.55);
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-signal px-6 py-3.5 text-base font-semibold text-navy-950 transition-colors duration-200 hover:bg-signal-300 active:scale-[0.99];
   }
-  .vs-btn-signal:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(126,154,23,0.35), 0 0 0 1px rgba(169,204,40,0.6), 0 20px 50px -12px rgba(212,242,92,0.75); }
   .vs-btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-navy-200 bg-white px-5 py-3 text-sm font-semibold text-navy-800 transition-all duration-300 ease-out-expo hover:-translate-y-0.5 hover:border-navy-300 hover:shadow-[0_10px_24px_-12px_rgba(17,26,49,0.25)] active:translate-y-0 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-navy-200 bg-white px-5 py-3 text-sm font-semibold text-navy-800 transition-colors duration-200 hover:border-navy-400 hover:bg-navy-50 active:scale-[0.99];
   }
   .vs-btn-ghost-dark {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-base font-semibold text-white ring-1 ring-white/20 backdrop-blur transition-all duration-300 ease-out-expo hover:-translate-y-0.5 hover:bg-white/10 hover:ring-white/40 active:translate-y-0 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-white/25 px-6 py-3.5 text-base font-semibold text-white transition-colors duration-200 hover:border-white/50 hover:bg-white/10 active:scale-[0.99];
   }
-  .vs-btn-primary svg, .vs-btn-signal svg, .vs-btn-secondary svg, .vs-btn-ghost-dark svg { transition: transform 0.3s var(--ease-out-expo); }
-  .vs-btn-primary:hover svg:last-child, .vs-btn-signal:hover svg:last-child, .vs-btn-ghost-dark:hover svg:last-child { transform: translateX(3px); }
   .vs-input {
-    @apply w-full rounded-2xl border border-navy-200 bg-white px-4 py-3 text-base text-navy-900 transition placeholder:text-navy-300 focus:border-steel-500 focus:outline-none focus:ring-4 focus:ring-steel-500/15;
+    @apply w-full rounded-lg border border-navy-200 bg-white px-4 py-3 text-base text-navy-900 transition placeholder:text-navy-300 focus:border-steel-500 focus:outline-none focus:ring-4 focus:ring-steel-500/15;
   }
 }
 
 .vs-grid-bg {
   background-image:
-    linear-gradient(to right, rgba(67, 89, 138, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(67, 89, 138, 0.07) 1px, transparent 1px);
+    linear-gradient(to right, rgba(101,94,81, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(101,94,81, 0.07) 1px, transparent 1px);
   background-size: 44px 44px;
   mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 40%, transparent 100%);
 }
 
 @keyframes vs-shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
 .vs-shimmer {
-  background: linear-gradient(90deg, rgba(227,233,243,0.6) 25%, rgba(242,245,250,1) 50%, rgba(227,233,243,0.6) 75%);
+  background: linear-gradient(90deg, rgba(232,228,218,0.6) 25%, rgba(245,243,238,1) 50%, rgba(232,228,218,0.6) 75%);
   background-size: 200% 100%;
   animation: vs-shimmer 1.6s linear infinite;
 }
@@ -262,19 +256,6 @@
   content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.08; mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-
-/* Perspective grid floor that drifts towards the viewer. */
-.vs-floor {
-  background-image:
-    linear-gradient(to right, rgba(127,192,230,0.16) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(127,192,230,0.16) 1px, transparent 1px);
-  background-size: 64px 64px;
-  transform: perspective(600px) rotateX(62deg);
-  transform-origin: center top;
-  mask-image: linear-gradient(to bottom, black 0%, transparent 85%);
-  animation: vs-floor 4s linear infinite;
-}
-@keyframes vs-floor { from { background-position: 0 0; } to { background-position: 0 64px; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }

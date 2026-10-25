@@ -30,7 +30,7 @@ function Flow() {
   return (
     <ol className="space-y-3">
       {FLOW.map((x, i) => (
-        <li key={x.title} className="flex items-start gap-4 rounded-[24px] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm">
+        <li key={x.title} className="flex items-start gap-4 rounded-xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-signal text-navy-950"><x.icon className="h-5 w-5" /></span>
           <span>
             <span className="block font-mono text-[11px] uppercase tracking-[0.14em] text-white/40">Step 0{i + 1}</span>

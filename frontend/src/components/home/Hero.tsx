@@ -101,7 +101,7 @@ function Scanner() {
   const verdict = result.recommendation === 'CLAIM' ? 'Claim it' : result.recommendation === 'SELF-PAY' ? 'Pay it yourself' : 'Close call';
 
   return (
-    <div className="relative rounded-[28px] border border-white/10 bg-white/[0.03] p-4 shadow-[0_40px_120px_-40px_rgba(212,242,92,0.25)] backdrop-blur-sm sm:p-6">
+    <div className="relative rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm sm:p-6">
       <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">
         <span className="flex items-center gap-2"><ScanLine className="h-3.5 w-3.5 text-signal" /> Quote X-ray</span>
         <span>Example · 3-yr-old car</span>
@@ -111,9 +111,9 @@ function Scanner() {
       <svg viewBox="0 20 640 210" className="mt-3 w-full" role="img" aria-label="A car being scanned part by part">
         <defs>
           <linearGradient id="beam" x1="0" x2="1">
-            <stop offset="0" stopColor="#d4f25c" stopOpacity="0" />
-            <stop offset="0.5" stopColor="#d4f25c" stopOpacity="0.35" />
-            <stop offset="1" stopColor="#d4f25c" stopOpacity="0" />
+            <stop offset="0" stopColor="#d9a441" stopOpacity="0" />
+            <stop offset="0.5" stopColor="#d9a441" stopOpacity="0.35" />
+            <stop offset="1" stopColor="#d9a441" stopOpacity="0" />
           </linearGradient>
           <linearGradient id="reveal" x1="0" x2="1">
             <stop offset="0" stopColor="white" stopOpacity="0" />
@@ -125,10 +125,10 @@ function Scanner() {
           </mask>
         </defs>
 
-        <g fill="rgba(127,192,230,0.035)" stroke="rgba(181,219,241,0.35)" strokeWidth={1.4} strokeLinejoin="round">
+        <g fill="rgba(212,206,191,0.035)" stroke="rgba(232,228,218,0.35)" strokeWidth={1.4} strokeLinejoin="round">
           <CarLines />
         </g>
-        <g mask="url(#scan)" fill="rgba(212,242,92,0.07)" stroke="#d4f25c" strokeWidth={1.6} strokeLinejoin="round">
+        <g mask="url(#scan)" fill="rgba(217,164,65,0.07)" stroke="#d9a441" strokeWidth={1.6} strokeLinejoin="round">
           <CarLines skeleton />
         </g>
         <line x1={20} x2={620} y1={214} y2={214} stroke="rgba(255,255,255,0.08)" />
@@ -136,7 +136,7 @@ function Scanner() {
         {!reduce && (
           <>
             <motion.rect x={glowX} y={30} width={80} height={190} fill="url(#beam)" />
-            <motion.rect x={beam} y={30} width={1.5} height={190} fill="#d4f25c" />
+            <motion.rect x={beam} y={30} width={1.5} height={190} fill="#d9a441" />
           </>
         )}
 
@@ -144,9 +144,9 @@ function Scanner() {
           <g key={p.name}>
             {i < seen && (
               <>
-                <motion.circle cx={p.x} cy={p.y} r={5} fill="#d4f25c" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 18 }} />
+                <motion.circle cx={p.x} cy={p.y} r={5} fill="#d9a441" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 500, damping: 18 }} />
                 {!reduce && (
-                  <motion.circle cx={p.x} cy={p.y} r={5} fill="none" stroke="#d4f25c" initial={{ r: 5, opacity: 0.9 }} animate={{ r: 18, opacity: 0 }} transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut' }} />
+                  <motion.circle cx={p.x} cy={p.y} r={5} fill="none" stroke="#d9a441" initial={{ r: 5, opacity: 0.9 }} animate={{ r: 18, opacity: 0 }} transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut' }} />
                 )}
               </>
             )}
@@ -171,7 +171,7 @@ function Scanner() {
               </span>
               <span className={`relative transition-colors duration-300 ${i < seen ? 'text-white/70' : 'text-white/20'}`}>{rupees(p.cost)}</span>
               <span className={`relative w-[104px] whitespace-nowrap text-right transition-colors duration-300 ${i < seen ? (pct ? 'text-ember' : 'text-signal') : 'text-white/20'}`}>
-                {i < seen ? (pct ? `−${pct}% yours` : 'fully covered') : '—'}
+                {i < seen ? (pct ? `−${pct}% yours` : 'fully covered') : '...'}
               </span>
             </li>
           );
@@ -187,7 +187,7 @@ function Scanner() {
         ].map((s) => (
           <div key={s.k}>
             <p className="text-[11px] uppercase tracking-[0.12em] text-white/40">{s.k}</p>
-            <p className={`mt-1 font-display text-lg font-semibold sm:text-2xl ${s.c}`}>{done ? <CountUp key={`${s.k}-${seen}`} value={s.v} start /> : <span className="text-white/20">₹ —</span>}</p>
+            <p className={`mt-1 font-display text-lg font-semibold sm:text-2xl ${s.c}`}>{done ? <CountUp key={`${s.k}-${seen}`} value={s.v} start /> : <span className="text-white/20">₹ ...</span>}</p>
           </div>
         ))}
       </div>
@@ -210,27 +210,9 @@ function Scanner() {
 /* ---------------------------------------------------------------- hero */
 export function Hero({ checkHref }: { checkHref: string }) {
   const reduce = useReducedMotion();
-  const mx = useMotionValue(50);
-  const my = useMotionValue(30);
-  const light = useTransform([mx, my], ([x, y]) => `radial-gradient(700px circle at ${x}% ${y}%, rgba(69,160,214,0.18), transparent 60%)`);
 
   return (
-    <section
-      className="vs-grain relative isolate overflow-hidden bg-navy-950 text-white"
-      onPointerMove={(e) => {
-        if (reduce) return;
-        const r = e.currentTarget.getBoundingClientRect();
-        mx.set(((e.clientX - r.left) / r.width) * 100);
-        my.set(((e.clientY - r.top) / r.height) * 100);
-      }}
-    >
-      {/* Atmosphere */}
-      <motion.div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10" style={{ background: light }} />
-      <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-1/3 -z-10 h-[480px] w-[480px] rounded-full bg-steel-600/20 blur-[120px]" />
-      <div aria-hidden="true" className="pointer-events-none absolute -right-20 bottom-0 -z-10 h-[380px] w-[380px] rounded-full bg-signal/10 blur-[120px]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-[-20%] bottom-[-10%] -z-10 h-[55%] opacity-70">
-        <div className="vs-floor h-full w-full" />
-      </div>
+    <section className="vs-grain relative isolate overflow-hidden bg-navy-950 text-white">
 
       <div className="mx-auto grid min-h-[100svh] max-w-7xl items-center gap-12 px-5 pb-16 pt-28 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pt-24">
         <div>
@@ -238,9 +220,9 @@ export function Hero({ checkHref }: { checkHref: string }) {
             initial={reduce ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1, ease: EASE }}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] py-1 pl-1 pr-3 text-xs font-medium text-white/70"
+            className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.04] py-1 pl-1 pr-3 text-xs font-medium text-white/70"
           >
-            <span className="rounded-full bg-signal px-2 py-0.5 font-semibold text-navy-950">Free</span>
+            <span className="rounded-md bg-signal px-2 py-0.5 font-semibold text-navy-950">Free</span>
             For car owners, fleets and workshops in India
           </motion.p>
 
@@ -261,7 +243,7 @@ export function Hero({ checkHref }: { checkHref: string }) {
                 <motion.path
                   d="M4 14 C 80 4, 200 4, 296 12"
                   fill="none"
-                  stroke="#d4f25c"
+                  stroke="#d9a441"
                   strokeWidth="4"
                   strokeLinecap="round"
                   initial={reduce ? false : { pathLength: 0 }}

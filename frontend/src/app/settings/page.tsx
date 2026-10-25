@@ -42,7 +42,7 @@ function Card({ title, children, delay = 0 }: { title: string; children: React.R
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: EASE, delay }}
-      className="rounded-3xl border border-navy-100 bg-white p-6"
+      className="rounded-2xl border border-navy-100 bg-white p-6"
     >
       <h2 className="text-lg font-semibold text-navy-900">{title}</h2>
       <div className="mt-4">{children}</div>

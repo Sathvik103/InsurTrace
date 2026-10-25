@@ -94,8 +94,8 @@ export function AddCarFlow() {
           <p className="text-navy-600">{step === 0 ? 'It takes about a minute. You can change anything later.' : 'These make every claim check accurate. They’re on the first page of your policy.'}</p>
           <div className="grid grid-cols-2 gap-2">
             {[0, 1].map((i) => (
-              <div key={i} className="h-1.5 overflow-hidden rounded-full bg-navy-100">
-                <motion.div className="h-full rounded-full bg-navy-950" initial={false} animate={{ width: step >= i ? '100%' : '0%' }} transition={{ duration: 0.5, ease: EASE }} />
+              <div key={i} className="h-1.5 overflow-hidden rounded-md bg-navy-100">
+                <motion.div className="h-full rounded-md bg-navy-950" initial={false} animate={{ width: step >= i ? '100%' : '0%' }} transition={{ duration: 0.5, ease: EASE }} />
               </div>
             ))}
           </div>
@@ -107,7 +107,7 @@ export function AddCarFlow() {
           {step === 0 && (
             <section className="vs-surface space-y-6 p-6 sm:p-8">
               {/* Live preview: the drawing follows the model typed below */}
-              <div className="rounded-[22px] bg-[#f6f5f0] px-6 pb-2 pt-4">
+              <div className="rounded-xl bg-[#f6f5f0] px-6 pb-2 pt-4">
                 <AnimatePresence mode="wait">
                   <motion.div key={previewType} initial={reduce ? false : { opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 24 }} transition={{ duration: 0.4, ease: EASE }}>
                     <CarSilhouette type={previewType} vehicle={{ id: reg || 'new', make, model }} className="mx-auto h-28 w-full max-w-md" />
@@ -132,11 +132,11 @@ export function AddCarFlow() {
                 <p className="text-sm font-medium text-navy-800">Make</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {MAKES.map((m) => (
-                    <button key={m} type="button" onClick={() => setMake(m)} aria-pressed={make === m} className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${make === m ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-navy-700 hover:border-navy-300'}`}>
+                    <button key={m} type="button" onClick={() => setMake(m)} aria-pressed={make === m} className={`rounded-md border px-3.5 py-1.5 text-sm font-medium transition ${make === m ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-navy-700 hover:border-navy-300'}`}>
                       {m}
                     </button>
                   ))}
-                  <input value={MAKES.includes(make) ? '' : make} onChange={(e) => setMake(e.target.value)} placeholder="Other…" className="w-32 rounded-full border border-navy-100 px-3.5 py-1.5 text-sm focus:border-steel-500 focus:outline-none" aria-label="Other make" />
+                  <input value={MAKES.includes(make) ? '' : make} onChange={(e) => setMake(e.target.value)} placeholder="Other…" className="w-32 rounded-md border border-navy-100 px-3.5 py-1.5 text-sm focus:border-steel-500 focus:outline-none" aria-label="Other make" />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">

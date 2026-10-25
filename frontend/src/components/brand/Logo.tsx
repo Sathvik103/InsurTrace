@@ -6,9 +6,9 @@ import { BRAND } from '@/lib/brand';
 export function BrandMark({ size = 32, className = '' }: { size?: number; className?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={`shrink-0 ${className}`} aria-hidden="true">
-      <rect x="1" y="1" width="38" height="38" rx="11" fill="#111a31" />
+      <rect x="1" y="1" width="38" height="38" rx="11" fill="#1c1a16" />
       <path d="M27.5 12.6A10.5 10.5 0 1 0 29.8 24" stroke="#ffffff" strokeWidth="3.6" strokeLinecap="round" fill="none" />
-      <path d="M15.5 20.2l3.6 3.6 9.2-9.6" stroke="#d4f25c" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path d="M15.5 20.2l3.6 3.6 9.2-9.6" stroke="#d9a441" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
     </svg>
   );
 }

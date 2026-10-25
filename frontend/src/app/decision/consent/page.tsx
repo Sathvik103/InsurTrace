@@ -128,7 +128,7 @@ export default function DataPrivacyPage() {
             <p className="text-sm font-medium text-navy-800">1. Which car?</p>
             <div className="flex flex-wrap gap-2">
               {vehicles.map((v) => (
-                <button key={v.id} type="button" onClick={() => setCarId(v.id)} aria-pressed={carId === v.id} className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium transition ${carId === v.id ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-navy-700 hover:border-navy-300'}`}>
+                <button key={v.id} type="button" onClick={() => setCarId(v.id)} aria-pressed={carId === v.id} className={`flex items-center gap-2 rounded-md border px-3.5 py-2 text-sm font-medium transition ${carId === v.id ? 'border-navy-900 bg-navy-900 text-white' : 'border-navy-100 bg-white text-navy-700 hover:border-navy-300'}`}>
                   <Car className="h-4 w-4" /> {v.make} {v.model}
                 </button>
               ))}
@@ -145,7 +145,7 @@ export default function DataPrivacyPage() {
                 const k = KIND[p.type];
                 const on = orgId === p.id;
                 return (
-                  <button key={p.id} type="button" onClick={() => setOrgId(p.id)} aria-pressed={on} className={`rounded-[22px] border p-4 text-left transition duration-300 ${on ? 'border-navy-950 bg-navy-950 text-white shadow-[0_20px_40px_-20px_rgba(10,16,34,0.6)]' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'}`}>
+                  <button key={p.id} type="button" onClick={() => setOrgId(p.id)} aria-pressed={on} className={`rounded-xl border p-4 text-left transition duration-300 ${on ? 'border-navy-950 bg-navy-950 text-white shadow-[0_20px_40px_-20px_rgba(20,19,16,0.6)]' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'}`}>
                     <k.Icon className={`h-5 w-5 ${on ? 'text-signal' : 'text-navy-400'}`} />
                     <p className="mt-3 text-sm font-semibold">{p.name}</p>
                     <p className={`text-xs ${on ? 'text-navy-200' : 'text-navy-500'}`}>{k.label} · {k.purpose}</p>
@@ -169,7 +169,7 @@ export default function DataPrivacyPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 rounded-3xl bg-steel-50/60 p-5 ring-1 ring-steel-100 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-4 rounded-2xl bg-steel-50/60 p-5 ring-1 ring-steel-100 sm:flex-row sm:items-center">
             <p className="flex-1 text-sm leading-relaxed text-navy-700">
               <strong>{org?.name || 'The organisation'}</strong> will be able to view the history of your <strong>{car ? `${car.make} ${car.model}` : 'car'}</strong> until{' '}
               <strong>{fmtDate(until)}</strong>. They can’t change anything, and you can revoke this at any time.
@@ -185,7 +185,7 @@ export default function DataPrivacyPage() {
           <h2 className="text-lg font-semibold text-navy-900">Current access</h2>
           {loadError != null && <ApiErrorNotice error={loadError} onRetry={load} />}
           {consents === null ? (
-            <div className="vs-shimmer h-24 rounded-3xl" />
+            <div className="vs-shimmer h-24 rounded-2xl" />
           ) : consents.length === 0 && loadError == null ? (
             <div className="vs-surface flex flex-col items-center gap-2 p-10 text-center">
               <EyeOff className="h-8 w-8 text-navy-300" />
@@ -207,8 +207,8 @@ export default function DataPrivacyPage() {
                           <p className="font-semibold text-navy-900">{c.organizations?.name || 'Organisation'}</p>
                           <p className="truncate text-sm text-navy-500">Can view {vehicleName(c.vehicle_id)}</p>
                           <div className="mt-2 flex items-center gap-3">
-                            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-navy-100">
-                              <motion.div className={`h-full rounded-full ${expired ? 'bg-navy-300' : left < 7 ? 'bg-loss' : 'bg-steel-500'}`} initial={{ width: 0 }} animate={{ width: `${Math.min(100, (left / total) * 100)}%` }} transition={{ duration: 0.9, ease: EASE }} />
+                            <div className="h-1.5 flex-1 overflow-hidden rounded-md bg-navy-100">
+                              <motion.div className={`h-full rounded-md ${expired ? 'bg-navy-300' : left < 7 ? 'bg-loss' : 'bg-steel-500'}`} initial={{ width: 0 }} animate={{ width: `${Math.min(100, (left / total) * 100)}%` }} transition={{ duration: 0.9, ease: EASE }} />
                             </div>
                             <span className="shrink-0 text-xs text-navy-500">{expired ? 'Expired' : `${left} days left · until ${fmtDate(c.valid_until)}`}</span>
                           </div>

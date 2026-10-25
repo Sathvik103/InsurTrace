@@ -41,7 +41,7 @@ export default function ContactPage() {
 
         <section className="mx-auto grid max-w-6xl gap-8 px-5 py-20 lg:grid-cols-[0.8fr_1.2fr]">
           <div className="space-y-4">
-            <div className="rounded-[28px] bg-navy-950 p-7 text-white">
+            <div className="rounded-2xl bg-navy-950 p-7 text-white">
               <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-white/45">Email</p>
               <p className="mt-2 break-all font-display text-xl font-semibold">{BRAND.contactEmail}</p>
               <div className="mt-5 flex gap-2">
@@ -51,7 +51,7 @@ export default function ContactPage() {
                 </button>
               </div>
             </div>
-            <div className="rounded-[28px] border border-navy-100 p-7">
+            <div className="rounded-2xl border border-navy-100 p-7">
               <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-navy-400">Source code</p>
               <a href="https://github.com/Sathvik103/InsurTrace" target="_blank" rel="noreferrer" className="mt-2 block font-display text-lg font-semibold text-navy-950 underline-offset-2 hover:underline">
                 github.com/Sathvik103/InsurTrace
@@ -60,12 +60,12 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <form onSubmit={send} className="space-y-6 rounded-[28px] border border-navy-100 bg-[#f6f5f0] p-7 sm:p-9">
+          <form onSubmit={send} className="space-y-6 rounded-2xl border border-navy-100 bg-[#f6f5f0] p-7 sm:p-9">
             <fieldset>
               <legend className="text-sm font-medium text-navy-800">What is it about?</legend>
               <div className="mt-3 flex flex-wrap gap-2">
                 {TOPICS.map((t) => (
-                  <button key={t} type="button" onClick={() => setTopic(t)} aria-pressed={topic === t} className={`rounded-full px-3.5 py-2 text-sm font-medium transition ${topic === t ? 'bg-navy-950 text-white' : 'bg-white text-navy-700 ring-1 ring-navy-100 hover:ring-navy-300'}`}>
+                  <button key={t} type="button" onClick={() => setTopic(t)} aria-pressed={topic === t} className={`rounded-md px-3.5 py-2 text-sm font-medium transition ${topic === t ? 'bg-navy-950 text-white' : 'bg-white text-navy-700 ring-1 ring-navy-100 hover:ring-navy-300'}`}>
                     {t}
                   </button>
                 ))}

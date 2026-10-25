@@ -59,7 +59,7 @@ export function QuickCheck() {
   const toneColor = verdict?.tone === 'claim' ? 'bg-gain' : verdict?.tone === 'selfpay' ? 'bg-steel-600' : 'bg-amber-500';
 
   return (
-    <div className="vs-glass relative rounded-[32px] p-6 sm:p-7">
+    <div className="vs-glass relative rounded-2xl p-6 sm:p-7">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-navy-900">Try it: quick check</p>
         <span className="flex items-center gap-1.5 text-xs text-navy-500">
@@ -108,7 +108,7 @@ export function QuickCheck() {
         </div>
       </div>
 
-      <div className="mt-6 rounded-3xl bg-white p-5 ring-1 ring-navy-100">
+      <div className="mt-6 rounded-2xl bg-white p-5 ring-1 ring-navy-100">
         {error && !result ? (
           <p className="text-sm text-navy-600">{error}. The live preview needs the ClearClaim server.</p>
         ) : result && verdict ? (

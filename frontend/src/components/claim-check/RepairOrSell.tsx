@@ -32,7 +32,7 @@ function Money({ label, hint, value, onChange, placeholder }: { label: string; h
 function Path({ title, value, sub, win, muted }: { title: string; value: string; sub: string; win?: boolean; muted?: boolean }) {
   return (
     <div className={`relative rounded-2xl p-4 transition-colors duration-500 ${win ? 'bg-signal text-navy-950' : 'bg-white/[0.05] text-white'}`}>
-      {win && <span className="absolute right-3 top-3 rounded-full bg-navy-950 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-signal">Better</span>}
+      {win && <span className="absolute right-3 top-3 rounded-md bg-navy-950 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-signal">Better</span>}
       <p className={`text-xs font-medium ${win ? 'text-navy-800' : 'text-white/55'}`}>{title}</p>
       <p className={`mt-1 font-display text-2xl font-semibold tracking-tight ${muted ? 'text-white/35' : ''}`}>{value}</p>
       <p className={`mt-1 text-xs leading-relaxed ${win ? 'text-navy-800' : 'text-white/50'}`}>{sub}</p>
@@ -86,11 +86,11 @@ export function RepairOrSell({
   })();
 
   return (
-    <section className="vs-grain relative overflow-hidden rounded-[28px] bg-navy-950 text-white">
+    <section className="vs-grain relative overflow-hidden rounded-2xl bg-navy-950 text-white">
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-center gap-4 p-6 text-left sm:p-7">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${tone.cls}`}>{tone.label}</span>
+            <span className={`rounded-md px-2.5 py-1 text-[11px] font-semibold ${tone.cls}`}>{tone.label}</span>
             <span className="font-mono text-xs text-white/45">repair = {pct}% of IDV</span>
           </div>
           <h3 className="mt-3 font-display text-2xl font-semibold tracking-tight">Repair it, or sell it as it is?</h3>
@@ -104,9 +104,9 @@ export function RepairOrSell({
             <div className="space-y-6 px-6 pb-7 sm:px-7">
               {/* Gauge: repair bill against the car's insured value */}
               <div>
-                <div className="relative h-3 overflow-visible rounded-full bg-white/[0.08]">
+                <div className="relative h-3 overflow-visible rounded-md bg-white/[0.08]">
                   <motion.div
-                    className={`h-full rounded-full ${r.band === 'total-loss' ? 'bg-ember' : r.band === 'consider' ? 'bg-amber-300' : 'bg-signal'}`}
+                    className={`h-full rounded-md ${r.band === 'total-loss' ? 'bg-ember' : r.band === 'consider' ? 'bg-amber-300' : 'bg-signal'}`}
                     initial={reduce ? false : { width: 0 }}
                     animate={{ width: `${Math.min(100, pct)}%` }}
                     transition={{ duration: 1, ease: EASE }}

@@ -41,7 +41,7 @@ interface ClaimOption {
 export default function VerificationPage() {
   return (
     <AppShell>
-      <Suspense fallback={<div className="vs-shimmer mx-auto h-96 max-w-3xl rounded-[28px]" />}>
+      <Suspense fallback={<div className="vs-shimmer mx-auto h-96 max-w-3xl rounded-2xl" />}>
         <VerifyContent />
       </Suspense>
     </AppShell>
@@ -187,7 +187,7 @@ function VerifyContent() {
       </button>
 
       {tamperDemoAllowed && claimId && (
-        <section className="rounded-[28px] border border-dashed border-navy-200 p-6">
+        <section className="rounded-2xl border border-dashed border-navy-200 p-6">
           <p className="flex items-center gap-2 font-semibold text-navy-900"><FlaskConical className="h-5 w-5 text-steel-600" /> Tamper demonstration (development only)</p>
           <p className="mt-1 text-sm text-navy-600">Changes the repair cost directly in the database, without updating the ledger, to show that verification catches it. Hidden in production.</p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -205,14 +205,14 @@ function Verdict({ result }: { result: VerifyResponse }) {
   const s = result.status;
   const conf =
     s === 'VERIFIED' || s === 'MOCK_VERIFIED'
-      ? { Icon: ShieldCheck, tone: 'from-gain-soft to-white ring-gain/25', color: 'text-gain', title: s === 'MOCK_VERIFIED' ? 'Unchanged (development mock, no real ledger)' : 'Unchanged since it was saved', body: 'The record’s fingerprint matches the one anchored on Hyperledger Fabric.' }
+      ? { Icon: ShieldCheck, tone: 'bg-gain-soft ring-gain/25', color: 'text-gain', title: s === 'MOCK_VERIFIED' ? 'Unchanged (development mock, no real ledger)' : 'Unchanged since it was saved', body: 'The record’s fingerprint matches the one anchored on Hyperledger Fabric.' }
       : s === 'INTEGRITY_VERIFICATION_FAILED'
         ? { Icon: ShieldAlert, tone: 'from-loss-soft to-white ring-loss/25', color: 'text-loss', title: 'This record was changed after it was saved', body: 'Its current fingerprint does not match the anchored one. Treat its figures with caution.' }
         : s === 'PENDING' || s === 'FAILED' || s === 'NO_LEDGER_RECORD' || s === 'RETRY'
-          ? { Icon: Clock, tone: 'from-amber-50 to-white ring-amber-500/25', color: 'text-amber-700', title: 'Saved, but not anchored yet', body: 'This record has no fingerprint on the ledger yet, so it can’t be verified. Anchor it from the claim check when the ledger is connected.' }
-          : { Icon: ShieldQuestion, tone: 'from-navy-50 to-white ring-navy-200', color: 'text-navy-600', title: 'Can’t check right now', body: result.message || 'The ledger could not be reached, so integrity can’t be confirmed at the moment. This is not a sign of tampering.' };
+          ? { Icon: Clock, tone: 'bg-amber-50 ring-amber-500/25', color: 'text-amber-700', title: 'Saved, but not anchored yet', body: 'This record has no fingerprint on the ledger yet, so it can’t be verified. Anchor it from the claim check when the ledger is connected.' }
+          : { Icon: ShieldQuestion, tone: 'bg-navy-50 ring-navy-200', color: 'text-navy-600', title: 'Can’t check right now', body: result.message || 'The ledger could not be reached, so integrity can’t be confirmed at the moment. This is not a sign of tampering.' };
   return (
-    <div className={`relative overflow-hidden rounded-[28px] bg-gradient-to-br p-7 ring-1 ${conf.tone}`}>
+    <div className={`relative overflow-hidden rounded-2xl p-7 ring-1 ${conf.tone}`}>
       <div className="flex items-start gap-4">
         <motion.span initial={reduce ? false : { scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 380, damping: 16, delay: 0.1 }} className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm ${conf.color}`}>
           <conf.Icon className="h-7 w-7" />

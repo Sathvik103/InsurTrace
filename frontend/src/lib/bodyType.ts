@@ -54,10 +54,10 @@ export function bodyTypeOf(v: { make?: string; model?: string; usage_type?: stri
 const PAINTS = [
   { body: '#e9edf3', shade: '#c3ccd9' }, // pearl white
   { body: '#9aa5b4', shade: '#6f7b8c' }, // metallic silver
-  { body: '#1b2747', shade: '#0d1530' }, // midnight blue
+  { body: '#1f3d2e', shade: '#11241a' }, // midnight blue
   { body: '#a3262c', shade: '#6e171c' }, // fire red
   { body: '#2c3138', shade: '#16191e' }, // graphite
-  { body: '#2f6f8f', shade: '#1d4a61' }, // ocean blue
+  { body: '#8a5a3c', shade: '#5e3b26' }, // ocean blue
   { body: '#6c7346', shade: '#474c2c' }, // olive
   { body: '#c8a96a', shade: '#957a45' }, // champagne
 ];

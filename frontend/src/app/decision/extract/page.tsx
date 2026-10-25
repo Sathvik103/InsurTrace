@@ -184,8 +184,7 @@ export default function DocumentsPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-3xl space-y-8">
-        <header className="vs-grain relative overflow-hidden rounded-[32px] bg-navy-950 p-7 text-white sm:p-10">
-          <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-steel-600/30 blur-[100px]" />
+        <header className="vs-grain relative overflow-hidden rounded-2xl bg-navy-950 p-7 text-white sm:p-10">
           <p className="relative text-sm font-semibold text-signal">Documents</p>
           <h1 className="relative mt-4 font-display text-4xl font-semibold leading-[0.95] tracking-[-0.04em] sm:text-5xl">
             Drop in a PDF.
@@ -197,7 +196,7 @@ export default function DocumentsPage() {
 
         <AnimatePresence mode="wait">
           {!result && !loading && (
-            <motion.section key="upload" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.4, ease: EASE }} className="space-y-6 rounded-[28px] border border-navy-100 bg-white p-6 sm:p-8">
+            <motion.section key="upload" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.4, ease: EASE }} className="space-y-6 rounded-2xl border border-navy-100 bg-white p-6 sm:p-8">
               <div className="grid gap-3 sm:grid-cols-2">
                 {([
                   ['ESTIMATE', 'Workshop estimate', 'The repair quote with parts and labour', Wrench],
@@ -208,7 +207,7 @@ export default function DocumentsPage() {
                     type="button"
                     onClick={() => setDocType(t)}
                     aria-pressed={docType === t}
-                    className={`group flex items-center gap-4 rounded-[22px] border p-4 text-left transition duration-300 ${docType === t ? 'border-navy-950 bg-navy-950 text-white shadow-[0_20px_40px_-20px_rgba(10,16,34,0.6)]' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'}`}
+                    className={`group flex items-center gap-4 rounded-xl border p-4 text-left transition duration-300 ${docType === t ? 'border-navy-950 bg-navy-950 text-white shadow-[0_20px_40px_-20px_rgba(20,19,16,0.6)]' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'}`}
                   >
                     <MiniDoc kind={t} active={docType === t} />
                     <span className="min-w-0">
@@ -230,7 +229,7 @@ export default function DocumentsPage() {
                   setDragging(false);
                   pick(e.dataTransfer.files?.[0]);
                 }}
-                className={`relative flex flex-col items-center gap-3 rounded-[28px] border-2 border-dashed px-6 py-12 text-center transition duration-300 ${dragging ? 'border-signal-600 bg-signal/10 shadow-[0_0_0_6px_rgba(212,242,92,0.25)]' : 'border-navy-200 bg-[#f6f5f0]'}`}
+                className={`relative flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition duration-300 ${dragging ? 'border-signal-600 bg-signal/10' : 'border-navy-200 bg-[#f6f5f0]'}`}
               >
                 <motion.span animate={dragging ? { y: -8, rotate: -4, scale: 1.08 } : { y: 0, rotate: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }} className={`flex h-16 w-16 items-center justify-center rounded-full transition-colors ${dragging ? 'bg-signal text-navy-950' : 'bg-navy-950 text-signal'}`}>
                   <FileUp className="h-6 w-6" />
@@ -253,10 +252,10 @@ export default function DocumentsPage() {
           )}
 
           {loading && (
-            <motion.section key="scan" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="vs-grain relative flex flex-col items-center gap-8 overflow-hidden rounded-[28px] bg-navy-950 p-10 text-center text-white sm:flex-row sm:text-left" role="status">
+            <motion.section key="scan" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="vs-grain relative flex flex-col items-center gap-8 overflow-hidden rounded-2xl bg-navy-950 p-10 text-center text-white sm:flex-row sm:text-left" role="status">
               <div className="relative h-44 w-32 shrink-0 overflow-hidden rounded-xl bg-white shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)]">
                 {[16, 30, 44, 58, 72, 86, 100, 114, 128, 142].map((y, i) => (
-                  <span key={y} className={`absolute left-3 h-1.5 rounded-full ${i === 3 || i === 6 ? 'bg-signal-600' : 'bg-navy-100'}`} style={{ top: y, width: i % 3 === 0 ? 60 : 92 }} />
+                  <span key={y} className={`absolute left-3 h-1.5 rounded-md ${i === 3 || i === 6 ? 'bg-signal-600' : 'bg-navy-100'}`} style={{ top: y, width: i % 3 === 0 ? 60 : 92 }} />
                 ))}
                 <motion.span className="absolute inset-x-0 h-10 bg-gradient-to-b from-signal/0 via-signal/60 to-signal/0" animate={{ top: [-40, 176] }} transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }} />
               </div>
@@ -277,7 +276,7 @@ export default function DocumentsPage() {
 
           {result && !loading && (
             <motion.section key="review" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: EASE }} className="space-y-5">
-              <div className="flex flex-col gap-3 rounded-[22px] border border-navy-100 bg-white p-5 sm:flex-row sm:items-center">
+              <div className="flex flex-col gap-3 rounded-xl border border-navy-100 bg-white p-5 sm:flex-row sm:items-center">
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy-950 text-signal"><FileCheck2 className="h-5 w-5" /></span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-navy-900">{result.filename}</p>
@@ -291,7 +290,7 @@ export default function DocumentsPage() {
               )}
 
               {result.document_type === 'POLICY' ? (
-                <div className="divide-y divide-navy-50 overflow-hidden rounded-[28px] border border-navy-100 bg-white">
+                <div className="divide-y divide-navy-50 overflow-hidden rounded-2xl border border-navy-100 bg-white">
                   {POLICY_FIELDS.map((f, i) => {
                     const src = result.extracted_fields[f.key];
                     const found = src?.value !== null && src?.value !== undefined;
@@ -319,7 +318,7 @@ export default function DocumentsPage() {
                   })}
                 </div>
               ) : (
-                <div className="rounded-[28px] border border-navy-100 bg-white p-5 sm:p-6">
+                <div className="rounded-2xl border border-navy-100 bg-white p-5 sm:p-6">
                   <div className="flex items-center justify-between">
                     <h2 className="font-display text-xl font-semibold tracking-tight text-navy-950">Repair items</h2>
                     <p className="text-sm text-navy-500">Material decides how much insurers deduct.</p>
@@ -351,7 +350,7 @@ export default function DocumentsPage() {
                               aria-label="Cost in rupees"
                             />
                           </span>
-                          <button type="button" onClick={() => setItems((all) => all.filter((_, k) => k !== idx))} className="justify-self-end rounded-full p-2 text-navy-300 hover:bg-navy-50 hover:text-loss" aria-label={`Remove ${it.label}`}>
+                          <button type="button" onClick={() => setItems((all) => all.filter((_, k) => k !== idx))} className="justify-self-end rounded-md p-2 text-navy-300 hover:bg-navy-50 hover:text-loss" aria-label={`Remove ${it.label}`}>
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </motion.li>
@@ -414,10 +413,10 @@ function MiniDoc({ kind, active }: { kind: DocType; active: boolean }) {
   return (
     <span className={`relative h-16 w-12 shrink-0 overflow-hidden rounded-md p-1.5 transition-transform duration-500 group-hover:-rotate-3 ${active ? 'bg-white/10' : 'bg-[#f6f5f0]'}`}>
       {kind === 'POLICY'
-        ? [0, 1, 2, 3, 4, 5].map((i) => <span key={i} className={`mb-1 block h-1 rounded-full ${i === 2 || i === 3 ? hi : lo}`} style={{ width: i % 2 ? '70%' : '100%' }} />)
+        ? [0, 1, 2, 3, 4, 5].map((i) => <span key={i} className={`mb-1 block h-1 rounded-md ${i === 2 || i === 3 ? hi : lo}`} style={{ width: i % 2 ? '70%' : '100%' }} />)
         : [0, 1, 2, 3, 4, 5].map((i) => (
             <span key={i} className="mb-1 flex gap-0.5">
-              <span className={`h-1 flex-1 rounded-full ${i > 0 && i < 5 ? hi : lo}`} />
+              <span className={`h-1 flex-1 rounded-md ${i > 0 && i < 5 ? hi : lo}`} />
               <span className={`h-1 w-2 rounded-full ${lo}`} />
             </span>
           ))}

@@ -120,8 +120,8 @@ export function CarSilhouette({
   const s = SHAPES[t];
   const p = paint ?? paintFor(vehicle?.id || `${vehicle?.make}${vehicle?.model}`);
   const line = variant === 'line';
-  const stroke = line ? 'rgba(181,219,241,0.55)' : 'rgba(10,16,34,0.22)';
-  const seam = line ? 'rgba(181,219,241,0.3)' : 'rgba(10,16,34,0.2)';
+  const stroke = line ? 'rgba(232,228,218,0.55)' : 'rgba(20,19,16,0.22)';
+  const seam = line ? 'rgba(232,228,218,0.3)' : 'rgba(20,19,16,0.2)';
   const label = vehicle ? `${vehicle.make ?? ''} ${vehicle.model ?? ''}`.trim() : t;
 
   return (
@@ -133,28 +133,28 @@ export function CarSilhouette({
           <stop offset="1" stopColor={p.shade} />
         </linearGradient>
         <linearGradient id={`g${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#e8f4fb" />
-          <stop offset="0.6" stopColor="#9fc0d6" />
-          <stop offset="1" stopColor="#5f87a3" />
+          <stop offset="0" stopColor="#eceeec" />
+          <stop offset="0.6" stopColor="#a7b2ad" />
+          <stop offset="1" stopColor="#6c7a74" />
         </linearGradient>
       </defs>
-      {!line && <ellipse cx="160" cy={s.cy + s.r} rx="136" ry="4.5" fill="#0a1022" opacity="0.14" />}
+      {!line && <ellipse cx="160" cy={s.cy + s.r} rx="136" ry="4.5" fill="#141310" opacity="0.14" />}
       {s.extra && <path d={s.extra} fill="none" stroke={line ? stroke : p.shade} strokeWidth="2.4" strokeLinecap="round" />}
-      <path d={s.body} fill={line ? 'rgba(127,192,230,0.06)' : `url(#b${uid})`} stroke={stroke} strokeWidth="1.2" strokeLinejoin="round" />
-      <path d={s.glass} fill={line ? 'rgba(181,219,241,0.12)' : `url(#g${uid})`} stroke={line ? stroke : 'rgba(10,16,34,0.25)'} strokeWidth="0.8" />
+      <path d={s.body} fill={line ? 'rgba(212,206,191,0.06)' : `url(#b${uid})`} stroke={stroke} strokeWidth="1.2" strokeLinejoin="round" />
+      <path d={s.glass} fill={line ? 'rgba(232,228,218,0.12)' : `url(#g${uid})`} stroke={line ? stroke : 'rgba(20,19,16,0.25)'} strokeWidth="0.8" />
       {s.pillars.map((x) => (
-        <rect key={x} x={x - 2.5} y={0} width={5} height={112} fill={line ? 'rgba(10,16,34,1)' : p.body} clipPath={`url(#c${uid})`} />
+        <rect key={x} x={x - 2.5} y={0} width={5} height={112} fill={line ? 'rgba(20,19,16,1)' : p.body} clipPath={`url(#c${uid})`} />
       ))}
       <clipPath id={`c${uid}`}>
         <path d={s.glass} />
       </clipPath>
       {s.seams && <path d={s.seams} fill="none" stroke={seam} strokeWidth="1.1" strokeLinecap="round" />}
-      <path d={s.head} fill={line ? 'none' : '#f6f1d3'} stroke={line ? stroke : 'rgba(10,16,34,0.3)'} strokeWidth="0.8" />
-      <path d={s.tail} fill={line ? 'none' : '#c0392b'} stroke={line ? stroke : 'rgba(10,16,34,0.3)'} strokeWidth="0.8" />
+      <path d={s.head} fill={line ? 'none' : '#f6f1d3'} stroke={line ? stroke : 'rgba(20,19,16,0.3)'} strokeWidth="0.8" />
+      <path d={s.tail} fill={line ? 'none' : '#c0392b'} stroke={line ? stroke : 'rgba(20,19,16,0.3)'} strokeWidth="0.8" />
       {s.wheels.map((cx) => (
         <g key={cx}>
           <circle cx={cx} cy={s.cy} r={s.r} fill={line ? 'none' : '#1b1e25'} stroke={line ? stroke : '#0a0c10'} strokeWidth="1.2" />
-          <circle cx={cx} cy={s.cy} r={s.r * 0.56} fill={line ? 'none' : '#b9c1cc'} stroke={line ? 'rgba(181,219,241,0.4)' : '#7b8592'} strokeWidth="1" />
+          <circle cx={cx} cy={s.cy} r={s.r * 0.56} fill={line ? 'none' : '#b9c1cc'} stroke={line ? 'rgba(232,228,218,0.4)' : '#7b8592'} strokeWidth="1" />
           {!line && [0, 72, 144, 216, 288].map((a) => (
             <line key={a} x1={cx} y1={s.cy} x2={cx + s.r * 0.5 * Math.cos((a * Math.PI) / 180)} y2={s.cy + s.r * 0.5 * Math.sin((a * Math.PI) / 180)} stroke="#7b8592" strokeWidth="1.6" />
           ))}

@@ -45,7 +45,7 @@ function docNumber(id: string) {
 export default function PassportPage() {
   return (
     <AppShell>
-      <Suspense fallback={<div className="vs-shimmer h-96 rounded-[28px]" />}>
+      <Suspense fallback={<div className="vs-shimmer h-96 rounded-2xl" />}>
         <Passport />
       </Suspense>
     </AppShell>
@@ -167,7 +167,7 @@ function Passport() {
                   setEvents(null);
                 }}
                 aria-pressed={on}
-                className={`w-44 shrink-0 rounded-[20px] border p-3 text-left transition duration-300 ${on ? 'border-navy-950 bg-navy-950 text-white' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'}`}
+                className={`w-44 shrink-0 rounded-xl border p-3 text-left transition duration-300 ${on ? 'border-navy-950 bg-navy-950 text-white' : 'border-navy-100 bg-white hover:-translate-y-0.5 hover:border-navy-300'}`}
               >
                 <div className={`rounded-xl px-2 pt-1 ${on ? 'bg-white/[0.07]' : 'bg-[#f6f5f0]'}`}>
                   <CarSilhouette vehicle={v} className="h-12 w-full" />
@@ -189,15 +189,10 @@ function Passport() {
           animate={{ opacity: 1, y: 0, rotateX: 0 }}
           transition={{ duration: 0.7, ease: EASE }}
           style={{ transformPerspective: 1400 }}
-          className="overflow-hidden rounded-[32px] border border-navy-100 bg-white shadow-[0_40px_80px_-40px_rgba(10,16,34,0.35)] print:rounded-none print:border-0 print:shadow-none"
+          className="overflow-hidden rounded-2xl border border-navy-100 bg-white shadow-[0_40px_80px_-40px_rgba(20,19,16,0.35)] print:rounded-none print:border-0 print:shadow-none"
         >
           {/* Cover */}
           <div className="vs-grain relative overflow-hidden bg-navy-950 px-7 pb-8 pt-6 text-white print:bg-white print:text-navy-950 sm:px-10">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 opacity-[0.07] print:hidden"
-              style={{ backgroundImage: 'repeating-radial-gradient(circle at 85% 20%, #fff 0 1px, transparent 1px 14px)' }}
-            />
             <div className="relative flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <BrandMark size={26} />
@@ -217,7 +212,7 @@ function Passport() {
                   <NumberPlate value={vehicle.registration_number} commercial={commercial} />
                   <span>{BODY_LABEL[bodyTypeOf(vehicle)]} · {vehicle.manufacture_year}{vehicle.vin ? ` · VIN ${vehicle.vin}` : ''}</span>
                 </div>
-                {vehicle.is_demo && <span className="mt-4 inline-block rounded-full bg-amber-300 px-3 py-1 text-xs font-semibold text-navy-950">Demo record: fictional</span>}
+                {vehicle.is_demo && <span className="mt-4 inline-block rounded-md bg-amber-300 px-3 py-1 text-xs font-semibold text-navy-950">Demo record: fictional</span>}
               </div>
               <CarSilhouette vehicle={vehicle} className="w-full drop-shadow-[0_20px_30px_rgba(0,0,0,0.45)] print:drop-shadow-none" />
             </div>
@@ -251,7 +246,7 @@ function Passport() {
               ))}
             </dl>
 
-            <section className="rounded-[22px] bg-[#f6f5f0] p-5 print:bg-white print:p-0">
+            <section className="rounded-xl bg-[#f6f5f0] p-5 print:bg-white print:p-0">
               <h3 className="flex flex-wrap items-baseline gap-2 font-display text-lg font-semibold text-navy-950">
                 Policy summary <span className="font-sans text-xs font-normal text-navy-500">entered by the owner, not verified with an insurer</span>
               </h3>
@@ -287,7 +282,7 @@ function Passport() {
                   />
                   {events.map((e, i) => (
                     <motion.li key={i} initial={reduce ? false : { opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + i * 0.07, ease: EASE }} className="relative">
-                      <span className={`absolute -left-8 top-1 h-[15px] w-[15px] rounded-full border-[3px] border-white ${e.blockchain_verified ? 'bg-signal-600' : 'bg-navy-300'} shadow-[0_0_0_1px_rgba(10,16,34,0.1)]`} />
+                      <span className={`absolute -left-8 top-1 h-[15px] w-[15px] rounded-full border-[3px] border-white ${e.blockchain_verified ? 'bg-signal-600' : 'bg-navy-300'} shadow-[0_0_0_1px_rgba(20,19,16,0.1)]`} />
                       <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
                         <div className="min-w-0">
                           <p className="font-medium text-navy-950">{e.title}</p>

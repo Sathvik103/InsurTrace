@@ -44,16 +44,15 @@ export function ResultView({ result, policy, items }: { result: EngineResult; po
         initial={reduce ? false : { opacity: 0, y: 24, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.7, ease: EASE }}
-        className="vs-grain relative overflow-hidden rounded-[28px] bg-navy-950 p-6 text-white sm:p-8"
+        className="vs-grain relative overflow-hidden rounded-2xl bg-navy-950 p-6 text-white sm:p-8"
       >
-        <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-signal/10 blur-[90px]" />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="max-w-xl space-y-3">
             <motion.span
               initial={reduce ? false : { scale: 0.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 400, damping: 18 }}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${tone.tagCls}`}
+              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-sm font-semibold ${tone.tagCls}`}
             >
               <tone.Icon className="h-4 w-4" aria-hidden="true" /> {tone.tag}
             </motion.span>
@@ -103,14 +102,14 @@ export function ResultView({ result, policy, items }: { result: EngineResult; po
               initial={reduce ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 + i * 0.1, duration: 0.6, ease: EASE }}
-              className={`relative rounded-[28px] border bg-white p-6 transition duration-500 ${winner ? 'border-navy-950 shadow-[0_24px_48px_-28px_rgba(10,16,34,0.45)]' : 'border-navy-100'}`}
+              className={`relative rounded-2xl border bg-white p-6 transition duration-500 ${winner ? 'border-navy-950 shadow-[0_24px_48px_-28px_rgba(20,19,16,0.45)]' : 'border-navy-100'}`}
             >
               {winner && (
                 <motion.span
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.9 }}
-                  className="absolute -top-3 left-6 rounded-full bg-navy-950 px-3 py-1 text-xs font-semibold text-signal shadow"
+                  className="absolute -top-3 left-6 rounded-md bg-navy-950 px-3 py-1 text-xs font-semibold text-signal shadow"
                 >
                   Cheaper for you
                 </motion.span>
@@ -118,9 +117,9 @@ export function ResultView({ result, policy, items }: { result: EngineResult; po
               <h3 className="text-sm font-semibold text-navy-500">{card.title}</h3>
               <AnimatedNumber value={card.total} className="mt-1 block font-display text-4xl font-semibold tracking-tight text-navy-950" />
               <p className="text-xs text-navy-400">total estimated cost to you</p>
-              <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-navy-50">
+              <div className="mt-4 h-2.5 overflow-hidden rounded-md bg-navy-50">
                 <motion.div
-                  className={`h-full rounded-full ${winner ? 'bg-signal-600' : 'bg-navy-200'}`}
+                  className={`h-full rounded-md ${winner ? 'bg-signal-600' : 'bg-navy-200'}`}
                   initial={{ width: 0 }}
                   animate={{ width: `${(card.total / max) * 100}%` }}
                   transition={{ delay: 0.4 + i * 0.1, duration: 1, ease: EASE }}
@@ -200,9 +199,9 @@ function MoneyFlow({ result, policy }: { result: EngineResult; policy: PolicyInp
                   {rupees(Math.abs(s.amount))}
                 </span>
               </div>
-              <div className="mt-2 h-3 overflow-hidden rounded-full bg-navy-50">
+              <div className="mt-2 h-3 overflow-hidden rounded-md bg-navy-50">
                 <motion.div
-                  className={`h-full rounded-full ${color}`}
+                  className={`h-full rounded-md ${color}`}
                   initial={{ width: 0 }}
                   whileInView={{ width: `${Math.max(width, s.amount ? 1.5 : 0)}%` }}
                   viewport={{ once: true }}
@@ -343,7 +342,7 @@ function WhatIf({ policy, items, base }: { policy: PolicyInputs; items: RepairLi
             <span>Bigger bill</span>
           </div>
         </div>
-        <div className={`w-full rounded-3xl bg-navy-50 p-5 transition-opacity sm:w-72 ${busy ? 'opacity-60' : ''}`}>
+        <div className={`w-full rounded-2xl bg-navy-50 p-5 transition-opacity sm:w-72 ${busy ? 'opacity-60' : ''}`}>
           <p className="text-xs text-navy-500">Repair bill</p>
           <AnimatedNumber value={total} className="block text-2xl font-semibold text-navy-900" duration={0.4} />
           <motion.p key={verdict.tone} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="mt-2 text-sm font-semibold text-navy-800">

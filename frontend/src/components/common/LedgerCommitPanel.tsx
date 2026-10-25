@@ -80,7 +80,7 @@ export function LedgerCommitPanel({ buildPayload, disabled, onSaved }: LedgerCom
   };
 
   return (
-    <div className="space-y-3 rounded-[28px] border border-navy-100 bg-white p-6">
+    <div className="space-y-3 rounded-2xl border border-navy-100 bg-white p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-navy-950 text-signal">

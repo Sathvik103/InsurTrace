@@ -50,7 +50,7 @@ export default function SecurityPage() {
           <div className="mx-auto grid max-w-6xl gap-4 md:grid-cols-2 lg:grid-cols-3">
             {CONTROLS.map((c, i) => (
               <Reveal key={c.title} delay={(i % 3) * 0.06}>
-                <div className="h-full rounded-[28px] bg-white p-7 ring-1 ring-navy-100">
+                <div className="h-full rounded-2xl bg-white p-7 ring-1 ring-navy-100">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy-950 font-mono text-xs font-semibold text-signal">0{i + 1}</span>
                   <h2 className="mt-5 font-display text-xl font-semibold tracking-tight text-navy-950">{c.title}</h2>
                   <p className="mt-2 text-sm leading-relaxed text-navy-500">{c.body}</p>

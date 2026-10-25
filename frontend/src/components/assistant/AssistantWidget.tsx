@@ -119,7 +119,7 @@ export function AssistantWidget() {
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-            className="fixed bottom-[92px] right-4 z-[60] print:hidden lg:bottom-6 lg:right-6 flex items-center gap-2.5 rounded-full bg-navy-950 p-3 text-sm sm:py-3 sm:pl-3.5 sm:pr-5 font-semibold text-white shadow-[0_12px_32px_-8px_rgba(17,26,49,0.6)]"
+            className="fixed bottom-[92px] right-4 z-[60] print:hidden lg:bottom-6 lg:right-6 flex items-center gap-2.5 rounded-md bg-navy-950 p-3 text-sm sm:py-3 sm:pl-3.5 sm:pr-5 font-semibold text-white shadow-[0_12px_32px_-8px_rgba(20,19,16,0.6)]"
             aria-label="Open the ClearClaim Assistant"
           >
             <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
@@ -152,10 +152,10 @@ export function AssistantWidget() {
               exit={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96 }}
               transition={{ type: 'spring', stiffness: 380, damping: 34 }}
               style={{ transformOrigin: 'bottom right' }}
-              className="fixed inset-x-0 bottom-0 z-[61] flex h-[88dvh] flex-col overflow-hidden rounded-t-[28px] border border-navy-100 bg-white shadow-[0_24px_64px_-16px_rgba(17,26,49,0.35)] md:inset-x-auto md:bottom-6 md:right-6 md:h-[min(640px,calc(100dvh-48px))] md:w-[400px] md:rounded-[28px]"
+              className="fixed inset-x-0 bottom-0 z-[61] flex h-[88dvh] flex-col overflow-hidden rounded-t-[28px] border border-navy-100 bg-white shadow-[0_24px_64px_-16px_rgba(20,19,16,0.35)] md:inset-x-auto md:bottom-6 md:right-6 md:h-[min(640px,calc(100dvh-48px))] md:w-[400px] md:rounded-2xl"
             >
               {/* Header */}
-              <header className="relative flex items-center gap-3 border-b border-navy-100 bg-gradient-to-b from-navy-50 to-white px-5 py-4">
+              <header className="relative flex items-center gap-3 border-b border-navy-100 bg-navy-50 px-5 py-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-navy-100">
                   <BrandMark size={24} />
                 </div>
@@ -167,7 +167,7 @@ export function AssistantWidget() {
                   <button
                     type="button"
                     onClick={() => setMessages([])}
-                    className="rounded-full p-2 text-navy-400 transition hover:bg-navy-100 hover:text-navy-700"
+                    className="rounded-md p-2 text-navy-400 transition hover:bg-navy-100 hover:text-navy-700"
                     aria-label="Start a new conversation"
                   >
                     <RotateCcw className="h-4 w-4" />
@@ -176,7 +176,7 @@ export function AssistantWidget() {
                 <button
                   type="button"
                   onClick={close}
-                  className="rounded-full p-2 text-navy-400 transition hover:bg-navy-100 hover:text-navy-700"
+                  className="rounded-md p-2 text-navy-400 transition hover:bg-navy-100 hover:text-navy-700"
                   aria-label="Close assistant"
                 >
                   <X className="h-5 w-5" />
@@ -221,7 +221,7 @@ export function AssistantWidget() {
                 {messages.map((m) =>
                   m.role === 'user' ? (
                     <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
-                      <p className="max-w-[85%] rounded-3xl rounded-br-lg bg-navy-900 px-4 py-2.5 text-sm text-white">{m.text}</p>
+                      <p className="max-w-[85%] rounded-2xl rounded-br-lg bg-navy-900 px-4 py-2.5 text-sm text-white">{m.text}</p>
                     </motion.div>
                   ) : (
                     <AssistantBubble key={m.id} reply={m.answer!} onAsk={ask} onNavigate={close} />
@@ -250,7 +250,7 @@ export function AssistantWidget() {
                 }}
                 className="border-t border-navy-100 bg-white p-3"
               >
-                <div className="flex items-end gap-2 rounded-3xl border border-navy-200 bg-navy-50/40 p-1.5 pl-4 transition focus-within:border-steel-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-steel-500/10">
+                <div className="flex items-end gap-2 rounded-2xl border border-navy-200 bg-navy-50/40 p-1.5 pl-4 transition focus-within:border-steel-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-steel-500/10">
                   <textarea
                     ref={inputRef}
                     value={input}
@@ -292,7 +292,7 @@ function AssistantBubble({ reply, onAsk, onNavigate }: { reply: AssistantAnswer;
   const { label, Icon } = SOURCE_LABEL[reply.source];
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }} className="space-y-2.5">
-      <div className="max-w-[92%] space-y-2.5 rounded-3xl rounded-bl-lg border border-navy-100 bg-white px-4 py-3.5 text-sm leading-relaxed text-navy-800 shadow-[0_1px_2px_rgba(17,26,49,0.04)]">
+      <div className="max-w-[92%] space-y-2.5 rounded-2xl rounded-bl-lg border border-navy-100 bg-white px-4 py-3.5 text-sm leading-relaxed text-navy-800 shadow-[0_1px_2px_rgba(20,19,16,0.04)]">
         {reply.paragraphs.map((p, i) => (
           <motion.p
             key={i}
@@ -311,7 +311,7 @@ function AssistantBubble({ reply, onAsk, onNavigate }: { reply: AssistantAnswer;
                 key={l.href}
                 href={l.href}
                 onClick={onNavigate}
-                className="inline-flex items-center gap-1 rounded-full bg-navy-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-navy-800"
+                className="inline-flex items-center gap-1 rounded-md bg-navy-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-navy-800"
               >
                 {l.label} →
               </Link>
@@ -330,7 +330,7 @@ function AssistantBubble({ reply, onAsk, onNavigate }: { reply: AssistantAnswer;
               key={q}
               type="button"
               onClick={() => onAsk(q)}
-              className="rounded-full border border-navy-100 bg-white px-3 py-1.5 text-xs font-medium text-navy-700 transition hover:border-steel-300 hover:bg-steel-50 hover:text-steel-800"
+              className="rounded-md border border-navy-100 bg-white px-3 py-1.5 text-xs font-medium text-navy-700 transition hover:border-steel-300 hover:bg-steel-50 hover:text-steel-800"
             >
               {q}
             </button>

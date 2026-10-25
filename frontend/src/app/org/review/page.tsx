@@ -43,11 +43,11 @@ const words = (s?: string) => (s ? s.toLowerCase().replace(/_/g, ' ').replace(/^
 
 function LedgerPill({ status, mode }: { status?: string; mode?: string | null }) {
   if (status === 'COMMITTED' && mode === 'MOCK')
-    return <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-600">Sample · no ledger</span>;
+    return <span className="inline-flex w-fit items-center gap-1.5 rounded-md bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-600">Sample · no ledger</span>;
   const ok = status === 'COMMITTED';
   const failed = status === 'FAILED';
   return (
-    <span className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${ok ? 'bg-gain-soft text-gain' : failed ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-800'}`}>
+    <span className={`inline-flex w-fit items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold ${ok ? 'bg-gain-soft text-gain' : failed ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-800'}`}>
       {ok ? <ShieldCheck className="h-3.5 w-3.5" /> : failed ? <AlertTriangle className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
       {ok ? 'Anchored' : failed ? 'Anchoring failed' : 'Not anchored yet'}
     </span>
@@ -112,9 +112,9 @@ export default function ReviewPage() {
 
       <div className="mb-4 grid grid-cols-3 gap-3">
         {[
-          { label: 'Records', value: rows?.length ?? '–' },
-          { label: 'Anchored on ledger', value: rows ? anchored : '–' },
-          { label: 'Not anchored', value: rows ? rows.length - anchored : '–' },
+          { label: 'Records', value: rows?.length ?? '...' },
+          { label: 'Anchored on ledger', value: rows ? anchored : '...' },
+          { label: 'Not anchored', value: rows ? rows.length - anchored : '...' },
         ].map((s) => (
           <div key={s.label} className="rounded-2xl border border-navy-100 bg-white p-4">
             <p className="text-xs font-medium text-navy-500">{s.label}</p>

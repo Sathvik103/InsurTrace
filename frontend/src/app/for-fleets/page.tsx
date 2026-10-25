@@ -30,7 +30,7 @@ const FEATURES = [
 
 function Insight() {
   return (
-    <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm sm:p-8">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm sm:p-8">
       <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-signal">The insight most fleets miss</p>
       <p className="mt-4 font-display text-2xl font-medium leading-snug tracking-tight">
         No-Claim Bonus is lost <span className="text-signal">once per vehicle</span>, however many claims you make on it.
@@ -73,7 +73,7 @@ export default function ForFleetsPage() {
             <div className="mt-14 grid gap-4 md:grid-cols-3">
               {STEPS.map((s, i) => (
                 <Reveal key={s.title} delay={i * 0.08}>
-                  <div className="group h-full rounded-[28px] bg-white p-8 ring-1 ring-navy-100 transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(10,16,34,0.35)]">
+                  <div className="group h-full rounded-2xl bg-white p-8 ring-1 ring-navy-100 transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_60px_-30px_rgba(20,19,16,0.35)]">
                     <div className="flex items-center justify-between">
                       <span className="font-display text-6xl font-semibold tracking-tight text-navy-100 transition group-hover:text-signal-600">0{i + 1}</span>
                       <s.icon className="h-6 w-6 text-navy-400" />
