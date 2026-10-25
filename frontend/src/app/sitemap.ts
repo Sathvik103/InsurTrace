@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/for-workshops', priority: 0.8, freq: 'monthly' },
     { path: '/learn', priority: 0.8, freq: 'monthly' },
     { path: '/about', priority: 0.4, freq: 'yearly' },
+    { path: '/system', priority: 0.5, freq: 'monthly' },
     { path: '/security', priority: 0.4, freq: 'yearly' },
     { path: '/contact', priority: 0.3, freq: 'yearly' },
     { path: '/privacy', priority: 0.2, freq: 'yearly' },
