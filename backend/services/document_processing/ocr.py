@@ -11,6 +11,7 @@ import shutil
 from typing import Any, Dict, List
 
 MAX_OCR_PAGES = 3  # policy schedules put the key figures on the first pages
+# Resolution used to render PDF pages before reading them; small digits stay legible at this size.
 OCR_DPI = 220
 
 
