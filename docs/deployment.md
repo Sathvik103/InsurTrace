@@ -23,6 +23,11 @@ Settings (Render → Environment). Secrets are never committed.
 | `FABRIC_MODE` | `auto` (default), `gateway`, `local_wsl` or `disabled` |
 | `GATEWAY_URL`, `GATEWAY_API_KEY` | A reachable ledger gateway over `https://`. Leave empty until there is one |
 
+If a push to `main` doesn't start a deploy (Render's link to the GitHub repository can stop firing),
+use **Manual Deploy** on the service in the Render dashboard, or reconnect the repository in the
+service's settings. Don't assume the API is current just because Vercel is: after a push, confirm it
+with the checks below.
+
 Checks after a deploy:
 
 - `GET /health` returns `{"status":"healthy"}`
